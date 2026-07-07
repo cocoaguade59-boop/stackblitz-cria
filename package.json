@@ -2,8 +2,14 @@
   "name": "criaturas-del-reino-mi-juego",
   "version": "1.0.0",
   "private": true,
-  "description": "Juego web en HTML Canvas sin dependencias externas.",
-  "scripts": {},
-  "dependencies": {},
+  "description": "Juego web en HTML Canvas.",
+  "type": "module",
+  "scripts": {
+    "start": "vite --host 0.0.0.0",
+    "dev": "vite --host 0.0.0.0"
+  },
+  "dependencies": {
+    "vite": "^5.4.11"
+  },
   "devDependencies": {}
 }
