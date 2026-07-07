@@ -1,8 +1,9 @@
 {
-  "scripts": {
-    "start": "servor --reload"
-  },
-  "dependencies": {
-    "servor": "^4.0.2"
-  }
+  "name": "criaturas-del-reino-mi-juego",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Juego web en HTML Canvas sin dependencias externas.",
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {}
 }

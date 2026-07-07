@@ -689,13 +689,13 @@ const CDB = {
     evoLv: 36,
   },
   hydrapom: {
-    nm: 'Hydrapom',
+    nm: 'Knightapple',
     tp: 'dragon',
     hp: 85,
     ak: 32,
     df: 18,
     sp: 14,
-    desc: 'Hydra dragón de manzanas',
+    desc: 'Caballero manzana con hojas-espada',
   },
   // HADA
   pixie: {
@@ -1053,9 +1053,9 @@ const CRE_DESC = {
     'asoma algo grande. Algo con cabezas.',
   ],
   hydrapom: [
-    '¡Una hydra dragón de manzanas! Cada',
-    'cabeza sale de una manzana gigante.',
-    'Sus alas son rodajas cristalizadas.',
+    'Knightapple parece una manzana caballero:',
+    'cuerpo rojo brillante, cuello serpentino',
+    'y hojas verdes como espada y escudo.',
   ],
   pixie: [
     'Un duende ladrón de calcetines. Nadie',
@@ -3539,8 +3539,166 @@ function dFallenPortrait(id, x, y, sc = 4) {
   cx.restore();
 }
 
+// === ASSETS DE FONDOS DE BATALLA ===
+const BATTLE_BG_ASSETS = {
+  forest: {
+    src: 'assets/battle/forest-encounter.png',
+    img: null,
+    ready: false,
+    failed: false,
+  },
+};
+
+function initBattleBackgroundAssets() {
+  if (typeof Image === 'undefined') return;
+  Object.values(BATTLE_BG_ASSETS).forEach((bg) => {
+    if (bg.img) return;
+    const img = new Image();
+    bg.img = img;
+    img.onload = () => {
+      bg.ready = true;
+      bg.failed = false;
+    };
+    img.onerror = () => {
+      bg.ready = false;
+      bg.failed = true;
+    };
+    img.src = bg.src;
+  });
+}
+
+function drawBattleBackgroundAsset(key) {
+  const bg = BATTLE_BG_ASSETS[key];
+  if (!bg || !bg.img || !bg.ready || bg.img.naturalWidth <= 0) return false;
+  try {
+    cx.imageSmoothingEnabled = false;
+    // Efecto cover: cubre todo el canvas manteniendo proporción.
+    const iw = bg.img.naturalWidth;
+    const ih = bg.img.naturalHeight;
+    const scale = Math.max(640 / iw, 480 / ih);
+    const dw = Math.ceil(iw * scale);
+    const dh = Math.ceil(ih * scale);
+    const dx = Math.floor((640 - dw) / 2);
+    const dy = Math.floor((480 - dh) / 2);
+    cx.drawImage(bg.img, dx, dy, dw, dh);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// === FONDO ESPECIAL PARA ENCUENTRO SALVAJE EN MAPA NORMAL ===
+function dWorldEncounterBG() {
+  // Si existe assets/battle/forest-encounter.png, usarlo. Si no, usar fallback por código.
+  if (drawBattleBackgroundAsset('forest')) return;
+
+  // Cielo pixel-art del bosque exterior
+  const gr = cx.createLinearGradient(0, 0, 0, 250);
+  gr.addColorStop(0, '#6FB8E8');
+  gr.addColorStop(0.55, '#B8E0F0');
+  gr.addColorStop(1, '#D8F0D0');
+  cx.fillStyle = gr;
+  cx.fillRect(0, 0, 640, 245);
+
+  // Nubes cuadradas suaves, sin curvas
+  for (let i = 0; i < 4; i++) {
+    const nx = (i * 190 - fr * 0.18) % 780 - 80;
+    const ny = 28 + (i % 2) * 34;
+    cx.fillStyle = 'rgba(120,160,190,.18)';
+    cx.fillRect(nx + 8, ny + 12, 92, 16);
+    cx.fillStyle = '#F8F8F0';
+    cx.fillRect(nx, ny + 10, 96, 14);
+    cx.fillRect(nx + 18, ny + 4, 28, 15);
+    cx.fillRect(nx + 48, ny, 34, 19);
+    cx.fillStyle = '#DCECF0';
+    cx.fillRect(nx + 4, ny + 22, 86, 3);
+  }
+
+  // Bosque profundo por capas
+  cx.fillStyle = '#184A2A';
+  cx.fillRect(0, 150, 640, 115);
+  for (let i = 0; i < 18; i++) {
+    const tx = i * 42 - ((fr * 0.05) % 42);
+    const h = 44 + (i % 4) * 10;
+    cx.fillStyle = i % 2 ? '#143A24' : '#1F5A32';
+    cx.fillRect(tx + 10, 150 - h, 18, h + 95);
+    cx.fillStyle = i % 2 ? '#20683A' : '#2A7A42';
+    cx.fillRect(tx, 122 - h * 0.25, 38, 16);
+    cx.fillRect(tx - 8, 135 - h * 0.25, 54, 18);
+    cx.fillRect(tx + 7, 108 - h * 0.25, 26, 18);
+  }
+  // Árboles frontales más definidos
+  for (let i = 0; i < 9; i++) {
+    const tx = i * 82 - 34;
+    cx.fillStyle = '#5A3818';
+    cx.fillRect(tx + 36, 142, 10, 105);
+    cx.fillStyle = '#6A4828';
+    cx.fillRect(tx + 37, 142, 3, 105);
+    cx.fillStyle = '#185C2A';
+    cx.fillRect(tx + 18, 104, 48, 26);
+    cx.fillStyle = '#20743A';
+    cx.fillRect(tx + 10, 124, 64, 28);
+    cx.fillStyle = '#2B8A45';
+    cx.fillRect(tx + 25, 86, 34, 25);
+    cx.fillStyle = '#45A85A';
+    cx.fillRect(tx + 31, 102, 16, 8);
+  }
+
+  // Suelo exterior con hierba alta de batalla
+  cx.fillStyle = '#2F7A30';
+  cx.fillRect(0, 245, 640, 235);
+  cx.fillStyle = '#3F8E3A';
+  cx.fillRect(0, 245, 640, 8);
+  for (let y = 260; y < 480; y += 18) {
+    cx.fillStyle = y % 36 === 0 ? '#2A6E2A' : '#347E34';
+    cx.fillRect(0, y, 640, 2);
+  }
+  // Parches de hierba alta frontales
+  const grassCols = ['#3A9C28', '#46B030', '#60C840'];
+  for (let i = 0; i < 90; i++) {
+    const gx = (i * 37 + (i % 5) * 9) % 640;
+    const gy = 255 + ((i * 23) % 190);
+    cx.fillStyle = grassCols[i % grassCols.length];
+    cx.fillRect(gx, gy, 3, 14 + (i % 4) * 4);
+    cx.fillStyle = '#8FE060';
+    if (i % 3 === 0) cx.fillRect(gx, gy, 3, 3);
+  }
+
+  // Plataformas estilo encuentro exterior: tierra y césped, no genéricas
+  cx.fillStyle = '#8A6A3A';
+  cx.fillRect(338, 177, 190, 16);
+  cx.fillStyle = '#A0804A';
+  cx.fillRect(346, 172, 174, 8);
+  cx.fillStyle = '#3A9C28';
+  cx.fillRect(342, 168, 182, 6);
+  cx.fillStyle = '#5FC848';
+  for (let i = 0; i < 18; i++) cx.fillRect(348 + i * 9, 164 + (i % 2) * 2, 4, 6);
+
+  cx.fillStyle = '#8A6A3A';
+  cx.fillRect(55, 307, 196, 16);
+  cx.fillStyle = '#A0804A';
+  cx.fillRect(64, 302, 178, 8);
+  cx.fillStyle = '#3A9C28';
+  cx.fillRect(60, 298, 186, 6);
+  cx.fillStyle = '#5FC848';
+  for (let i = 0; i < 19; i++) cx.fillRect(66 + i * 9, 294 + (i % 2) * 2, 4, 6);
+
+  // Brillos ambientales cuadrados tipo luciérnagas
+  for (let i = 0; i < 8; i++) {
+    const alpha = Math.sin(fr * 0.05 + i) * 0.25 + 0.35;
+    cx.globalAlpha = alpha;
+    cx.fillStyle = '#F8F8C0';
+    cx.fillRect((i * 79 + fr * 0.2) % 640, 180 + (i * 31) % 90, 2, 2);
+  }
+  cx.globalAlpha = 1;
+}
+
 // === GRADIENTE DE FONDO (para batalla) ===
 function dBattleBG() {
+  if (G.bs && !G.bs.isNPC && G.bs.bgMap === 'world' && !G.bs.isBoss) {
+    dWorldEncounterBG();
+    return;
+  }
   const gr = cx.createLinearGradient(0, 0, 0, 240);
   gr.addColorStop(0, '#1a0a3a');
   gr.addColorStop(0.5, '#2a1a4a');
@@ -4511,11 +4669,11 @@ function dNPC(x, y, id, f) {
       px(x + 6, by + 11, 20, 8, '#C83888');
       px(x + 8, by + 12, 16, 6, '#D84898');
       px(x + 10, by + 13, 12, 4, '#E858A8');
-      px(x + 3, by + 12, 4, 7, SK.a);
-      px(x + 25, by + 12, 4, 7, SK.a);
-      px(x + 13, by + 9, 6, 3, SK.a);
-      px(x + 9, by + 0, 14, 10, SK.a);
-      px(x + 10, by + 1, 12, 8, SK.d);
+      px(x + 3, by + 12, 4, 7, SK.c);
+      px(x + 25, by + 12, 4, 7, SK.c);
+      px(x + 13, by + 9, 6, 3, SK.c);
+      px(x + 9, by + 0, 14, 10, SK.c);
+      px(x + 10, by + 1, 12, 8, SK.c);
       // Pelo NEGRO ONDULADO largo
       px(x + 7, by - 2, 18, 4, '#1A1A1A');
       px(x + 6, by + 0, 4, 16, '#1A1A1A');
@@ -4536,7 +4694,7 @@ function dNPC(x, y, id, f) {
       px(x + 20, by + 4, 2, 3, '#6A4028');
       px(x + 13, by + 4, 1, 1, '#fff');
       px(x + 20, by + 4, 1, 1, '#fff');
-      px(x + 14, by + 8, 4, 1, '#E0A090');
+      px(x + 14, by + 8, 4, 1, '#B08060');
       // Post-game: armadura dorada
       if (postGame) {
         px(x + 6, by + 11, 20, 8, '#90A0B0');
@@ -4795,14 +4953,14 @@ function dNPC(x, y, id, f) {
       px(x + 19, by + 11, 3, 4, '#388038'); // Tirantes
       px(x + 6, by + 11, 20, 4, '#D8C8A0');
       px(x + 8, by + 12, 16, 2, '#E0D0B0');
-      px(x + 4, by + 12, 4, 7, SK.b);
-      px(x + 24, by + 12, 4, 7, SK.b);
-      px(x + 11, by + 6, 1, 1, '#C89060');
-      px(x + 14, by + 7, 1, 1, '#C89060');
-      px(x + 21, by + 6, 1, 1, '#C89060'); // Pecas
-      px(x + 13, by + 9, 6, 3, SK.b);
-      px(x + 9, by + 0, 14, 10, SK.b);
-      px(x + 10, by + 1, 12, 8, SK.a);
+      px(x + 4, by + 12, 4, 7, SK.c);
+      px(x + 24, by + 12, 4, 7, SK.c);
+      px(x + 11, by + 6, 1, 1, '#A06A45');
+      px(x + 14, by + 7, 1, 1, '#A06A45');
+      px(x + 21, by + 6, 1, 1, '#A06A45'); // Pecas
+      px(x + 13, by + 9, 6, 3, SK.c);
+      px(x + 9, by + 0, 14, 10, SK.c);
+      px(x + 10, by + 1, 12, 8, SK.c);
       // Sombrero de paja
       px(x + 5, by - 3, 22, 4, '#E0C060');
       px(x + 7, by - 5, 18, 4, '#E8C870');
@@ -4817,7 +4975,7 @@ function dNPC(x, y, id, f) {
       px(x + 19, by + 4, 2, 2, '#2A6020');
       px(x + 13, by + 4, 1, 1, '#fff');
       px(x + 19, by + 4, 1, 1, '#fff');
-      px(x + 13, by + 8, 6, 1, '#C08868');
+      px(x + 13, by + 8, 6, 1, '#B08060');
       break;
 
     case 'gonchi': // Anteojos, arriba gris abajo azul grisáceo, mochila, capucha
@@ -5808,11 +5966,11 @@ function dTrainerBig(x, y, id, f) {
         px(x + 14, by + 22, 36, 14, '#D84898');
         px(x + 18, by + 24, 28, 10, '#E858A8');
       }
-      px(x + 6, by + 24, 8, 14, SK.a);
-      px(x + 50, by + 24, 8, 14, SK.a);
-      px(x + 24, by + 14, 16, 8, SK.a);
-      px(x + 18, by - 2, 28, 18, SK.a);
-      px(x + 20, by + 0, 24, 14, SK.d);
+      px(x + 6, by + 24, 8, 14, SK.c);
+      px(x + 50, by + 24, 8, 14, SK.c);
+      px(x + 24, by + 14, 16, 8, SK.c);
+      px(x + 18, by - 2, 28, 18, SK.c);
+      px(x + 20, by + 0, 24, 14, SK.c);
       // Pelo negro ondulado largo con flores
       px(x + 14, by - 8, 36, 10, '#1A1A1A');
       px(x + 12, by - 2, 8, 32, '#1A1A1A');
@@ -5836,7 +5994,7 @@ function dTrainerBig(x, y, id, f) {
       // Pestañas
       px(x + 22, by + 4, 2, 1, '#1A1A1A');
       px(x + 42, by + 4, 2, 1, '#1A1A1A');
-      px(x + 28, by + 14, 8, 2, '#E0A090');
+      px(x + 28, by + 14, 8, 2, '#B08060');
       break;
 
     case 'hernan': // Todo negro, barba corta (sin barba post-game), ojos melancólicos
@@ -6488,15 +6646,15 @@ function dTrainerBig(x, y, id, f) {
       px(x + 38, by + 22, 6, 14, '#388038');
       px(x + 10, by + 20, 44, 8, '#D8C8A0');
       px(x + 14, by + 22, 36, 4, '#E0D0B0');
-      px(x + 6, by + 24, 8, 14, SK.b);
-      px(x + 50, by + 24, 8, 14, SK.b);
+      px(x + 6, by + 24, 8, 14, SK.c);
+      px(x + 50, by + 24, 8, 14, SK.c);
       // Pecas
-      px(x + 22, by + 10, 2, 2, '#C89060');
-      px(x + 28, by + 12, 2, 2, '#C89060');
-      px(x + 40, by + 10, 2, 2, '#C89060');
-      px(x + 24, by + 14, 16, 8, SK.b);
-      px(x + 18, by - 2, 28, 18, SK.b);
-      px(x + 20, by + 0, 24, 14, SK.a);
+      px(x + 22, by + 10, 2, 2, '#A06A45');
+      px(x + 28, by + 12, 2, 2, '#A06A45');
+      px(x + 40, by + 10, 2, 2, '#A06A45');
+      px(x + 24, by + 14, 16, 8, SK.c);
+      px(x + 18, by - 2, 28, 18, SK.c);
+      px(x + 20, by + 0, 24, 14, SK.c);
       // Sombrero de paja
       px(x + 8, by - 8, 48, 8, '#E0C060');
       px(x + 14, by - 12, 36, 8, '#E8C870');
@@ -6511,7 +6669,7 @@ function dTrainerBig(x, y, id, f) {
       px(x + 39, by + 8, 3, 3, '#2A6020');
       px(x + 25, by + 8, 2, 1, '#fff');
       px(x + 39, by + 8, 2, 1, '#fff');
-      px(x + 26, by + 14, 12, 2, '#C08868');
+      px(x + 26, by + 14, 12, 2, '#B08060');
       break;
 
     case 'gonchi': // Anteojos, gorro, arriba gris abajo azul gris, mochila
@@ -6728,145 +6886,154 @@ function dCre(x, y, id, lv, f) {
       }
       break;
 
-    case 'thornbuck': // Carnero guardaespaldas punk
-      px(x + 4, by + 18, 24 + sz, 16 + sz, '#406028');
-      px(x + 6, by + 20, 20 + sz, 12 + sz, '#507030');
-      px(x + 6, by + 18, 20 + sz, 10, '#2A3820');
-      px(x + 8, by + 20, 16 + sz, 6, '#3A4830');
-      px(x + 6, by + 19, 2, 2, '#C8A830');
-      px(x + sz + 24, by + 19, 2, 2, '#C8A830');
-      px(x + 4, by + 2, 24 + sz, 16, '#406028');
-      px(x + 6, by + 4, 20 + sz, 12, '#507030');
-      px(x + 2, by - 2, 6, 8, '#3A5020');
-      px(x + sz + 24, by - 2, 6, 8, '#3A5020');
-      px(x, by - 4, 4, 4, '#486828');
-      px(x + sz + 28, by - 4, 4, 4, '#486828');
-      px(x + 1, by - 4, 2, 2, '#C8A830');
-      px(x + sz + 29, by - 4, 2, 2, '#C8A830');
-      px(x + 12, by - 2, 8 + sz, 4, '#38A020');
-      px(x + 14, by - 4, 4 + sz, 3, '#48C030');
-      px(x + 8, by + 8, 5, 4, '#fff');
-      px(x + sz + 20, by + 8, 5, 4, '#fff');
-      px(x + 10, by + 9, 3, 3, '#203010');
-      px(x + sz + 22, by + 9, 3, 3, '#203010');
-      px(x + 10, by + 9, 1, 1, '#C8A830');
-      px(x + sz + 22, by + 9, 1, 1, '#C8A830');
-      px(x + 12, by + 14, 8, 2, '#406028');
-      px(x + 13, by + 15, 2, 1, '#E8E8E8');
-      px(x + 17, by + 15, 2, 1, '#E8E8E8');
-      px(x + 6, by + 32 + sz, 6, 8, '#406028');
-      px(x + sz + 20, by + 32 + sz, 6, 8, '#406028');
-      px(x + 5, by + 38 + sz, 7, 2, '#3A2A1A');
-      px(x + sz + 19, by + 38 + sz, 7, 2, '#3A2A1A');
-      break;
-
-    // ==========================================
-    // DRAGÓN 🐉
-    // ==========================================
-
-    case 'wyvern': // Wyvernito: cría acurrucada, casi sin volar
+    case 'thornbuck': // Espinardo: carnerito punk pequeño, bajo y con pocas espinas
       {
-        const wig = Math.sin(f * 0.16) * 1;
-        // silueta baja y enrollada, no erguida
-        px(x + 8, by + 27 + wig, 22 + sz, 8 + sz, '#4820A0');
-        px(x + 10, by + 29 + wig, 18 + sz, 5 + sz, '#6840C0');
-        px(x + 3, by + 30 + wig, 10, 5, '#3818A0'); // colita enrollada
-        px(x + 1, by + 28 + wig, 5, 4, '#C8A030');
-        // cabeza grande de cachorro
-        px(x + 7, by + 9 + wig, 20 + sz, 15, '#4820A0');
-        px(x + 9, by + 11 + wig, 16 + sz, 11, '#5830B0');
-        px(x + 11, by + 13 + wig, 12 + sz, 7, '#6840C0');
-        // alas mini como muñones
-        px(x + 2, by + 22 + wig, 8, 5, '#281070');
-        px(x + sz + 25, by + 22 + wig, 8, 5, '#281070');
-        px(x + 4, by + 23 + wig, 5, 3, '#4820B0');
-        px(x + sz + 27, by + 23 + wig, 5, 3, '#4820B0');
-        // cuernos de leche
-        px(x + 7, by + 5 + wig, 3, 5, '#C8A030');
-        px(x + sz + 24, by + 5 + wig, 3, 5, '#C8A030');
-        px(x + 6, by + 4 + wig, 2, 3, '#D8B040');
-        px(x + sz + 26, by + 4 + wig, 2, 3, '#D8B040');
-        // ojos grandes y mordisquito
-        px(x + 10, by + 14 + wig, 6, 6, '#F0C020');
-        px(x + sz + 19, by + 14 + wig, 6, 6, '#F0C020');
-        px(x + 12, by + 16 + wig, 3, 3, '#100838');
-        px(x + sz + 21, by + 16 + wig, 3, 3, '#100838');
-        px(x + 14, by + 22 + wig, 5, 2, '#E05050');
-        // patitas cortas
-        px(x + 12, by + 34 + sz + wig, 4, 4, '#4820A0');
-        px(x + 22, by + 34 + sz + wig, 4, 4, '#4820A0');
+        const hop = Math.sin(f * 0.16) * 1;
+        px(x + 9, by + 25 + hop, 18 + sz, 10 + sz, '#406028');
+        px(x + 11, by + 27 + hop, 14 + sz, 6 + sz, '#5A7838');
+        px(x + 13, by + 28 + hop, 10 + sz, 3, '#6C9040');
+        px(x + 10, by + 22 + hop, 16 + sz, 5, '#1A2818');
+        px(x + 12, by + 23 + hop, 12 + sz, 3, '#2A3828');
+        px(x + 12, by + 22 + hop, 2, 2, '#C8A830');
+        px(x + sz + 22, by + 22 + hop, 2, 2, '#C8A830');
+        px(x + 8, by + 8 + hop, 20 + sz, 15, '#406028');
+        px(x + 10, by + 10 + hop, 16 + sz, 11, '#5A7838');
+        px(x + 12, by + 12 + hop, 12 + sz, 7, '#6C9040');
+        px(x + 4, by + 6 + hop, 6, 5, '#304818');
+        px(x + sz + 27, by + 6 + hop, 6, 5, '#304818');
+        px(x + 3, by + 5 + hop, 3, 3, '#D8B840');
+        px(x + sz + 31, by + 5 + hop, 3, 3, '#D8B840');
+        px(x + 13, by + 4 + hop, 9 + sz, 3, '#38A020');
+        px(x + 15, by + 2 + hop, 5 + sz, 3, '#48C030');
+        px(x + 11, by + 13 + hop, 5, 4, '#fff');
+        px(x + sz + 20, by + 13 + hop, 5, 4, '#fff');
+        px(x + 13, by + 14 + hop, 3, 2, '#203010');
+        px(x + sz + 22, by + 14 + hop, 3, 2, '#203010');
+        px(x + 13, by + 19 + hop, 7, 1, '#263818');
+        px(x + 10, by + 34 + sz + hop, 5, 5, '#406028');
+        px(x + sz + 21, by + 34 + sz + hop, 5, 5, '#406028');
+        px(x + 9, by + 38 + sz + hop, 6, 2, '#3A2A1A');
+        px(x + sz + 21, by + 38 + sz + hop, 6, 2, '#3A2A1A');
+        px(x + 7, by + 24 + hop, 3, 4, '#A8D860');
+        px(x + sz + 27, by + 24 + hop, 3, 4, '#A8D860');
       }
       break;
 
-    case 'eastern': // Dragón oriental chef de dumplings
-      px(x + 4, by + 18, 24 + sz, 16 + sz, '#C83030');
-      px(x + 6, by + 20, 20 + sz, 12 + sz, '#D84040');
-      px(x + 8, by + 22, 16 + sz, 8, '#E85050');
-      px(x + 2, by + 24, 6, 8, '#B82828');
-      px(x + sz + 24, by + 24, 6, 8, '#B82828');
-      px(x + 6, by + 2, 20 + sz, 16, '#C83030');
-      px(x + 8, by + 4, 16 + sz, 12, '#D84040');
-      px(x + 4, by + 10, 4, 1, '#E8C830');
-      px(x + 2, by + 12, 3, 1, '#E8C830');
-      px(x + sz + 24, by + 10, 4, 1, '#E8C830');
-      px(x + sz + 27, by + 12, 3, 1, '#E8C830');
-      px(x + 6, by - 2, 4, 5, '#E8C830');
-      px(x + sz + 22, by - 2, 4, 5, '#E8C830');
-      px(x + 5, by - 4, 3, 3, '#F0D040');
-      px(x + sz + 24, by - 4, 3, 3, '#F0D040');
-      px(x + 10, by - 2, 12 + sz, 4, '#F8F8F8');
-      px(x + 12, by - 5, 8 + sz, 5, '#F8F8F8');
-      px(x + 14, by - 6, 4 + sz, 3, '#F0F0F0');
-      px(x + 10, by + 6, 5, 5, '#fff');
-      px(x + sz + 18, by + 6, 5, 5, '#fff');
-      px(x + 12, by + 8, 3, 3, '#881818');
-      px(x + sz + 20, by + 8, 3, 3, '#881818');
-      px(x + 12, by + 8, 1, 1, '#fff');
-      px(x + sz + 20, by + 8, 1, 1, '#fff');
-      px(x + sz + 22, by + 28, 6, 5, '#F0E0C0');
-      px(x + sz + 23, by + 29, 4, 3, '#F8E8D0');
-      px(x + sz + 24, by + 28, 2, 1, '#E0D0B0');
-      px(x + 8, by + 32 + sz, 5, 5, '#C83030');
-      px(x + sz + 18, by + 32 + sz, 5, 5, '#C83030');
-      cx.globalAlpha = 0.3;
-      px(x + sz + 28, by + 26, 4, 3, '#E8E8E8');
-      cx.globalAlpha = 1;
-      break;
-
-    case 'serpentdrg': // Serpiente dragón mafioso elegante
-      px(x + 6, by + 16, 20 + sz, 20 + sz, '#282858');
-      px(x + 8, by + 18, 16 + sz, 16 + sz, '#383868');
-      px(x + 10, by + 20, 12 + sz, 12, '#484878');
-      px(x + 2, by + 28, 6, 8, '#282858');
-      px(x + sz + 24, by + 26, 6, 10, '#282858');
-      px(x, by + 32, 4, 6, '#383868');
-      px(x + sz + 28, by + 30, 4, 6, '#383868');
-      px(x + 6, by + 2, 20 + sz, 16, '#282858');
-      px(x + 8, by + 4, 16 + sz, 12, '#383868');
-      px(x + 10, by + 6, 12 + sz, 8, '#484878');
-      px(x + 4, by - 2, 24 + sz, 4, '#1A1A1A');
-      px(x + 8, by - 5, 16 + sz, 5, '#282828');
-      px(x + 10, by - 6, 12 + sz, 3, '#383838');
-      px(x + 12, by - 4, 8 + sz, 1, '#C83030');
-      px(x + 10, by + 6, 5, 3, '#F0C020');
-      px(x + sz + 18, by + 6, 5, 3, '#F0C020');
-      px(x + 12, by + 7, 2, 2, '#100838');
-      px(x + sz + 20, by + 7, 2, 2, '#100838');
-      px(x + 10, by + 4, 1, 4, '#C07060');
-      px(x + sz + 22, by + 12, 6, 2, '#8A6020');
-      px(x + sz + 27, by + 11, 2, 2, '#E8A030');
-      if (f % 20 < 10) {
-        px(x + sz + 28, by + 9, 2, 2, '#C8C8C8');
+    case 'wyvern': // Wyvernito: cachorro agresivo, agazapado con alas puntiagudas
+      {
+        const snarl = Math.sin(f * 0.18) * 1;
+        // postura baja de depredador, listo para saltar
+        px(x + 6, by + 26 + snarl, 24 + sz, 10 + sz, '#3A1690');
+        px(x + 9, by + 28 + snarl, 18 + sz, 6 + sz, '#5830B0');
+        px(x - 1, by + 30 + snarl, 10, 4, '#241060'); // cola
+        px(x - 5, by + 28 + snarl, 5, 4, '#151018');
+        px(x - 7, by + 27 + snarl, 3, 3, '#1ED060');
+        // alas pequeñas pero afiladas
+        px(x + 0, by + 18 + snarl, 12, 5, '#1C1028');
+        px(x - 4, by + 22 + snarl, 12, 4, '#2A1668');
+        px(x + sz + 25, by + 18 + snarl, 12, 5, '#1C1028');
+        px(x + sz + 29, by + 22 + snarl, 12, 4, '#2A1668');
+        px(x + 4, by + 20 + snarl, 5, 2, '#1ED060');
+        px(x + sz + 29, by + 20 + snarl, 5, 2, '#1ED060');
+        // cabeza grande con mandíbula agresiva
+        px(x + 8, by + 8 + snarl, 21 + sz, 15, '#3A1690');
+        px(x + 10, by + 10 + snarl, 17 + sz, 11, '#5830B0');
+        px(x + 13, by + 12 + snarl, 12 + sz, 7, '#7040C8');
+        // cuernos negros con punta verde
+        px(x + 6, by + 3 + snarl, 4, 7, '#101010');
+        px(x + sz + 26, by + 3 + snarl, 4, 7, '#101010');
+        px(x + 5, by + 1 + snarl, 3, 3, '#1ED060');
+        px(x + sz + 29, by + 1 + snarl, 3, 3, '#1ED060');
+        // ojos verdes de cachorro feroz
+        px(x + 11, by + 13 + snarl, 6, 5, '#74FF80');
+        px(x + sz + 21, by + 13 + snarl, 6, 5, '#74FF80');
+        px(x + 13, by + 15 + snarl, 3, 2, '#001008');
+        px(x + sz + 23, by + 15 + snarl, 3, 2, '#001008');
+        px(x + 14, by + 21 + snarl, 8, 2, '#101010');
+        px(x + 15, by + 22 + snarl, 2, 2, '#F8F8F8');
+        px(x + 21, by + 22 + snarl, 2, 2, '#F8F8F8');
+        // garras delanteras
+        px(x + 9, by + 35 + sz + snarl, 6, 4, '#3A1690');
+        px(x + sz + 24, by + 35 + sz + snarl, 6, 4, '#3A1690');
+        px(x + 8, by + 38 + sz + snarl, 3, 2, '#1ED060');
+        px(x + sz + 28, by + 38 + sz + snarl, 3, 2, '#1ED060');
       }
-      px(x + 14, by + 14, 4, 8, '#C83030');
-      px(x + 15, by + 14, 2, 1, '#C83030');
-      px(x - 4, by + 34, 6, 3, '#282858');
-      px(x - 7, by + 32, 4, 4, '#C8A030');
       break;
 
-    // ==========================================
-    // HADA 🧚
-    // ==========================================
+    case 'eastern': // Lóngbao: dragón oriental bebé dentro de un bao al vapor
+      {
+        const steam = Math.sin(f * 0.1) * 2;
+        // vapor cuadrado alrededor
+        cx.globalAlpha = 0.35;
+        px(x + 6, by + 2 + steam, 3, 3, '#F8F8F8');
+        px(x + 24, by + 4 - steam, 3, 3, '#F8F8F8');
+        px(x + 15, by - 1 + steam, 2, 2, '#F0F0F0');
+        cx.globalAlpha = 1;
+        // cuerpo bao: blanco/crema, redondito por bloques
+        px(x + 6, by + 19, 24 + sz, 17 + sz, '#E8D8C0');
+        px(x + 8, by + 17, 20 + sz, 18 + sz, '#F8E8D0');
+        px(x + 11, by + 15, 14 + sz, 6, '#FFF0D8');
+        // pliegues del bao
+        px(x + 12, by + 17, 2, 14, '#D8C0A0');
+        px(x + 18, by + 16, 2, 13, '#D8C0A0');
+        px(x + 24, by + 18, 2, 10, '#D8C0A0');
+        px(x + 14, by + 14, 8, 3, '#E8D8C0');
+        // cabeza de dragón asomando
+        px(x + 8, by + 4, 20 + sz, 14, '#C83030');
+        px(x + 10, by + 6, 16 + sz, 10, '#D84040');
+        px(x + 12, by + 8, 12 + sz, 6, '#E85050');
+        // bigotes/fideos chinos
+        px(x + 3, by + 13, 8, 2, '#F8F8F8');
+        px(x + sz + 25, by + 13, 8, 2, '#F8F8F8');
+        px(x + 1, by + 15, 5, 1, '#E8E8E8');
+        px(x + sz + 31, by + 15, 5, 1, '#E8E8E8');
+        // cuernos y gorrito de vapor
+        px(x + 6, by - 1, 4, 5, '#E8C830');
+        px(x + sz + 25, by - 1, 4, 5, '#E8C830');
+        px(x + 5, by - 3, 3, 3, '#F0D040');
+        px(x + sz + 27, by - 3, 3, 3, '#F0D040');
+        px(x + 14, by - 3, 8 + sz, 3, '#F8F8F8');
+        // ojos
+        px(x + 10, by + 9, 5, 5, '#fff');
+        px(x + sz + 19, by + 9, 5, 5, '#fff');
+        px(x + 12, by + 11, 3, 3, '#881818');
+        px(x + sz + 21, by + 11, 3, 3, '#881818');
+        px(x + 15, by + 15, 5, 2, '#A82820');
+        // colita de dragón saliendo del bao
+        px(x + sz + 28, by + 26, 6, 5, '#C83030');
+        px(x + sz + 32, by + 24, 4, 4, '#E85050');
+      }
+      break;
+
+    case 'serpentdrg': // Serpentón: serpiente dragón mafioso joven, más pequeño
+      {
+        const sway = Math.sin(f * 0.12) * 1;
+        px(x + 9, by + 22 + sway, 18 + sz, 10 + sz, '#282858');
+        px(x + 11, by + 24 + sway, 14 + sz, 6 + sz, '#383868');
+        px(x + 6, by + 29 + sway, 16, 4, '#282858');
+        px(x + 2, by + 32 + sway, 9, 4, '#383868');
+        px(x + sz + 24, by + 30 + sway, 9, 4, '#282858');
+        px(x + 15, by + 18 + sway, 4, 9, '#C83030');
+        px(x + 16, by + 18 + sway, 2, 1, '#D84040');
+        px(x + 8, by + 6 + sway, 18 + sz, 12, '#282858');
+        px(x + 10, by + 8 + sway, 14 + sz, 8, '#383868');
+        px(x + 12, by + 10 + sway, 10 + sz, 5, '#484878');
+        px(x + 5, by + 1 + sway, 24 + sz, 4, '#1A1A1A');
+        px(x + 9, by - 2 + sway, 16 + sz, 4, '#282828');
+        px(x + 11, by - 3 + sway, 12 + sz, 2, '#383838');
+        px(x + 13, by - 1 + sway, 8 + sz, 1, '#C83030');
+        px(x + 11, by + 9 + sway, 5, 3, '#F0C020');
+        px(x + sz + 19, by + 9 + sway, 5, 3, '#F0C020');
+        px(x + 13, by + 10 + sway, 2, 2, '#100838');
+        px(x + sz + 21, by + 10 + sway, 2, 2, '#100838');
+        px(x + 11, by + 7 + sway, 1, 4, '#C07060');
+        px(x + sz + 22, by + 15 + sway, 6, 2, '#8A6020');
+        px(x + sz + 27, by + 14 + sway, 2, 2, '#E8A030');
+        if (f % 20 < 10) px(x + sz + 28, by + 12 + sway, 2, 2, '#C8C8C8');
+        px(x - 4, by + 34 + sway, 6, 3, '#282858');
+        px(x - 7, by + 32 + sway, 4, 4, '#C8A030');
+      }
+      break;
 
     case 'pixie': // Duendecillo: ladrón pequeño, encorvado y con saco diminuto
       {
@@ -7051,46 +7218,51 @@ function dCre(x, y, id, lv, f) {
     // EVOLUCIONES FUEGO 🔥
     // ==========================================
 
-    case 'flamcrest': // Flamcrest: adolescente alto, cuello largo y abanico naciente
+    case 'flamcrest': // Flamcrest: adolescente de cuello corto con abanico controlado
       {
         const sway = Math.sin(f * 0.12) * 2;
-        // cola/abanico vertical detrás: cambia drásticamente la silueta
-        px(x - 8, by + 10 + sway, 6, 24, '#8A1810');
-        px(x - 2, by + 6 + sway, 6, 30, '#B82818');
-        px(x + 4, by + 3 + sway, 6, 33, '#D83828');
-        px(x + 10, by + 1 + sway, 6, 35, '#E84838');
-        px(x + 16, by + 1 - sway, 6, 35, '#E84838');
-        px(x + 22, by + 3 - sway, 6, 33, '#D83828');
-        px(x + 28, by + 6 - sway, 6, 30, '#B82818');
-        px(x + 34, by + 10 - sway, 6, 24, '#8A1810');
-        // ojos de pluma del abanico
-        for (let i = 0; i < 5; i++) {
-          const fx = x + 2 + i * 7;
-          const fy = by + 8 + Math.abs(i - 2) * 2;
+        // cola/abanico intermedio: menos plumas, no tan final como Inferpavo
+        const tail = [
+          [-4, 10 + sway, '#8A1810'],
+          [3, 6 + sway, '#B82818'],
+          [10, 4 + sway, '#D83828'],
+          [17, 4 - sway, '#D83828'],
+          [24, 6 - sway, '#B82818'],
+          [31, 10 - sway, '#8A1810'],
+        ];
+        tail.forEach((t, i) => {
+          const h = i === 2 || i === 3 ? 27 : i === 1 || i === 4 ? 24 : 19;
+          px(x + t[0], by + t[1], 6, h, t[2]);
+          px(x + t[0] + 1, by + t[1] + 2, 4, Math.max(8, h - 8), i === 2 || i === 3 ? '#E84838' : '#E83828');
+        });
+        // ojos de pluma reducidos
+        for (let i = 0; i < 3; i++) {
+          const fx = x + 7 + i * 9;
+          const fy = by + 10 + Math.abs(i - 1) * 2;
           px(fx, fy, 4, 4, '#F8A030');
           px(fx + 1, fy + 1, 2, 2, '#2040A0');
         }
-        // cuerpo más delgado y erguido
+        // cuerpo erguido pero juvenil
         px(x + 10, by + 23, 14 + sz, 13 + sz, '#B82818');
         px(x + 12, by + 25, 10 + sz, 9 + sz, '#D83828');
         px(x + 14, by + 27, 6 + sz, 5, '#F06838');
-        // cuello largo
-        px(x + 15, by + 11, 5 + sz, 14, '#B82818');
-        px(x + 17, by + 10, 2 + sz, 14, '#E84838');
-        // cabeza pequeña altiva
-        px(x + 10, by + 4, 15 + sz, 10, '#B82818');
-        px(x + 12, by + 6, 11 + sz, 6, '#D83828');
-        // cresta grande
-        px(x + 10, by - 5, 3, 9, '#E82020');
-        px(x + 15, by - 8, 4, 12, '#F83828');
-        px(x + 21, by - 5, 3, 9, '#E82020');
-        px(x + 16, by - 6, 2, 7, '#F8C040');
+        // cuello más corto
+        px(x + 15, by + 14, 5 + sz, 10, '#B82818');
+        px(x + 17, by + 13, 2 + sz, 10, '#E84838');
+        // cabeza altiva, más cerca del cuerpo
+        px(x + 10, by + 7, 15 + sz, 10, '#B82818');
+        px(x + 12, by + 9, 11 + sz, 6, '#D83828');
+        // cresta mediana
+        px(x + 10, by - 1, 3, 8, '#E82020');
+        px(x + 15, by - 4, 4, 11, '#F83828');
+        px(x + 21, by - 1, 3, 8, '#E82020');
+        px(x + 16, by - 2, 2, 6, '#F8C040');
         // ojos serios
-        px(x + 12, by + 7, 4, 4, '#fff');
-        px(x + sz + 20, by + 7, 4, 4, '#fff');
-        px(x + 14, by + 9, 2, 2, '#801010');
-        px(x + sz + 21, by + 9, 2, 2, '#801010');
-        px(x + 15, by + 14, 5, 2, '#F0C030');
+        px(x + 12, by + 10, 4, 4, '#fff');
+        px(x + sz + 20, by + 10, 4, 4, '#fff');
+        px(x + 14, by + 12, 2, 2, '#801010');
+        px(x + sz + 21, by + 12, 2, 2, '#801010');
+        px(x + 15, by + 17, 5, 2, '#F0C030');
         // patas largas
         px(x + 12, by + 35 + sz, 4, 8, '#C89020');
         px(x + sz + 21, by + 35 + sz, 4, 8, '#C89020');
@@ -7286,108 +7458,141 @@ function dCre(x, y, id, lv, f) {
       }
       break;
 
-    case 'infernotoro': // Toro chef en llamas
-      px(x + 2, by + 16, 28 + sz, 18 + sz, '#901808');
-      px(x + 4, by + 18, 24 + sz, 14 + sz, '#B02818');
-      px(x + 8, by + 18, 16 + sz, 12, '#D8C8A0');
-      px(x + 10, by + 20, 12 + sz, 8, '#E0D0B0');
-      px(x + 10, by + 22, 3, 3, '#A08060');
-      px(x + 18, by + 24, 3, 2, '#B09070');
-      const itf2 = Math.sin(f * 0.2) * 2;
-      px(x + 6, by + 28 + itf2, 4, 4, '#E84020');
-      px(x + sz + 22, by + 26 + itf2, 4, 4, '#F86040');
-      px(x + 4, by + 2, 24 + sz, 16, '#901808');
-      px(x + 6, by + 4, 20 + sz, 12, '#B02818');
-      px(x + 2, by + 0, 5, 8, '#E8D8C0');
-      px(x + sz + 25, by + 0, 5, 8, '#E8D8C0');
-      px(x + 1, by - 2, 4, 4, '#E84020');
-      px(x + sz + 27, by - 2, 4, 4, '#E84020');
-      px(x + 8, by + 6, 6, 5, '#F8C030');
-      px(x + sz + 18, by + 6, 6, 5, '#F8C030');
-      px(x + 10, by + 8, 3, 3, '#601010');
-      px(x + sz + 20, by + 8, 3, 3, '#601010');
-      px(x + 12, by + 14, 8, 4, '#B02818');
-      if (f % 16 < 8) {
-        px(x + 14, by + 12, 2, 2, '#C8C8C8');
+    case 'infernotoro': // Infernotoro: toro cuadrúpedo negro con cuernos y cola de fuego
+      {
+        const flame = Math.sin(f * 0.18) * 2;
+        // cuerpo cuadrúpedo negro, ancho y bajo
+        px(x - 2, by + 18, 36 + sz, 19 + sz, '#101010');
+        px(x + 1, by + 20, 32 + sz, 15 + sz, '#181818');
+        px(x + 5, by + 23, 24 + sz, 8, '#242020');
+        // lomo ardiente tenue
+        px(x + 6, by + 16, 22 + sz, 5, '#501010');
+        px(x + 10, by + 15, 14 + sz, 3, '#A82010');
+        // cuatro patas fuertes
+        px(x + 2, by + 34 + sz, 6, 10, '#101010');
+        px(x + 12, by + 35 + sz, 6, 9, '#101010');
+        px(x + sz + 23, by + 35 + sz, 6, 9, '#101010');
+        px(x + sz + 33, by + 34 + sz, 6, 10, '#101010');
+        px(x + 0, by + 43 + sz, 10, 3, '#050505');
+        px(x + sz + 32, by + 43 + sz, 10, 3, '#050505');
+        // cabeza poderosa al frente
+        px(x + 22, by + 7, 17 + sz, 16, '#101010');
+        px(x + 24, by + 9, 13 + sz, 12, '#201818');
+        px(x + 30, by + 16, 9, 6, '#0A0A0A'); // hocico oscuro
+        px(x + 30, by + 18, 2, 2, '#C8A080');
+        px(x + 34, by + 18, 2, 2, '#C8A080');
+        // cuernos grandes de fuego
+        px(x + 15, by + 1, 10, 6, '#E84020');
+        px(x + 11, by - 3, 8, 5, '#F8A030');
+        px(x + 8, by - 5, 5, 4, '#F8E060');
+        px(x + sz + 37, by + 1, 10, 6, '#E84020');
+        px(x + sz + 45, by - 3, 8, 5, '#F8A030');
+        px(x + sz + 52, by - 5, 5, 4, '#F8E060');
+        // ojos encendidos
+        px(x + 25, by + 11, 4, 4, '#F8C030');
+        px(x + sz + 33, by + 11, 4, 4, '#F8C030');
+        px(x + 27, by + 13, 2, 2, '#601010');
+        px(x + sz + 35, by + 13, 2, 2, '#601010');
+        // cola con punta de llama
+        px(x - 10, by + 22, 12, 4, '#101010');
+        px(x - 17, by + 17 + flame, 8, 8, '#E84020');
+        px(x - 20, by + 13 + flame, 6, 6, '#F8A030');
+        px(x - 22, by + 10 + flame, 3, 5, '#F8E060');
+        // delantal quemado mínimo para mantener idea chef
+        px(x + 12, by + 25, 13, 7, '#D8C8A0');
+        px(x + 14, by + 26, 9, 4, '#E0D0B0');
+        cx.globalAlpha = 0.08;
+        cx.fillStyle = '#F84020';
+        pixelGlow(x + 18, by + 24, 34 + sz, 20);
+        cx.globalAlpha = 1;
       }
-      px(x + sz + 24, by + 20, 8, 2, '#484848');
-      px(x + sz + 26, by + 18, 4, 3, '#585858');
-      px(x + sz + 27, by + 16, 3, 3, '#E84020');
-      px(x + 6, by + 32 + sz, 6, 6, '#901808');
-      px(x + sz + 20, by + 32 + sz, 6, 6, '#901808');
       break;
 
-    // ==========================================
-    // EVOLUCIONES AGUA 💧
-    // ==========================================
-
-    case 'ajolord': // Ajolord: adolescente con brazos gruesos y caídos
+    case 'ajolord': // Ajolord: piel morada, brazos gruesos caídos y picos de hielo
       {
         const droop = Math.sin(f * 0.1) * 1;
-        // cuerpo tamaño intermedio
-        px(x + 4, by + 18, 24 + sz, 14 + sz, '#2060B0');
-        px(x + 6, by + 20, 20 + sz, 10 + sz, '#2878C8');
-        px(x + 8, by + 22, 16 + sz, 6, '#3090D8');
+        const P1 = '#5A4AA0', P2 = '#6A58B8', P3 = '#8070D0';
+        const ICE1 = '#B8E8F8', ICE2 = '#E8F8FF';
+        // cuerpo intermedio más morado, preparando la armadura de hielo final
+        px(x + 4, by + 18, 24 + sz, 14 + sz, P1);
+        px(x + 6, by + 20, 20 + sz, 10 + sz, P2);
+        px(x + 8, by + 22, 16 + sz, 6, P3);
+        // placas/picos de hielo en hombros y lomo
+        px(x + 5, by + 15, 5, 5, ICE1);
+        px(x + 13, by + 13, 5, 7, ICE2);
+        px(x + sz + 25, by + 15, 5, 5, ICE1);
+        px(x + 17, by + 17, 4, 3, '#C8F0F8');
         // brazos gruesos, largos y caídos como adolescente pesado
-        px(x - 2, by + 20 + droop, 9, 14, '#1858A8');
-        px(x - 5, by + 29 + droop, 8, 6, '#2068B8');
-        px(x - 8, by + 33 + droop, 7, 4, '#3090D8');
-        px(x + sz + 26, by + 20 - droop, 9, 14, '#1858A8');
-        px(x + sz + 32, by + 29 - droop, 8, 6, '#2068B8');
-        px(x + sz + 38, by + 33 - droop, 7, 4, '#3090D8');
-        // cabeza seria
-        px(x + 4, by + 4, 24 + sz, 16, '#2060B0');
-        px(x + 6, by + 6, 20 + sz, 12, '#2878C8');
-        px(x + 8, by + 8, 16 + sz, 8, '#3090D8');
-        // branquias intermedias
-        px(x - 2, by + 2, 6, 4, '#F060A0');
-        px(x - 4, by + 6, 6, 4, '#D85090');
-        px(x - 3, by + 10, 6, 4, '#F060A0');
-        px(x + sz + 28, by + 2, 6, 4, '#F060A0');
-        px(x + sz + 30, by + 6, 6, 4, '#D85090');
-        px(x + sz + 29, by + 10, 6, 4, '#F060A0');
-        // ojos con cejas, más serio pero no feo
-        px(x + 8, by + 8, 5, 5, '#fff');
-        px(x + sz + 18, by + 8, 5, 5, '#fff');
-        px(x + 10, by + 10, 3, 3, '#0840A0');
-        px(x + sz + 20, by + 10, 3, 3, '#0840A0');
-        px(x + 8, by + 7, 5, 1, '#103C88');
-        px(x + sz + 18, by + 7, 5, 1, '#103C88');
-        px(x + 14, by + 16, 5, 1, '#1858A0');
+        px(x - 2, by + 20 + droop, 9, 14, '#4A3C90');
+        px(x - 5, by + 29 + droop, 8, 6, '#5A4AA0');
+        px(x - 8, by + 33 + droop, 7, 4, '#8070D0');
+        px(x + sz + 26, by + 20 - droop, 9, 14, '#4A3C90');
+        px(x + sz + 32, by + 29 - droop, 8, 6, '#5A4AA0');
+        px(x + sz + 38, by + 33 - droop, 7, 4, '#8070D0');
+        // cabeza morada con placas de hielo
+        px(x + 4, by + 4, 24 + sz, 16, P1);
+        px(x + 6, by + 6, 20 + sz, 12, P2);
+        px(x + 8, by + 8, 16 + sz, 8, P3);
+        px(x + 10, by + 1, 5, 6, ICE2);
+        px(x + 18, by - 2, 5, 9, ICE1);
+        px(x + sz + 25, by + 1, 5, 6, ICE2);
+        // branquias intermedias congelándose
+        px(x - 2, by + 2, 6, 4, '#C8F0F8');
+        px(x - 4, by + 6, 6, 4, '#90D0F0');
+        px(x - 3, by + 10, 6, 4, '#C8F0F8');
+        px(x + sz + 28, by + 2, 6, 4, '#C8F0F8');
+        px(x + sz + 30, by + 6, 6, 4, '#90D0F0');
+        px(x + sz + 29, by + 10, 6, 4, '#C8F0F8');
+        // ojos y cejas frías
+        px(x + 8, by + 8, 5, 5, '#E8F8FF');
+        px(x + sz + 18, by + 8, 5, 5, '#E8F8FF');
+        px(x + 10, by + 10, 3, 3, '#103C88');
+        px(x + sz + 20, by + 10, 3, 3, '#103C88');
+        px(x + 8, by + 7, 5, 1, '#382878');
+        px(x + sz + 18, by + 7, 5, 1, '#382878');
+        px(x + 14, by + 16, 5, 1, '#403080');
         // cola lateral y pies
-        px(x - 2, by + 30, 10, 4, '#2060B0');
-        px(x - 7, by + 28, 6, 4, '#2878C8');
-        px(x - 11, by + 26, 5, 4, '#3090D8');
-        px(x + 6, by + 30 + sz, 5, 4, '#2060B0');
-        px(x + sz + 20, by + 30 + sz, 5, 4, '#2060B0');
+        px(x - 2, by + 30, 10, 4, P1);
+        px(x - 7, by + 28, 6, 4, P2);
+        px(x - 11, by + 26, 5, 4, ICE1);
+        px(x + 6, by + 30 + sz, 5, 4, P1);
+        px(x + sz + 20, by + 30 + sz, 5, 4, P1);
       }
       break;
 
-    case 'glaciolote': // Glaciolote: bestia cuadrúpeda imponente de hielo con barba
+    case 'glaciolote': // Glaciolote: armadura de hielo imponente con piel morada apenas visible
       {
         const frost = Math.sin(f * 0.08) * 1;
+        const SKP = '#4A3478';
         // aura fría pixelada detrás para presencia
         cx.globalAlpha = 0.08;
         cx.fillStyle = '#88D0F8';
-        pixelGlow(x + 16, by + 20 + frost, 30 + sz, 22);
+        pixelGlow(x + 16, by + 20 + frost, 44 + sz, 30);
         cx.globalAlpha = 1;
 
-        // torso grande y bajo de bestia, mucho más imponente
-        px(x - 3, by + 18, 39 + sz, 16 + sz, '#4F86B0');
-        px(x + 0, by + 20, 33 + sz, 12 + sz, '#6FA8D0');
-        px(x + 4, by + 22, 26 + sz, 7, '#A8E0F8');
-        px(x + 8, by + 24, 18 + sz, 3, '#E8F8F8');
-        // lomo con placas de hielo
-        px(x + 1, by + 13, 6, 7, '#C8F0F8');
-        px(x + 9, by + 10, 6, 10, '#E8F8F8');
-        px(x + 18, by + 11, 6, 9, '#C8F0F8');
-        px(x + sz + 28, by + 14, 6, 6, '#B8E8F8');
+        // piel morada visible en sombras debajo de la armadura
+        px(x - 6, by + 18, 46 + sz, 18 + sz, SKP);
+        px(x + 0, by + 25, 36 + sz, 8, '#5A4090');
+        // armadura de hielo: placas dominantes
+        px(x - 7, by + 16, 47 + sz, 9, '#4F86B0');
+        px(x - 3, by + 20, 41 + sz, 12 + sz, '#6FA8D0');
+        px(x + 2, by + 22, 34 + sz, 8, '#A8E0F8');
+        px(x + 7, by + 24, 24 + sz, 3, '#E8F8F8');
+        // placas grandes del lomo
+        px(x - 1, by + 11, 7, 9, '#C8F0F8');
+        px(x + 8, by + 7, 7, 13, '#E8F8F8');
+        px(x + 18, by + 8, 7, 12, '#C8F0F8');
+        px(x + sz + 29, by + 12, 7, 8, '#B8E8F8');
+        px(x - 14, by + 16, 10, 10, '#E8F8F8');
+        px(x + sz + 40, by + 16, 10, 10, '#E8F8F8');
 
-        // cuatro patas gruesas de criatura pesada
+        // cuatro patas con armadura; piel morada apenas en articulaciones
         px(x + 0, by + 31 + sz, 7, 10, '#4F86B0');
         px(x + 10, by + 32 + sz, 7, 10, '#4F86B0');
         px(x + sz + 22, by + 32 + sz, 7, 10, '#4F86B0');
         px(x + sz + 32, by + 31 + sz, 7, 10, '#4F86B0');
+        px(x + 2, by + 35 + sz, 3, 3, SKP);
+        px(x + sz + 34, by + 35 + sz, 3, 3, SKP);
         px(x - 1, by + 39 + sz, 10, 3, '#E8F8F8');
         px(x + 9, by + 40 + sz, 10, 3, '#E8F8F8');
         px(x + sz + 21, by + 40 + sz, 10, 3, '#E8F8F8');
@@ -7398,8 +7603,9 @@ function dCre(x, y, id, lv, f) {
         px(x - 20, by + 22, 8, 6, '#A8E0F8');
         px(x - 24, by + 20, 5, 4, '#E8F8F8');
 
-        // cabeza más grande, baja y amenazante
-        px(x + 2, by + 1, 31 + sz, 18, '#4F86B0');
+        // cabeza blindada: morado visible solo en ranuras
+        px(x + 2, by + 1, 31 + sz, 18, SKP);
+        px(x + 3, by + 0, 31 + sz, 8, '#4F86B0');
         px(x + 4, by + 3, 27 + sz, 14, '#6FA8D0');
         px(x + 7, by + 5, 21 + sz, 9, '#A8E0F8');
         // branquias/cristales laterales grandes
@@ -7411,25 +7617,28 @@ function dCre(x, y, id, lv, f) {
         px(x + sz + 35, by + 13, 8, 5, '#C8F0F8');
         // corona de hielo superior
         px(x + 5, by - 5, 5, 7, '#D8F8FF');
-        px(x + 13, by - 9, 5, 11, '#E8F8F8');
+        px(x + 13, by - 10, 6, 12, '#E8F8F8');
         px(x + 23, by - 6, 5, 8, '#C8F0F8');
-        px(x + 16, by - 12, 3, 5, '#FFFFFF');
-        // ojos intensos
+        px(x + 16, by - 13, 3, 5, '#FFFFFF');
+        // ojos intensos desde ranuras moradas
         px(x + 7, by + 7, 7, 6, '#D8F0F8');
         px(x + sz + 22, by + 7, 7, 6, '#D8F0F8');
         px(x + 9, by + 9, 4, 4, '#103C88');
         px(x + sz + 24, by + 9, 4, 4, '#103C88');
-        px(x + 7, by + 6, 7, 1, '#305878');
-        px(x + sz + 22, by + 6, 7, 1, '#305878');
+        px(x + 7, by + 6, 7, 1, '#2F2458');
+        px(x + sz + 22, by + 6, 7, 1, '#2F2458');
+        // colmillos/placas frontales de hielo
+        px(x + 5, by + 15, 6, 10, '#E8F8F8');
+        px(x + sz + 27, by + 15, 6, 10, '#E8F8F8');
+        px(x + 6, by + 23, 3, 5, '#B8E8F8');
+        px(x + sz + 30, by + 23, 3, 5, '#B8E8F8');
 
         // barba helada más grande e imponente
-        px(x + 8, by + 17, 20 + sz, 5, '#E8F8F8');
-        px(x + 10, by + 21, 16 + sz, 5, '#C8F0F8');
-        px(x + 12, by + 25, 12 + sz, 4, '#A8E0F8');
+        px(x + 6, by + 17, 24 + sz, 6, '#E8F8F8');
+        px(x + 8, by + 22, 20 + sz, 5, '#C8F0F8');
+        px(x + 10, by + 26, 16 + sz, 4, '#A8E0F8');
         px(x + 15, by + 29, 6 + sz, 4, '#E8F8F8');
         px(x + 17, by + 33, 2 + sz, 3, '#FFFFFF');
-        // boca seria bajo la barba
-        px(x + 13, by + 16, 9, 1, '#5088B0');
         if (f % 20 < 10) {
           cx.globalAlpha = 0.55;
           px(x + sz + 33, by + 2 + Math.sin(f * 0.06) * 3, 2, 2, '#E8F8F8');
@@ -7499,32 +7708,37 @@ function dCre(x, y, id, lv, f) {
         px(x + sz + 23, by + 10, 6, 5, '#fff');
         px(x + 9, by + 12, 3, 2, '#181818');
         px(x + sz + 25, by + 12, 3, 2, '#181818');
+        // mostacho blanco de maestro estilista
+        px(x + 10, by + 15, 6, 2, '#F8F8F8');
+        px(x + sz + 20, by + 15, 6, 2, '#F8F8F8');
+        px(x + 8, by + 16, 5, 1, '#E8E8E8');
+        px(x + sz + 24, by + 16, 5, 1, '#E8E8E8');
         // monóculo/lente estilista
         px(x + sz + 24, by + 9, 7, 6, '#C8A830');
         px(x + sz + 25, by + 10, 5, 4, '#D8E8F0');
         // brazos largos hacia pinzas enormes
-        px(x - 10, by + 21 + snap, 16, 5, '#A03018');
-        px(x + sz + 30, by + 21 - snap, 16, 5, '#A03018');
+        px(x - 5, by + 21 + snap, 10, 5, '#A03018');
+        px(x + sz + 31, by + 21 - snap, 10, 5, '#A03018');
         // pinza izquierda enorme tipo tijera
-        px(x - 28, by + 12 + snap, 20, 12, '#C8A830');
-        px(x - 30, by + 9 + snap, 12, 8, '#D8B840');
-        px(x - 30, by + 22 + snap, 12, 8, '#D8B840');
-        px(x - 27, by + 11 + snap, 6, 4, '#F0D860');
-        px(x - 27, by + 24 + snap, 6, 4, '#F0D860');
-        px(x - 18, by + 17 + snap, 10, 3, '#8A6018');
+        px(x - 20, by + 12 + snap, 18, 12, '#C8A830');
+        px(x - 22, by + 9 + snap, 10, 8, '#D8B840');
+        px(x - 22, by + 22 + snap, 10, 8, '#D8B840');
+        px(x - 19, by + 11 + snap, 5, 4, '#F0D860');
+        px(x - 19, by + 24 + snap, 5, 4, '#F0D860');
+        px(x - 10, by + 17 + snap, 8, 3, '#8A6018');
         // pinza derecha enorme tipo tijera
-        px(x + sz + 44, by + 12 - snap, 20, 12, '#C8A830');
-        px(x + sz + 56, by + 9 - snap, 12, 8, '#D8B840');
-        px(x + sz + 56, by + 22 - snap, 12, 8, '#D8B840');
-        px(x + sz + 59, by + 11 - snap, 6, 4, '#F0D860');
-        px(x + sz + 59, by + 24 - snap, 6, 4, '#F0D860');
-        px(x + sz + 44, by + 17 - snap, 10, 3, '#8A6018');
+        px(x + sz + 38, by + 12 - snap, 18, 12, '#C8A830');
+        px(x + sz + 50, by + 9 - snap, 10, 8, '#D8B840');
+        px(x + sz + 50, by + 22 - snap, 10, 8, '#D8B840');
+        px(x + sz + 53, by + 11 - snap, 5, 4, '#F0D860');
+        px(x + sz + 53, by + 24 - snap, 5, 4, '#F0D860');
+        px(x + sz + 38, by + 17 - snap, 8, 3, '#8A6018');
         // peine y tijeras como accesorios
-        px(x - 24, by + 5 + snap, 12, 2, '#F0F0F0');
+        px(x - 18, by + 5 + snap, 10, 2, '#F0F0F0');
         px(x - 24, by + 7 + snap, 2, 3, '#F0F0F0');
         px(x - 20, by + 7 + snap, 2, 3, '#F0F0F0');
         px(x - 16, by + 7 + snap, 2, 3, '#F0F0F0');
-        px(x + sz + 54, by + 5 - snap, 10, 2, '#E8E8E8');
+        px(x + sz + 48, by + 5 - snap, 9, 2, '#E8E8E8');
         px(x + sz + 58, by + 3 - snap, 2, 6, '#E8E8E8');
         // patas múltiples
         px(x + 6, by + 31 + sz, 4, 4, '#B83818');
@@ -7828,199 +8042,269 @@ function dCre(x, y, id, lv, f) {
       }
       break;
 
-    case 'espinarcor': // Carnero con chaqueta de espinas
-      px(x + 4, by + 18, 24 + sz, 16 + sz, '#305820');
-      px(x + 6, by + 20, 20 + sz, 12 + sz, '#406028');
-      px(x + 6, by + 18, 20 + sz, 10, '#1A2818');
-      px(x + 8, by + 20, 16 + sz, 6, '#2A3828');
-      px(x + 6, by + 19, 2, 2, '#C8A830');
-      px(x + sz + 24, by + 19, 2, 2, '#C8A830');
-      px(x + 12, by + 19, 2, 2, '#C8A830');
-      px(x + 18, by + 19, 2, 2, '#C8A830');
-      px(x + 4, by + 2, 24 + sz, 16, '#305820');
-      px(x + 6, by + 4, 20 + sz, 12, '#406028');
-      px(x + 2, by - 2, 6, 8, '#2A4818');
-      px(x + sz + 24, by - 2, 6, 8, '#2A4818');
-      px(x, by - 4, 4, 4, '#386828');
-      px(x + sz + 28, by - 4, 4, 4, '#386828');
-      px(x + 1, by - 4, 2, 2, '#C8A830');
-      px(x + sz + 29, by - 4, 2, 2, '#C8A830');
-      px(x + 12, by - 2, 8 + sz, 4, '#38A020');
-      px(x + 14, by - 4, 4 + sz, 3, '#48C030');
-      px(x + 4, by + 18, 2, 3, '#C8A830');
-      px(x + sz + 26, by + 18, 2, 3, '#C8A830');
-      px(x + 8, by + 8, 5, 4, '#fff');
-      px(x + sz + 20, by + 8, 5, 4, '#fff');
-      px(x + 10, by + 9, 3, 3, '#203010');
-      px(x + sz + 22, by + 9, 3, 3, '#203010');
-      px(x + 12, by + 14, 8, 2, '#305820');
-      px(x + 13, by + 15, 2, 1, '#E8E8E8');
-      px(x + 17, by + 15, 2, 1, '#E8E8E8');
-      px(x + 6, by + 32 + sz, 6, 8, '#305820');
-      px(x + sz + 20, by + 32 + sz, 6, 8, '#305820');
-      break;
-
-    case 'espinardoom': // Carnero heavy metal gigante
-      px(x + 2, by + 14, 28 + sz, 20 + sz, '#283818');
-      px(x + 4, by + 16, 24 + sz, 16 + sz, '#385028');
-      px(x + 4, by + 14, 24 + sz, 12, '#0A0A1A');
-      px(x + 6, by + 16, 20 + sz, 8, '#1A1A2A');
-      px(x + 12, by + 18, 8, 6, '#E8E8E8');
-      px(x + 14, by + 19, 2, 2, '#181818');
-      px(x + 17, by + 19, 2, 2, '#181818');
-      px(x + 4, by + 24, 4, 2, '#A8A8A8');
-      px(x + sz + 24, by + 24, 4, 2, '#A8A8A8');
-      px(x + 2, by + 0, 28 + sz, 16, '#283818');
-      px(x + 4, by + 2, 24 + sz, 12, '#385028');
-      px(x - 2, by - 4, 8, 10, '#283818');
-      px(x + sz + 26, by - 4, 8, 10, '#283818');
-      px(x - 4, by - 6, 6, 6, '#486828');
-      px(x + sz + 30, by - 6, 6, 6, '#486828');
-      px(x - 5, by - 6, 3, 3, '#A8A8A8');
-      px(x + sz + 34, by - 6, 3, 3, '#A8A8A8');
-      px(x + 10, by - 6, 12 + sz, 8, '#38A020');
-      px(x + 12, by - 8, 8 + sz, 6, '#48C030');
-      const edf = Math.sin(f * 0.2) * 2;
-      px(x + 12, by - 10 + edf, 3, 4, '#E84020');
-      px(x + 16, by - 12 + edf, 3, 4, '#F86040');
-      px(x + 20, by - 10 + edf, 3, 4, '#E84020');
-      px(x + 6, by + 4, 6, 6, '#F8C030');
-      px(x + sz + 20, by + 4, 6, 6, '#F8C030');
-      px(x + 8, by + 6, 4, 4, '#181818');
-      px(x + sz + 22, by + 6, 4, 4, '#181818');
-      px(x + 8, by + 6, 2, 2, '#E84020');
-      px(x + sz + 22, by + 6, 2, 2, '#E84020');
-      px(x + 12, by + 12, 8, 4, '#283818');
-      px(x + 13, by + 13, 3, 1, '#E8E8E8');
-      px(x + 17, by + 13, 3, 1, '#E8E8E8');
-      px(x + 4, by + 32 + sz, 8, 8, '#283818');
-      px(x + sz + 20, by + 32 + sz, 8, 8, '#283818');
-      cx.globalAlpha = 0.06;
-      cx.fillStyle = '#48C030';
-      pixelGlow(x + 16, by + 16, 22 + sz, 18);
-      cx.globalAlpha = 1;
-      break;
-
-    // ==========================================
-    // EVOLUCIONES DRAGÓN 🐉
-    // ==========================================
-
-    case 'wyvernax': // Wyvernax: adolescente alargado, planeador agresivo
+    case 'espinarcor': // Espinarcor: etapa intermedia, carnero punk juvenil con chaqueta
       {
-        const flap = Math.sin(f * 0.18) * 3;
-        // cuerpo largo horizontal, distinto del bebé enrollado
-        px(x + 2, by + 22, 30 + sz, 11 + sz, '#3818A0');
-        px(x + 5, by + 24, 24 + sz, 7 + sz, '#5838C0');
-        px(x - 8, by + 25, 12, 5, '#281070'); // cola larga
-        px(x - 13, by + 23, 6, 4, '#C8A030');
-        // alas medianas abiertas, planeando
-        px(x - 6, by + 10 + flap, 18, 9, '#2810A0');
-        px(x - 10, by + 17 + flap, 20, 7, '#3818B0');
-        px(x + sz + 24, by + 10 - flap, 18, 9, '#2810A0');
-        px(x + sz + 26, by + 17 - flap, 20, 7, '#3818B0');
-        px(x - 4, by + 13 + flap, 4, 10, '#C8A030');
-        px(x + sz + 38, by + 13 - flap, 4, 10, '#C8A030');
-        // cuello/cabeza hacia delante
-        px(x + 22, by + 10, 7 + sz, 14, '#3818A0');
-        px(x + 25, by + 7, 14 + sz, 11, '#4828B0');
-        px(x + 28, by + 9, 10 + sz, 7, '#6840C0');
-        // cuernos largos
-        px(x + 25, by + 1, 4, 7, '#C8A030');
-        px(x + sz + 37, by + 1, 4, 7, '#C8A030');
-        px(x + 24, by - 2, 3, 4, '#D8B040');
-        px(x + sz + 40, by - 2, 3, 4, '#D8B040');
-        // mirada agresiva
-        px(x + 29, by + 10, 5, 4, '#F0C020');
-        px(x + sz + 36, by + 10, 5, 4, '#F0C020');
-        px(x + 31, by + 11, 3, 2, '#100838');
-        px(x + sz + 38, by + 11, 3, 2, '#100838');
-        px(x + 29, by + 8, 5, 1, '#281070');
-        px(x + sz + 36, by + 8, 5, 1, '#281070');
-        px(x + 31, by + 18, 7, 2, '#E84020');
-        // patas traseras colgando
-        px(x + 8, by + 31 + sz, 6, 6, '#3818A0');
-        px(x + sz + 24, by + 31 + sz, 6, 6, '#3818A0');
+        const step = Math.sin(f * 0.14) * 1;
+        px(x + 5, by + 21 + step, 24 + sz, 14 + sz, '#305820');
+        px(x + 7, by + 23 + step, 20 + sz, 10 + sz, '#406028');
+        px(x + 10, by + 25 + step, 14 + sz, 6, '#508038');
+        px(x + 5, by + 19 + step, 24 + sz, 7, '#111820');
+        px(x + 8, by + 20 + step, 18 + sz, 4, '#253030');
+        px(x + 8, by + 20 + step, 2, 2, '#C8A830');
+        px(x + 15, by + 20 + step, 2, 2, '#C8A830');
+        px(x + sz + 23, by + 20 + step, 2, 2, '#C8A830');
+        px(x + 8, by + 7 + step, 22 + sz, 15, '#305820');
+        px(x + 10, by + 9 + step, 18 + sz, 11, '#406028');
+        px(x + 13, by + 12 + step, 12 + sz, 6, '#5C8840');
+        px(x + 3, by + 4 + step, 8, 6, '#2A4818');
+        px(x, by + 3 + step, 5, 3, '#D8B840');
+        px(x + sz + 28, by + 4 + step, 8, 6, '#2A4818');
+        px(x + sz + 34, by + 3 + step, 5, 3, '#D8B840');
+        px(x + 11, by + 4 + step, 16 + sz, 4, '#38A020');
+        px(x + 14, by + 1 + step, 10 + sz, 4, '#48C030');
+        px(x + 18, by - 2 + step, 4 + sz, 3, '#A8D860');
+        px(x + 7, by + 33 + sz + step, 6, 7, '#305820');
+        px(x + 18, by + 34 + sz - step, 6, 6, '#305820');
+        px(x + sz + 25, by + 33 + sz + step, 6, 7, '#305820');
+        px(x + 5, by + 39 + sz + step, 8, 2, '#2A2018');
+        px(x + sz + 25, by + 39 + sz + step, 8, 2, '#2A2018');
+        px(x + 12, by + 13 + step, 5, 4, '#fff');
+        px(x + sz + 22, by + 13 + step, 5, 4, '#fff');
+        px(x + 14, by + 14 + step, 3, 2, '#203010');
+        px(x + sz + 24, by + 14 + step, 3, 2, '#203010');
+        px(x + 15, by + 19 + step, 7, 1, '#203010');
+        px(x + 3, by + 24 + step, 3, 4, '#A8D860');
+        px(x + sz + 31, by + 24 + step, 3, 4, '#A8D860');
       }
       break;
 
-    case 'wyvernlord': // Wyvernlord: señor del cielo, alas inmensas y cuerpo pequeño
+    case 'espinardoom': // Espinardoom: bestia heavy metal, enorme y frontal
       {
-        const flap = Math.sin(f * 0.12) * 4;
-        // alas gigantes dominan toda la silueta
-        px(x - 24, by + 3 + flap, 30, 10, '#180870');
-        px(x - 30, by + 12 + flap, 36, 10, '#2810A0');
-        px(x - 26, by + 22 + flap, 28, 8, '#3818B0');
-        px(x - 20, by + 28 + flap, 18, 6, '#4828C0');
-        px(x + sz + 30, by + 3 - flap, 30, 10, '#180870');
-        px(x + sz + 30, by + 12 - flap, 36, 10, '#2810A0');
-        px(x + sz + 34, by + 22 - flap, 28, 8, '#3818B0');
-        px(x + sz + 38, by + 28 - flap, 18, 6, '#4828C0');
-        // huesos dorados de ala
-        px(x - 15, by + 10 + flap, 4, 22, '#C8A030');
-        px(x + sz + 47, by + 10 - flap, 4, 22, '#C8A030');
-        // cuerpo central relativamente compacto
-        px(x + 6, by + 20, 24 + sz, 16 + sz, '#280890');
-        px(x + 8, by + 22, 20 + sz, 12 + sz, '#3818A0');
-        px(x + 11, by + 24, 14 + sz, 7, '#5838C0');
-        // cuello y cabeza coronada
-        px(x + 14, by + 8, 6 + sz, 14, '#280890');
-        px(x + 16, by + 6, 3 + sz, 15, '#4828B0');
-        px(x + 7, by - 2, 22 + sz, 13, '#280890');
-        px(x + 9, by + 0, 18 + sz, 9, '#3818A0');
-        px(x + 12, by + 2, 12 + sz, 5, '#5838C0');
-        // corona/cuerno real
-        px(x + 3, by - 8, 6, 8, '#C8A030');
-        px(x + sz + 27, by - 8, 6, 8, '#C8A030');
-        px(x + 7, by - 12, 20 + sz, 4, '#E8C830');
-        px(x + 12, by - 15, 8 + sz, 3, '#F0D040');
-        // ojos brillantes
-        px(x + 9, by + 3, 6, 5, '#F0C020');
-        px(x + sz + 22, by + 3, 6, 5, '#F0C020');
-        px(x + 11, by + 5, 4, 3, '#080440');
-        px(x + sz + 24, by + 5, 4, 3, '#080440');
-        px(x + 13, by + 10, 8, 3, '#280890');
-        px(x + 15, by + 13, 4, 2, '#E84020');
-        // garras/patas grandes
-        px(x + 5, by + 34 + sz, 8, 7, '#280890');
-        px(x + sz + 24, by + 34 + sz, 8, 7, '#280890');
-        px(x + 1, by + 39 + sz, 6, 3, '#D8B040');
-        px(x + sz + 31, by + 39 + sz, 6, 3, '#D8B040');
-        cx.globalAlpha = 0.06;
-        cx.fillStyle = '#6030D0';
-        pixelGlow(x + 16, by + 18, 36 + sz, 22);
+        const pulse = Math.sin(f * 0.12) * 2;
+        px(x - 3, by + 18, 38 + sz, 22 + sz, '#223018');
+        px(x + 0, by + 20, 32 + sz, 18 + sz, '#385028');
+        px(x + 4, by + 22, 24 + sz, 12, '#486838');
+        px(x + 3, by + 17, 28 + sz, 12, '#050510');
+        px(x + 6, by + 19, 22 + sz, 8, '#151520');
+        px(x + 11, by + 20, 10 + sz, 5, '#E8E8E8');
+        px(x + 13, by + 21, 2, 2, '#181818');
+        px(x + 18, by + 21, 2, 2, '#181818');
+        px(x - 10, by + 17, 10, 16, '#1A2818');
+        px(x + sz + 35, by + 17, 10, 16, '#1A2818');
+        px(x - 12, by + 14, 6, 6, '#A8A8A8');
+        px(x + sz + 43, by + 14, 6, 6, '#A8A8A8');
+        px(x - 13, by + 14, 3, 3, '#E8E8E8');
+        px(x + sz + 47, by + 14, 3, 3, '#E8E8E8');
+        px(x + 0, by + 0, 32 + sz, 18, '#223018');
+        px(x + 2, by + 2, 28 + sz, 14, '#385028');
+        px(x + 6, by + 5, 20 + sz, 9, '#486838');
+        px(x - 8, by - 6, 12, 11, '#223018');
+        px(x - 12, by - 9, 8, 7, '#486828');
+        px(x - 14, by - 10, 4, 4, '#A8A8A8');
+        px(x + sz + 31, by - 6, 12, 11, '#223018');
+        px(x + sz + 39, by - 9, 8, 7, '#486828');
+        px(x + sz + 45, by - 10, 4, 4, '#A8A8A8');
+        px(x + 8, by - 8 + pulse, 18 + sz, 8, '#38A020');
+        px(x + 11, by - 11 + pulse, 12 + sz, 6, '#48C030');
+        px(x + 14, by - 14 + pulse, 6 + sz, 5, '#A8D860');
+        px(x + 6, by + 6, 7, 6, '#fff');
+        px(x + sz + 22, by + 6, 7, 6, '#fff');
+        px(x + 8, by + 8, 4, 3, '#111810');
+        px(x + sz + 24, by + 8, 4, 3, '#111810');
+        px(x + 7, by + 5, 7, 1, '#050510');
+        px(x + sz + 22, by + 5, 7, 1, '#050510');
+        px(x + 11, by + 14, 11, 3, '#111810');
+        px(x + 14, by + 15, 2, 1, '#E8E8E8');
+        px(x + 19, by + 15, 2, 1, '#E8E8E8');
+        // ramas en las manos como baquetas de batería
+        px(x - 16, by + 20 + pulse, 16, 2, '#6A4828');
+        px(x - 18, by + 18 + pulse, 4, 3, '#8A5A28');
+        px(x + sz + 35, by + 20 - pulse, 16, 2, '#6A4828');
+        px(x + sz + 49, by + 18 - pulse, 4, 3, '#8A5A28');
+        px(x - 3, by + 18, 5, 5, '#223018');
+        px(x + sz + 33, by + 18, 5, 5, '#223018');
+        px(x + 4, by + 38 + sz, 8, 8, '#223018');
+        px(x + sz + 24, by + 38 + sz, 8, 8, '#223018');
+        px(x + 2, by + 45 + sz, 11, 3, '#151510');
+        px(x + sz + 23, by + 45 + sz, 11, 3, '#151510');
+        cx.globalAlpha = 0.08;
+        cx.fillStyle = '#F8E830';
+        pixelGlow(x + 16, by + 20, 26 + sz, 20);
         cx.globalAlpha = 1;
       }
       break;
 
-    case 'longwok': // Dragón chef con wok gigante
-      px(x + 2, by + 16, 28 + sz, 18 + sz, '#B02828');
-      px(x + 4, by + 18, 24 + sz, 14 + sz, '#C83838');
-      px(x + 6, by + 20, 20 + sz, 10, '#D84848');
-      px(x + 6, by + 16, 20 + sz, 4, '#F8F8F8');
-      px(x + 8, by + 14, 16 + sz, 4, '#F0F0F0');
-      px(x + 4, by + 2, 24 + sz, 16, '#B02828');
-      px(x + 6, by + 4, 20 + sz, 12, '#C83838');
-      px(x + 4, by + 10, 4, 1, '#E8C830');
-      px(x + 2, by + 12, 3, 1, '#E8C830');
-      px(x + sz + 24, by + 10, 4, 1, '#E8C830');
-      px(x + sz + 27, by + 12, 3, 1, '#E8C830');
-      px(x + 4, by - 2, 4, 5, '#E8C830');
-      px(x + sz + 24, by - 2, 4, 5, '#E8C830');
-      px(x + 10, by - 4, 12 + sz, 6, '#F8F8F8');
-      px(x + 12, by - 6, 8 + sz, 4, '#F8F8F8');
-      px(x + 10, by + 6, 5, 5, '#fff');
-      px(x + sz + 18, by + 6, 5, 5, '#fff');
-      px(x + 12, by + 8, 3, 3, '#881818');
-      px(x + sz + 20, by + 8, 3, 3, '#881818');
-      px(x + sz + 22, by + 20, 10, 8, '#585858');
-      px(x + sz + 24, by + 18, 6, 4, '#686868');
-      px(x + sz + 24, by + 19, 6, 2, '#E8C030');
-      px(x + sz + 26, by + 18, 2, 2, '#E85030');
-      if (f % 16 < 8) {
-        px(x + sz + 26, by + 16, 3, 3, '#E8E0D0');
+    case 'wyvernax': // Wyvernax: adolescente imponente, morado con armadura negra y venas verdes
+      {
+        const flap = Math.sin(f * 0.16) * 4;
+        // cuerpo robusto en pose de ataque, morado aún presente
+        px(x + 0, by + 20, 34 + sz, 15 + sz, '#2C126E');
+        px(x + 3, by + 22, 28 + sz, 11 + sz, '#4828B0');
+        px(x + 8, by + 24, 18 + sz, 6, '#6840C0');
+        // placas negras parciales
+        px(x + 4, by + 19, 10, 5, '#08080C');
+        px(x + 20, by + 28, 10, 5, '#08080C');
+        px(x + 13, by + 22, 8, 3, '#141018');
+        // cola látigo con espina verde
+        px(x - 12, by + 25, 16, 5, '#1C1028');
+        px(x - 18, by + 22, 8, 4, '#08080C');
+        px(x - 21, by + 20, 4, 4, '#1ED060');
+        // alas más grandes, negras en bordes y moradas en interior
+        px(x - 18, by + 5 + flap, 24, 10, '#08080C');
+        px(x - 24, by + 15 + flap, 30, 9, '#141018');
+        px(x - 18, by + 22 + flap, 22, 7, '#2A1668');
+        px(x + 2, by + 10 + flap, 7, 17, '#4828B0');
+        px(x + sz + 30, by + 5 - flap, 24, 10, '#08080C');
+        px(x + sz + 30, by + 15 - flap, 30, 9, '#141018');
+        px(x + sz + 32, by + 22 - flap, 22, 7, '#2A1668');
+        px(x + sz + 29, by + 10 - flap, 7, 17, '#4828B0');
+        // venas verdes de poder
+        px(x - 12, by + 16 + flap, 16, 2, '#1ED060');
+        px(x + sz + 36, by + 16 - flap, 16, 2, '#1ED060');
+        px(x - 8, by + 24 + flap, 10, 2, '#2AF078');
+        px(x + sz + 38, by + 24 - flap, 10, 2, '#2AF078');
+        // cuello y cabeza agresiva
+        px(x + 22, by + 9, 8 + sz, 15, '#2C126E');
+        px(x + 25, by + 6, 16 + sz, 13, '#4828B0');
+        px(x + 28, by + 8, 12 + sz, 9, '#6840C0');
+        px(x + 31, by + 11, 8, 4, '#141018');
+        // cuernos afilados negros con verde
+        px(x + 24, by - 1, 5, 8, '#08080C');
+        px(x + sz + 39, by - 1, 5, 8, '#08080C');
+        px(x + 23, by - 4, 3, 4, '#1ED060');
+        px(x + sz + 43, by - 4, 3, 4, '#1ED060');
+        // ojos amenazantes
+        px(x + 30, by + 10, 6, 5, '#74FF80');
+        px(x + sz + 39, by + 10, 6, 5, '#74FF80');
+        px(x + 32, by + 12, 4, 2, '#001008');
+        px(x + sz + 41, by + 12, 4, 2, '#001008');
+        px(x + 31, by + 18, 9, 2, '#2AF078');
+        // patas y garras
+        px(x + 6, by + 32 + sz, 8, 8, '#2C126E');
+        px(x + sz + 25, by + 32 + sz, 8, 8, '#2C126E');
+        px(x + 3, by + 39 + sz, 6, 3, '#1ED060');
+        px(x + sz + 31, by + 39 + sz, 6, 3, '#1ED060');
       }
-      px(x + 8, by + 32 + sz, 5, 5, '#B02828');
-      px(x + sz + 18, by + 32 + sz, 5, 5, '#B02828');
+      break;
+
+    case 'wyvernlord': // Wyvernlord: dragón negro imponente, pecho morado y energía verde
+      {
+        const flap = Math.sin(f * 0.12) * 4;
+        // alas colosales negras, silueta de jefe
+        px(x - 34, by + 0 + flap, 42, 12, '#050508');
+        px(x - 42, by + 12 + flap, 50, 12, '#0A0810');
+        px(x - 38, by + 24 + flap, 42, 10, '#141018');
+        px(x - 28, by + 33 + flap, 28, 7, '#201828');
+        px(x + sz + 30, by + 0 - flap, 42, 12, '#050508');
+        px(x + sz + 30, by + 12 - flap, 50, 12, '#0A0810');
+        px(x + sz + 36, by + 24 - flap, 42, 10, '#141018');
+        px(x + sz + 42, by + 33 - flap, 28, 7, '#201828');
+        // venas verdes como grietas de energía
+        px(x - 26, by + 12 + flap, 24, 2, '#1ED060');
+        px(x - 21, by + 26 + flap, 18, 2, '#2AF078');
+        px(x + sz + 45, by + 12 - flap, 24, 2, '#1ED060');
+        px(x + sz + 45, by + 26 - flap, 18, 2, '#2AF078');
+        px(x - 6, by + 6 + flap, 4, 23, '#1ED060');
+        px(x + sz + 40, by + 6 - flap, 4, 23, '#1ED060');
+        // cuerpo negro pesado
+        px(x + 2, by + 18, 32 + sz, 21 + sz, '#050508');
+        px(x + 5, by + 21, 26 + sz, 16 + sz, '#0A0810');
+        // pecho morado conservado y visible
+        px(x + 10, by + 23, 16 + sz, 11, '#4828B0');
+        px(x + 13, by + 25, 10 + sz, 7, '#6840C0');
+        px(x + 16, by + 27, 5, 3, '#1ED060');
+        // cuello y cabeza de dragón imponente
+        px(x + 13, by + 6, 9 + sz, 16, '#050508');
+        px(x + 16, by + 4, 4 + sz, 17, '#201828');
+        px(x + 4, by - 4, 28 + sz, 16, '#050508');
+        px(x + 7, by - 1, 22 + sz, 11, '#141018');
+        px(x + 10, by + 2, 16 + sz, 7, '#302040');
+        // cuernos/corona enormes
+        px(x + 0, by - 12, 8, 11, '#050508');
+        px(x + sz + 30, by - 12, 8, 11, '#050508');
+        px(x + 6, by - 17, 22 + sz, 5, '#101010');
+        px(x + 12, by - 21, 10 + sz, 4, '#1ED060');
+        px(x + 2, by - 15, 4, 4, '#2AF078');
+        px(x + sz + 32, by - 15, 4, 4, '#2AF078');
+        // ojos verdes, mandíbula y colmillos
+        px(x + 8, by + 3, 7, 6, '#74FF80');
+        px(x + sz + 24, by + 3, 7, 6, '#74FF80');
+        px(x + 10, by + 5, 5, 3, '#001008');
+        px(x + sz + 26, by + 5, 5, 3, '#001008');
+        px(x + 12, by + 11, 11, 3, '#050508');
+        px(x + 14, by + 14, 2, 3, '#F8F8F8');
+        px(x + 21, by + 14, 2, 3, '#F8F8F8');
+        px(x + 16, by + 13, 5, 2, '#2AF078');
+        // garras negras con uñas verdes
+        px(x + 4, by + 37 + sz, 9, 9, '#0A0810');
+        px(x + sz + 26, by + 37 + sz, 9, 9, '#0A0810');
+        px(x + 0, by + 44 + sz, 8, 3, '#1ED060');
+        px(x + sz + 33, by + 44 + sz, 8, 3, '#1ED060');
+        // aura verde ominosa
+        cx.globalAlpha = 0.1;
+        cx.fillStyle = '#1ED060';
+        pixelGlow(x + 16, by + 18, 48 + sz, 28);
+        cx.globalAlpha = 1;
+      }
+      break;
+
+    case 'longwok': // Lóngwok: dragón chef serpentino enrollado en un wok gigante
+      {
+        const steam = Math.sin(f * 0.12) * 2;
+        // Wok gigante como base/silueta principal
+        px(x - 2, by + 24, 38 + sz, 12 + sz, '#303038');
+        px(x + 0, by + 26, 34 + sz, 8 + sz, '#484850');
+        px(x + 4, by + 24, 26 + sz, 4, '#707078');
+        px(x - 8, by + 27, 8, 3, '#202028');
+        px(x + sz + 34, by + 27, 8, 3, '#202028');
+        // fuego bajo el wok
+        if (f % 16 < 8) {
+          px(x + 8, by + 36 + sz, 5, 5, '#E84020');
+          px(x + 15, by + 38 + sz, 6, 5, '#F8A030');
+          px(x + 24, by + 36 + sz, 5, 5, '#E84020');
+        }
+        // cuerpo serpentino saliendo/enrollado alrededor del wok
+        px(x + 5, by + 20, 25 + sz, 5, '#B02828');
+        px(x + 1, by + 17, 22 + sz, 5, '#C83838');
+        px(x + 10, by + 14, 23 + sz, 5, '#B02828');
+        px(x + 18, by + 11, 15 + sz, 5, '#D84848');
+        // panza blanca de dragón oriental
+        px(x + 9, by + 21, 16 + sz, 2, '#F8F8F8');
+        px(x + 7, by + 18, 13 + sz, 2, '#F0F0F0');
+        px(x + 15, by + 15, 12 + sz, 2, '#F8F8F8');
+        // cabeza chef sobre el wok
+        px(x + 6, by + 2, 22 + sz, 14, '#B02828');
+        px(x + 8, by + 4, 18 + sz, 10, '#C83838');
+        px(x + 10, by + 6, 14 + sz, 6, '#D84848');
+        // gorro chef más grande
+        px(x + 6, by - 6, 22 + sz, 7, '#F8F8F8');
+        px(x + 9, by - 10, 16 + sz, 6, '#FFFFFF');
+        px(x + 12, by - 13, 10 + sz, 4, '#F0F0F0');
+        // bigotes/fideos largos
+        px(x - 4, by + 11, 12, 2, '#F8F8F8');
+        px(x + sz + 25, by + 11, 12, 2, '#F8F8F8');
+        px(x - 8, by + 14, 10, 1, '#E8E8E8');
+        px(x + sz + 33, by + 14, 10, 1, '#E8E8E8');
+        // ojos y cejas de maestro cocinero
+        px(x + 10, by + 7, 5, 5, '#fff');
+        px(x + sz + 20, by + 7, 5, 5, '#fff');
+        px(x + 12, by + 9, 3, 3, '#881818');
+        px(x + sz + 22, by + 9, 3, 3, '#881818');
+        px(x + 10, by + 6, 5, 1, '#881818');
+        px(x + sz + 20, by + 6, 5, 1, '#881818');
+        // cucharón y verduras al vuelo
+        px(x + sz + 31, by + 10, 2, 18, '#5A4020');
+        px(x + sz + 29, by + 8, 6, 4, '#C8C8C8');
+        px(x + 16, by + 20 + steam, 3, 3, '#48A030');
+        px(x + 23, by + 18 - steam, 3, 3, '#E8C830');
+        px(x + 12, by + 17 + steam, 3, 3, '#F0E0C0');
+        // vapor cuadrado
+        cx.globalAlpha = 0.35;
+        px(x + 8, by - 1 + steam, 3, 3, '#E8E8E8');
+        px(x + 28, by + 1 - steam, 3, 3, '#F8F8F8');
+        px(x + 20, by - 4 + steam, 2, 2, '#F0F0F0');
+        cx.globalAlpha = 1;
+      }
       break;
 
     case 'ornishadow': // Ornitorrinco con gadgets
@@ -8129,125 +8413,122 @@ function dCre(x, y, id, lv, f) {
       }
       break;
 
-    case 'crisalmanza': // Capullo de cáscara de manzana
-      px(x + 4, by + 10, 24 + sz, 22 + sz, '#A02818');
-      px(x + 6, by + 12, 20 + sz, 18 + sz, '#B83020');
-      px(x + 8, by + 14, 16 + sz, 14, '#C83828');
-      px(x + 10, by + 16, 4, 4, '#D04838');
-      px(x + 18, by + 20, 3, 3, '#D04838');
+    case 'crisalmanza': // Crisálmanza: dragón manzana intermedio dentro de cáscara espiral
       {
-        const cgl2 = Math.sin(fr * 0.1) * 0.3 + 0.7;
-        cx.globalAlpha = cgl2;
-        px(x + 12, by + 18, 1, 6, '#F8E830');
-        px(x + 16, by + 14, 1, 8, '#F8E830');
-        px(x + 20, by + 16, 1, 6, '#F0D020');
+        const pulse = Math.sin(fr * 0.1) * 0.3 + 0.7;
+        // silueta: capullo vertical de cáscara, con serpiente verde asomándose
+        px(x + 8, by + 9, 18 + sz, 25 + sz, '#8A2018');
+        px(x + 10, by + 11, 14 + sz, 21 + sz, '#A02818');
+        px(x + 12, by + 13, 10 + sz, 17, '#B83020');
+        // bandas de cáscara en espiral
+        px(x + 7, by + 12, 18 + sz, 4, '#C83828');
+        px(x + 11, by + 18, 17 + sz, 4, '#D04838');
+        px(x + 6, by + 24, 20 + sz, 4, '#C83828');
+        px(x + 10, by + 30, 16 + sz, 4, '#A02818');
+        // grietas luminosas internas
+        cx.globalAlpha = pulse;
+        px(x + 14, by + 15, 2, 13, '#F8E830');
+        px(x + 19, by + 12, 2, 9, '#F0D020');
+        px(x + 11, by + 27, 2, 6, '#F8E830');
+        cx.globalAlpha = 1;
+        // serpiente verde/cabeza de dragón asomando arriba
+        px(x + 12, by + 2, 12 + sz, 9, '#48A030');
+        px(x + 14, by + 4, 8 + sz, 5, '#68C050');
+        px(x + 10, by + 6, 5, 3, '#2F7A30');
+        px(x + sz + 22, by + 6, 5, 3, '#2F7A30');
+        px(x + 14, by + 5, 3, 3, '#F8C030');
+        px(x + sz + 19, by + 5, 3, 3, '#F8C030');
+        px(x + 15, by + 6, 1, 1, '#801010');
+        px(x + sz + 20, by + 6, 1, 1, '#801010');
+        // hojitas/cuernos
+        px(x + 11, by - 1, 5, 4, '#58B838');
+        px(x + sz + 20, by - 1, 5, 4, '#58B838');
+        // base raicillas / patitas incompletas
+        px(x + 8, by + 33 + sz, 4, 6, '#5A3818');
+        px(x + sz + 21, by + 33 + sz, 4, 6, '#5A3818');
+        px(x + 13, by + 35 + sz, 8, 4, '#5A3818');
+        cx.globalAlpha = 0.06;
+        cx.fillStyle = '#F8E830';
+        pixelGlow(x + 16, by + 21, 18 + sz, 18);
         cx.globalAlpha = 1;
       }
-      px(x + 8, by + 8, 4, 4, '#48A030');
-      px(x + sz + 20, by + 8, 4, 4, '#48A030');
-      px(x + 14, by + 6, 4, 4, '#58B838');
-      px(x + 10, by + 18, 4, 1, '#801818');
-      px(x + sz + 18, by + 18, 4, 1, '#801818');
-      cx.globalAlpha = 0.06;
-      cx.fillStyle = '#F8E830';
-      pixelGlow(x + 16, by + 20, 16 + sz, 14);
-      cx.globalAlpha = 1;
-      px(x + 8, by + 30 + sz, 4, 6, '#5A3818');
-      px(x + sz + 18, by + 30 + sz, 4, 6, '#5A3818');
-      px(x + 12, by + 32 + sz, 4, 4, '#5A3818');
       break;
 
-    case 'hydrapom': // Hydrapom: tres serpientes verdes enrolladas, panza y alas rojas
+    case 'hydrapom': // Knightapple: serpiente verde alta con pechera de manzana y brazos-hoja delgados
       {
-        const flap = Math.sin(f * 0.12) * 3;
-        const wig = Math.sin(f * 0.1) * 2;
-        const G1 = '#2F8A38', G2 = '#42A848', G3 = '#6FD05A';
-        const R1 = '#A82020', R2 = '#D83030', R3 = '#F06048';
+        const sway = Math.sin(f * 0.1) * 2;
+        const leaf = Math.sin(f * 0.12) * 2;
+        const G1 = '#4E9A1E', G2 = '#78C840', G3 = '#B8E880';
+        const RED1 = '#B82020', RED2 = '#D83030', RED3 = '#F05040';
+        const CREAM = '#F0E6C8';
 
-        // alas rojas grandes, como membranas de dragón manzana
-        cx.globalAlpha = 0.96;
-        px(x - 22, by + 5 + flap, 20, 8, R1);
-        px(x - 30, by + 12 + flap, 30, 8, R2);
-        px(x - 34, by + 20 + flap, 28, 7, R1);
-        px(x - 26, by + 27 + flap, 18, 5, '#7A1818');
-        px(x - 24, by + 13 + flap, 4, 14, R3); // hueso ala izq
-        px(x + sz + 34, by + 5 - flap, 20, 8, R1);
-        px(x + sz + 34, by + 12 - flap, 30, 8, R2);
-        px(x + sz + 40, by + 20 - flap, 28, 7, R1);
-        px(x + sz + 42, by + 27 - flap, 18, 5, '#7A1818');
-        px(x + sz + 54, by + 13 - flap, 4, 14, R3); // hueso ala der
+        // Cuerpo serpentino más alto y visible, con base enrollada.
+        px(x + 13, by + 32, 24 + sz, 6, G1);
+        px(x + 8, by + 36, 23 + sz, 6, G2);
+        px(x + 2, by + 39, 22 + sz, 6, '#6FC838');
+        px(x + sz + 29, by + 36, 13, 7, '#E8E8D8');
+        px(x + sz + 35, by + 32, 9, 7, G2);
+        // Tramo vertical del cuerpo: más largo, delgado y protagonista.
+        px(x + 16, by + 9, 7, 29, G1);
+        px(x + 18, by + 8, 3, 30, G3);
+        px(x + 13, by + 20, 4, 18, CREAM); // panza clara lateral
+        px(x + 15, by + 13, 2, 7, '#6FC838');
+
+        // Pechera de manzana más pequeña para dejar ver el cuerpo delgado.
+        px(x + 12, by + 20, 17 + sz, 12 + sz, RED1);
+        px(x + 14, by + 19, 13 + sz, 12 + sz, RED2);
+        px(x + 16, by + 21, 9 + sz, 8 + sz, RED3);
+        px(x + 17, by + 20, 3, 2, '#FF8A78');
+        px(x + 24, by + 23, 2, 2, '#FFB0A0');
+        // semillas/ranuras más pequeñas.
+        px(x + 17, by + 24, 2, 3, '#A85A38');
+        px(x + 23, by + 24, 2, 3, '#A85A38');
+        px(x + 16, by + 29, 2, 2, '#A85A38');
+        px(x + 22, by + 29, 2, 2, '#A85A38');
+
+        // Brazos-hoja delgados, ya no escudo ni espada.
+        cx.globalAlpha = 0.98;
+        // brazo-hoja izquierdo fino
+        px(x + 3, by + 22 + leaf, 11, 3, G3);
+        px(x - 2, by + 25 + leaf, 15, 3, G2);
+        px(x - 5, by + 28 + leaf, 11, 3, '#94D860');
+        px(x + 9, by + 23 + leaf, 3, 8, '#6FA840');
+        // brazo-hoja derecho fino
+        px(x + sz + 27, by + 21 - leaf, 14, 3, G3);
+        px(x + sz + 28, by + 24 - leaf, 18, 3, G2);
+        px(x + sz + 36, by + 27 - leaf, 10, 3, '#94D860');
+        px(x + sz + 29, by + 23 - leaf, 3, 8, '#6FA840');
         cx.globalAlpha = 1;
 
-        // Tres serpientes/cuellos enrollados: silueta de nudos, no masa compacta.
-        // Serpiente izquierda
-        px(x + 2, by + 28, 20, 5, G1);
-        px(x - 2, by + 32, 18, 5, G2);
-        px(x + 4, by + 36, 20, 5, G1);
-        px(x + 12, by + 39, 14, 4, '#24702D');
-        // panza roja por debajo del cuerpo izquierdo
-        px(x + 4, by + 33, 10, 2, R2);
-        px(x + 8, by + 37, 12, 2, R2);
+        // Cabeza verde más pequeña arriba, con ojos saltones amarillos.
+        px(x + 13, by + 0 + sway, 16 + sz, 10, G1);
+        px(x + 15, by + 2 + sway, 12 + sz, 7, G2);
+        px(x + 17, by + 4 + sway, 8 + sz, 4, G3);
+        // Hocico/boca proyectada en forma de pico (sin ser pico).
+        px(x + 10, by + 8 + sway, 10, 6, '#3F8418');
+        px(x + 8, by + 10 + sway, 7, 4, '#5CA828');
+        px(x + 6, by + 11 + sway, 4, 2, '#4E9A1E');
+        px(x + 9, by + 14 + sway, 8, 2, '#1F5018');
+        px(x + 10, by + 15 + sway, 4, 1, '#D8F0A0');
+        // Ojos saltones amarillos con pupila negra.
+        px(x + 13, by - 4 + sway, 6, 6, '#E8D840');
+        px(x + sz + 22, by - 4 + sway, 6, 6, '#E8D840');
+        px(x + 15, by - 2 + sway, 3, 3, '#1A2010');
+        px(x + sz + 24, by - 2 + sway, 3, 3, '#1A2010');
+        px(x + 16, by - 2 + sway, 1, 1, '#F8F8C0');
+        px(x + sz + 25, by - 2 + sway, 1, 1, '#F8F8C0');
+        // Cresta/hojas de la cabeza, compacta.
+        px(x + 18, by - 8 + sway, 5, 5, G2);
+        px(x + 24, by - 10 + sway, 8, 4, G3);
+        px(x + 30, by - 11 + sway, 5, 3, G3);
 
-        // Serpiente central, más alta
-        px(x + 13, by + 17, 7, 23, G1);
-        px(x + 16, by + 17, 3, 23, G3);
-        px(x + 8, by + 26, 22 + sz, 5, G2);
-        px(x + 10, by + 30, 18 + sz, 5, G1);
-        px(x + 14, by + 34, 20 + sz, 5, G2);
-        // panza roja central en segmentos
-        px(x + 14, by + 21, 3, 4, R2);
-        px(x + 14, by + 27, 10, 2, R3);
-        px(x + 16, by + 31, 8, 2, R2);
-        px(x + 18, by + 35, 10, 2, R3);
-
-        // Serpiente derecha
-        px(x + sz + 18, by + 28, 20, 5, G1);
-        px(x + sz + 24, by + 32, 18, 5, G2);
-        px(x + sz + 16, by + 36, 20, 5, G1);
-        px(x + sz + 14, by + 39, 14, 4, '#24702D');
-        // panza roja derecha
-        px(x + sz + 26, by + 33, 10, 2, R2);
-        px(x + sz + 18, by + 37, 12, 2, R2);
-
-        // Cabeza izquierda verde tipo serpiente
-        px(x - 8, by + 9 + wig, 14, 12, G1);
-        px(x - 6, by + 11 + wig, 10, 8, G2);
-        px(x - 3, by + 8 + wig, 5, 4, G3);
-        px(x - 5, by + 14 + wig, 3, 3, '#F8D050');
-        px(x - 4, by + 15 + wig, 1, 1, '#1A2010');
-        px(x + 1, by + 18 + wig, 4, 2, R2); // boca/panza asomando
-        px(x - 8, by + 20 + wig, 11, 4, G1); // cuello hacia el rollo
-
-        // Cabeza central verde, más grande
-        px(x + 7, by + 1, 20 + sz, 14, G1);
-        px(x + 9, by + 3, 16 + sz, 10, G2);
-        px(x + 14, by - 2, 5, 5, G3);
-        px(x + 15, by - 4, 2, 4, '#5A3818');
-        px(x + 12, by + 7, 4, 4, '#F8D050');
-        px(x + sz + 20, by + 7, 4, 4, '#F8D050');
-        px(x + 14, by + 9, 2, 2, '#1A2010');
-        px(x + sz + 22, by + 9, 2, 2, '#1A2010');
-        px(x + 15, by + 13, 7, 2, R2);
-        px(x + 17, by + 14, 3, 1, '#F8E0C0');
-
-        // Cabeza derecha verde tipo serpiente
-        px(x + sz + 36, by + 9 - wig, 14, 12, G1);
-        px(x + sz + 38, by + 11 - wig, 10, 8, G2);
-        px(x + sz + 39, by + 8 - wig, 5, 4, G3);
-        px(x + sz + 43, by + 14 - wig, 3, 3, '#F8D050');
-        px(x + sz + 44, by + 15 - wig, 1, 1, '#1A2010');
-        px(x + sz + 36, by + 18 - wig, 4, 2, R2);
-        px(x + sz + 39, by + 20 - wig, 11, 4, G1);
-
-        // lengua/llama pixelada de la cabeza central
-        if (f % 20 < 10) {
-          px(x + 17, by + 16, 4, 3, '#E84020');
-          px(x + 18, by + 18, 2, 2, '#F8A030');
-        }
-        // aura pixelada verde tenue
+        // Unión bajo la pechera.
+        px(x + 16, by + 31 + sz, 8, 3, '#5A3818');
+        px(x + 18, by + 31 + sz, 3, 3, '#C8A830');
+        // Aura vegetal mínima.
         cx.globalAlpha = 0.05;
-        cx.fillStyle = '#7FE080';
-        pixelGlow(x + 17, by + 24, 34 + sz, 18);
+        cx.fillStyle = '#B8E880';
+        pixelGlow(x + 20, by + 22, 24 + sz, 18);
         cx.globalAlpha = 1;
       }
       break;
@@ -8573,45 +8854,38 @@ function dCre(x, y, id, lv, f) {
       }
       break;
 
-    case 'blaztoro': // Toro pastelero con delantal
-      px(x + 4, by + 18, 24 + sz, 16 + sz, '#A03020');
-      px(x + 6, by + 20, 20 + sz, 12 + sz, '#C04030');
-      px(x + 8, by + 20, 16 + sz, 10, '#F0E8E0');
-      px(x + 10, by + 22, 12 + sz, 6, '#F8F0E8');
-      px(x + 14, by + 24, 4, 3, '#E05060');
-      px(x + 4, by + 4, 24 + sz, 14, '#A03020');
-      px(x + 6, by + 6, 20 + sz, 10, '#C04030');
-      px(x + 4, by + 2, 4, 6, '#E8D8C0');
-      px(x + sz + 24, by + 2, 4, 6, '#E8D8C0');
-      px(x + 2, by + 0, 4, 4, '#F0E0D0');
-      px(x + sz + 26, by + 0, 4, 4, '#F0E0D0');
-      px(x + 5, by + 6, 3, 4, '#C04030');
-      px(x + sz + 24, by + 6, 3, 4, '#C04030');
-      px(x + 8, by + 8, 5, 5, '#fff');
-      px(x + sz + 18, by + 8, 5, 5, '#fff');
-      px(x + 10, by + 10, 3, 3, '#401818');
-      px(x + sz + 20, by + 10, 3, 3, '#401818');
-      px(x + 10, by + 10, 1, 1, '#fff');
-      px(x + sz + 20, by + 10, 1, 1, '#fff');
-      px(x + 12, by + 14, 8, 4, '#D05040');
-      px(x + 14, by + 16, 4, 2, '#E06050');
-      px(x + 14, by + 14, 4, 2, '#C04030');
-      px(x + 15, by + 15, 2, 1, '#C8A830');
-      px(x + 8, by + 0, 16 + sz, 4, '#F8F8F8');
-      px(x + 10, by - 3, 12 + sz, 5, '#F8F8F8');
-      px(x + 12, by - 4, 8 + sz, 3, '#F0F0F0');
-      px(x + sz + 22, by + 26, 6, 5, '#F0D8C0');
-      px(x + sz + 23, by + 24, 4, 3, '#F088A0');
-      px(x + sz + 24, by + 23, 2, 2, '#F8E830');
-      px(x + 6, by + 32 + sz, 6, 6, '#A03020');
-      px(x + sz + 20, by + 32 + sz, 6, 6, '#A03020');
-      px(x + 5, by + 36 + sz, 7, 2, '#802818');
-      px(x + sz + 19, by + 36 + sz, 7, 2, '#802818');
+    case 'blaztoro': // Blaztoro: torito pastelero pequeño y delicado
+      {
+        const bob = Math.sin(f * 0.14) * 1;
+        px(x + 8, by + 22 + bob, 20 + sz, 12 + sz, '#A03020');
+        px(x + 10, by + 24 + bob, 16 + sz, 8 + sz, '#C04030');
+        px(x + 11, by + 23 + bob, 14 + sz, 9, '#F0E8E0');
+        px(x + 13, by + 25 + bob, 10 + sz, 5, '#F8F0E8');
+        px(x + 16, by + 27 + bob, 4, 3, '#E05060');
+        px(x + 8, by + 8 + bob, 18 + sz, 13, '#A03020');
+        px(x + 10, by + 10 + bob, 14 + sz, 9, '#C04030');
+        px(x + 12, by + 12 + bob, 10 + sz, 5, '#D05040');
+        px(x + 6, by + 5 + bob, 4, 5, '#E8D8C0');
+        px(x + sz + 25, by + 5 + bob, 4, 5, '#E8D8C0');
+        px(x + 5, by + 3 + bob, 3, 3, '#F0E0D0');
+        px(x + sz + 27, by + 3 + bob, 3, 3, '#F0E0D0');
+        px(x + 9, by + 2 + bob, 16 + sz, 4, '#F8F8F8');
+        px(x + 11, by - 1 + bob, 12 + sz, 5, '#F8F8F8');
+        px(x + 13, by - 2 + bob, 8 + sz, 3, '#F0F0F0');
+        px(x + 11, by + 12 + bob, 5, 5, '#fff');
+        px(x + sz + 19, by + 12 + bob, 5, 5, '#fff');
+        px(x + 13, by + 14 + bob, 3, 3, '#401818');
+        px(x + sz + 21, by + 14 + bob, 3, 3, '#401818');
+        px(x + 14, by + 19 + bob, 7, 2, '#C04030');
+        px(x + sz + 25, by + 25 + bob, 6, 5, '#F0D8C0');
+        px(x + sz + 26, by + 23 + bob, 4, 3, '#F088A0');
+        px(x + sz + 27, by + 22 + bob, 2, 2, '#F8E830');
+        px(x + 9, by + 32 + sz + bob, 5, 5, '#A03020');
+        px(x + sz + 21, by + 32 + sz + bob, 5, 5, '#A03020');
+        px(x + 8, by + 36 + sz + bob, 6, 2, '#802818');
+        px(x + sz + 20, by + 36 + sz + bob, 6, 2, '#802818');
+      }
       break;
-
-    // ==========================================
-    // AGUA 💧 - NUEVOS (únicos)
-    // ==========================================
 
     case 'axolotl': // Ajolotín: cabeza grande, cuerpito bebé muy pequeño
       {
@@ -13678,7 +13952,8 @@ function dTitle() {
   cx.fillStyle = '#000'; cx.font = '18px "Press Start 2P"'; cx.fillText('CRIATURAS DEL', 323, 84); cx.font = '28px "Press Start 2P"'; cx.fillText('REINO', 323, 124);
   cx.fillStyle = '#FFE070'; cx.font = '18px "Press Start 2P"'; cx.fillText('CRIATURAS DEL', 320, 81); cx.font = '28px "Press Start 2P"'; cx.fillText('REINO', 320, 121);
 
-  const ids = Object.keys(CDB);
+  // El desfile respeta el mismo orden de aparición del Criaturario.
+  const ids = dexIds();
   const spacing = 92;
   const totalW = ids.length * spacing;
   const base = 690 - (cf * 0.55 % (totalW + 760));
@@ -15204,6 +15479,7 @@ function startWild(forceType) {
     fought: [0],
     isNPC: false,
     npcSprite: null,
+    bgMap: G.curMap,
     fleeChance: getWildFleeChance(),
     npcIntro: null,
     introPhase: 0,
@@ -16394,10 +16670,66 @@ function resetGame(startIntro = false) {
 }
 
 // === CRIATURARIO / CRIATURA-DEX ===
+const DEX_ORDER = [
+  // Iniciales: Planta -> Fuego -> Agua
+  'gorilan', 'gorilirico', 'gorilegend',
+  'flameye', 'flamcrest', 'inferpavo',
+  'axolotl', 'ajolord', 'glaciolote',
+
+  // Resto por ciclos: Planta -> Fuego -> Agua -> Dragón -> Hada
+  'ivygoat', 'hedroble',
+  'flamingo', 'flamencero',
+  'medusync', 'medubass',
+  'wyvern', 'wyvernax', 'wyvernlord',
+  'pixie', 'duendetron',
+
+  'orquidea', 'mantisdanza',
+  'emberwing',
+  'pinzardo', 'pinzamestre',
+  'eastern', 'longwok',
+  'sidhe', 'sidhearia',
+
+  'thornbuck', 'espinarcor', 'espinardoom',
+  'salamandro', 'alquimero', 'piromante',
+  'pingueson', 'pinguchef', 'pingumitre',
+  'ornispia', 'ornishadow', 'ornisagent',
+  'spritefly', 'lucilente', 'lucistrella',
+
+  'raizan',
+  'blaztoro', 'infernotoro',
+  'peztronauta', 'cosmocardumen',
+  'serpentdrg', 'serpentboss',
+  'elefantasy', 'elefantastico',
+
+  'gusarix', 'crisalmanza', 'hydrapom',
+  'zumbaflor', 'zumbaccino',
+
+  // Legendario al final
+  'serafox',
+];
+
 function dexIds() {
-  return Object.keys(CDB);
+  const seen = new Set();
+  const ordered = [];
+  DEX_ORDER.forEach((id) => {
+    if (CDB[id] && !seen.has(id)) {
+      seen.add(id);
+      ordered.push(id);
+    }
+  });
+  // Seguridad: si agregamos criaturas nuevas y olvidamos meterlas al orden,
+  // aparecen antes del legendario final sin romper el Criaturario.
+  Object.keys(CDB).forEach((id) => {
+    if (id !== 'serafox' && !seen.has(id)) {
+      seen.add(id);
+      ordered.push(id);
+    }
+  });
+  if (CDB.serafox && !ordered.includes('serafox')) ordered.push('serafox');
+  return ordered;
 }
 function hasCapturedSpecies(id) {
+  if (G.supervisor) return true;
   return (captureCount[id] || 0) > 0 || G.party.some((c) => c.id === id) || proa.some((c) => c.id === id);
 }
 function uDex() {
@@ -19796,6 +20128,8 @@ function loop() {
 
 // === INICIALIZACIÓN ===
 function init() {
+  initBattleBackgroundAssets();
+
   // Generar mapas
   genWorld();
   genCave(cave1, CC, CR);
