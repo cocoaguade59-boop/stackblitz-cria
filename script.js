@@ -4944,7 +4944,7 @@ function dNPC(x, y, id, f) {
       px(x + 14, by + 8, 4, 1, '#C08868');
       break;
 
-    case 'alex': // Arriba crema, abajo verde, sombrero de paja, pecas
+    case 'alexandro': // Arriba crema, abajo verde, sombrero de paja, pecas
       px(x + 9, by + 26, 5, 4, '#6A4828');
       px(x + 18, by + 26, 5, 4, '#6A4828');
       px(x + 8, by + 14, 16, 14, '#388038');
@@ -6636,7 +6636,7 @@ function dTrainerBig(x, y, id, f) {
       px(x + 28, by + 16, 8, 2, '#C08868');
       break;
 
-    case 'alex': // Sombrero paja, arriba crema abajo verde, pecas
+    case 'alexandro': // Sombrero paja, arriba crema abajo verde, pecas
       px(x + 20, by + 60, 10, 8, '#6A4828');
       px(x + 34, by + 60, 10, 8, '#6A4828');
       px(x + 16, by + 34, 32, 28, '#388038');
@@ -11496,7 +11496,7 @@ function buildVillage(sx, sy, id) {
 
   // Aldea Pitch recibe una primera zona más clara y acogedora para tutorial.
   if (id === 'pitch') {
-    // plaza central y caminos limpios hacia Alex/Luis/Alessandro
+    // plaza central y caminos limpios hacia Alexandro/Luis/Alessandro
     for (let r = sy + 1; r <= sy + 6; r++)
       for (let c = sx - 1; c <= sx + 8; c++)
         if (r >= 2 && r < WR - 2 && c >= 2 && c < WC - 2 && wMap[r][c] !== 4) wMap[r][c] = 1;
@@ -12086,8 +12086,8 @@ const npcs = [
   {
     x: 18,
     y: 144,
-    tp: 'alex',
-    nm: 'Alex',
+    tp: 'alexandro',
+    nm: 'Alexandro',
     dlg: [
       [
         '¡Hey! Controles rápidos:',
@@ -12109,7 +12109,7 @@ const npcs = [
       ],
     ],
     postDlg: ['¡Tu ritmo es imparable!', 'Sigue corriendo hacia el éxito!'],
-    flag: 'metAlex',
+    flag: 'metAlexandro',
     tutorial: true,
     battle: false,
     exterior: true,
@@ -12193,7 +12193,7 @@ const npcs = [
       ],
 
       [
-        'Alex dice que corra con Z.',
+        'Alexandro dice que corra con Z.',
         'Sí, claro.',
         'Correría si no tuviera miedo',
         'de que el techo se me caiga encima.',
@@ -14510,7 +14510,7 @@ function checkAllTalked() {
     'metAnd',
     'metAlej',
     'metLuis',
-    'metAlex',
+    'metAlexandro',
     'metGon',
     'metJai',
     'metDan2',
@@ -15002,7 +15002,7 @@ function uTower() {
 const DAN_GOSSIP_LIST = [
   { text: 'Alessandro quiere pedirle a Gabriela vivir juntos', valid: true },
   { text: 'Roberto ama a Brisa mas de lo que muestra', valid: true },
-  { text: 'Alex quiere una criatura grande para movilizarse', valid: true },
+  { text: 'Alexandro quiere una criatura grande para movilizarse', valid: true },
   { text: 'Hernan extraña a Tishe', valid: true },
   { text: 'Luchito quiere casarse', valid: true },
   { text: 'Pachi y Andre son hermanos y se cuidan', valid: true },
@@ -16070,7 +16070,7 @@ function showTalkedChecklist(npc) {
     { flag: 'metAnd', nm: 'André' },
     { flag: 'metAlej', nm: 'Alejandro' },
     { flag: 'metLuis', nm: 'Luis' },
-    { flag: 'metAlex', nm: 'Alex' },
+    { flag: 'metAlexandro', nm: 'Alexandro' },
     { flag: 'metGon', nm: 'Gonchi' },
     { flag: 'metJai', nm: 'Jairo' },
     { flag: 'metDan2', nm: 'Dante' },
