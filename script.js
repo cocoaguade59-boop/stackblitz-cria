@@ -8485,12 +8485,15 @@ function dCre(x, y, id, lv, f) {
       {
         const sway = Math.sin(f * 0.1) * 2;
         if (SPRITE_LOADER.has('hydrapom')) {
-          // Sprite cargado: usar imagen escalada al área del juego.
+          // Sprite cargado: usar imagen manteniendo aspect ratio original.
           const img = SPRITE_LOADER.get('hydrapom');
-          const targetW = 64 + sz * 2;
-          const targetH = 72 + sz * 2;
+          const targetH = 72 + sz * 2;                       // alto objetivo
+          const ratio = img.naturalWidth / img.naturalHeight; // preservar ratio real
+          const targetW = targetH * ratio;
+          // Centrar horizontalmente sobre el punto (x + 16) que es el centro
+          // de la casilla de criatura; anclar los pies a by + 48 aprox.
           const drawX = x + 16 - targetW / 2 + sway;
-          const drawY = by - 8;
+          const drawY = by + 48 - targetH;
           // Escalado nítido (pixel-art friendly)
           const prevSmoothing = cx.imageSmoothingEnabled;
           cx.imageSmoothingEnabled = false;
