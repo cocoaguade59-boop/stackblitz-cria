@@ -3,6 +3,33 @@
 // ============================================================
 const cv = document.getElementById('c'),
   cx = cv.getContext('2d');
+
+// ============================================================
+// SPRITE LOADER: carga PNGs de assets/sprites/<id>.png
+// Si el sprite existe y está cargado, dCre() usará drawImage()
+// en vez del dibujo pixel-art para esa criatura.
+// ============================================================
+const SPRITE_LOADER = {
+  imgs: {},   // id -> HTMLImageElement
+  ready: {},  // id -> true cuando la imagen cargó OK
+  load(id) {
+    if (this.imgs[id]) return;
+    const img = new Image();
+    img.onload = () => { this.ready[id] = true; };
+    img.onerror = () => { this.ready[id] = false; };
+    img.src = 'assets/sprites/' + id + '.png';
+    this.imgs[id] = img;
+  },
+  has(id) {
+    return this.ready[id] === true;
+  },
+  get(id) {
+    return this.imgs[id];
+  },
+};
+// Precargar sprites conocidos (agrega más ids aquí cuando subas más PNGs)
+SPRITE_LOADER.load('hydrapom');
+
 const T = 32,
   WC = 80,
   WR = 150,
@@ -8454,7 +8481,35 @@ function dCre(x, y, id, lv, f) {
       }
       break;
 
-    case 'hydrapom': // Knightapple: serpiente verde alta con pechera de manzana y brazos-hoja delgados
+    case 'hydrapom': // Knightapple: sprite PNG cargado desde assets/sprites/hydrapom.png
+      {
+        const sway = Math.sin(f * 0.1) * 2;
+        if (SPRITE_LOADER.has('hydrapom')) {
+          // Sprite cargado: usar imagen escalada al área del juego.
+          const img = SPRITE_LOADER.get('hydrapom');
+          const targetW = 64 + sz * 2;
+          const targetH = 72 + sz * 2;
+          const drawX = x + 16 - targetW / 2 + sway;
+          const drawY = by - 8;
+          // Escalado nítido (pixel-art friendly)
+          const prevSmoothing = cx.imageSmoothingEnabled;
+          cx.imageSmoothingEnabled = false;
+          cx.drawImage(img, drawX, drawY, targetW, targetH);
+          cx.imageSmoothingEnabled = prevSmoothing;
+          break;
+        }
+        // Fallback mientras el sprite no está disponible (imagen no subida aún
+        // o todavía cargando): silueta simple con el nombre de la criatura.
+        px(x + 6, by + 8, 22, 40, '#4E9A1E');
+        px(x + 8, by + 10, 18, 36, '#78C840');
+        px(x + 10, by + 4, 14, 8, '#B82020');
+        cx.fillStyle = '#fff';
+        cx.font = '8px "Press Start 2P"';
+        cx.fillText('?', x + 14, by + 34);
+      }
+      break;
+
+    case '_hydrapom_legacy_unused': // (Sprite pixel-art antiguo, conservado por referencia — no se usa)
       {
         const sway = Math.sin(f * 0.1) * 2;
         const leaf = Math.sin(f * 0.12) * 2;
