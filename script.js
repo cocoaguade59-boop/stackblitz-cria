@@ -26,6 +26,7 @@ import { STATUS, battleState, resetBattleState, getModdedStat, cDmg } from './sr
 import { cv, cx } from './src/core/canvas.js';
 import { G } from './src/core/game-state.js';
 import { px, pixelGlow, pixelDiamond } from './src/render/render-utils.js';
+import { dBattleHud } from './src/render/battle-hud.js';
 
 
 
@@ -16443,18 +16444,11 @@ function dBattle() {
   if (b.en.hp > 0 && b.ph !== 'captureAnim') dCre(385 + esx, 108, b.en.id, b.en.lv, f);
   if (c.hp > 0) dCre(105 + psx, 238, c.id, c.lv, f);
 
-  // Panel enemigo
-  dBattlePanel(8, 8, 250, 58, true);
-  cx.fillStyle = tCol(b.en.tp);
-  cx.font = '7px "Press Start 2P"';
-  cx.fillText(`${tEmo(b.en.tp)} ${b.en.nm}`, 20, 26);
-  cx.fillStyle = '#ffd700';
-  cx.font = '6px "Press Start 2P"';
-  cx.fillText(`Lv.${b.en.lv}`, 200, 26);
-  cx.fillStyle = '#aaa';
-  cx.font = '5px "Press Start 2P"';
-  cx.fillText(tNam(b.en.tp), 20, 38);
-  dHP(20, 42, 168, 7, b.en.hp, b.en.mHp);
+  // Panel enemigo — nuevo HUD estilo NDS pixel-art
+  dBattleHud(8, 8, 300, 84, b.en, {
+    isPlayer: false,
+    status: battleState.enemyStatus,
+  });
   // Indicador de criatura ya capturada
   if (
     G.party.some((c) => c.id === b.en.id) ||
@@ -16465,19 +16459,13 @@ function dBattle() {
     cx.fillText('💎', 240, 54);
   }
 
-  // Panel jugador
-  dBattlePanel(375, 235, 256, 68, false);
-  cx.fillStyle = tCol(c.tp);
-  cx.font = '7px "Press Start 2P"';
-  cx.fillText(`${tEmo(c.tp)} ${c.nm}`, 390, 253);
-  cx.fillStyle = '#ffd700';
-  cx.font = '6px "Press Start 2P"';
-  cx.fillText(`Lv.${c.lv}`, 580, 253);
-  cx.fillStyle = '#aaa';
-  cx.font = '5px "Press Start 2P"';
-  cx.fillText(tNam(c.tp), 390, 265);
-  dHP(390, 270, 140, 7, c.hp, c.mHp);
-  dEXP(390, 283, 140, 4, c.ex, c.exTo);
+  // Panel jugador — nuevo HUD estilo NDS pixel-art
+  dBattleHud(330, 220, 300, 100, c, {
+    isPlayer: true,
+    status: battleState.playerStatus,
+  });
+  // Barra de EXP debajo del HUD
+  dEXP(344, 326, 272, 4, c.ex, c.exTo);
 
   // === PANEL INFERIOR SEGÚN FASE ===
 

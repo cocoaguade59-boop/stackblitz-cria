@@ -23,6 +23,7 @@ class Cre {
     this.bAk = d.ak;
     this.bDf = d.df;
     this.bSp = d.sp;
+    this.gender = Math.random() < 0.5 ? 'M' : 'F'; // Género aleatorio 50/50
     this.calc();
     this.hp = this.mHp;
     this.mv = mix ? this.mixMv() : this.gMv();
@@ -312,6 +313,7 @@ class Cre {
       lv: this.lv,
       hp: this.hp,
       ex: this.ex,
+      gender: this.gender,
       mv: this.mv.map((m) => ({
         nm: m.nm,
         tp: m.tp,
@@ -329,6 +331,8 @@ class Cre {
     const c = new Cre(j.id, j.lv);
     c.hp = j.hp;
     c.ex = j.ex;
+    // Género: usar el guardado si existe, si no dejar el aleatorio del constructor
+    if (j.gender === 'M' || j.gender === 'F') c.gender = j.gender;
     if (j.mv) {
       // Restaurar movimientos completos guardados
       c.mv = j.mv.map((savedMv) => {
