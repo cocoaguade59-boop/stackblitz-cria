@@ -29,6 +29,8 @@ const G = {
   showDex: false,
   dexSel: 0,
   supervisor: false,
+  batallador: false,       // Modo testing de combate (tecla P)
+  batalladorSel: null,     // Estado de la pantalla de selección
   sSel: 0,
   bs: null,
   ds: null,

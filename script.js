@@ -11819,12 +11819,13 @@ function uWorld() {
 
     // Puerta del castillo
     if (tile === 11) {
-      if (G.allTalked && G.allCaught) {
+      // Modo supervisor/batallador: acceso libre para testing
+      if (G.supervisor || G.batallador || (G.allTalked && G.allCaught)) {
         G.prevPos = { x: G.pl.x, y: G.pl.y };
         G.curMap = 'castle';
         G.pl.x = 15;
         G.pl.y = KR - 3;
-        aN('¡Castillo Real!');
+        aN(G.supervisor ? 'Castillo (Supervisor)' : G.batallador ? 'Castillo (Batallador)' : '¡Castillo Real!');
       } else {
         G.scr = 'dialog';
         G.ds = {
@@ -11841,12 +11842,13 @@ function uWorld() {
 
     // Torre Presupuesto Aprobado
     if (tile === 12) {
-      if (towerOpen) {
+      // Modo supervisor/batallador: acceso libre para testing
+      if (G.supervisor || G.batallador || towerOpen) {
         G.prevPos = { x: G.pl.x, y: G.pl.y };
         G.curMap = 'tower';
         G.pl.x = Math.floor(TWC / 2);
         G.pl.y = TWR - 3;
-        aN('Torre Presupuesto Aprobado');
+        aN(G.supervisor ? 'Torre (Supervisor)' : G.batallador ? 'Torre (Batallador)' : 'Torre Presupuesto Aprobado');
       } else {
         G.scr = 'dialog';
         G.ds = {
@@ -11867,6 +11869,10 @@ function uWorld() {
     if (checkRouteSign()) return;
     if (G.supervisor) {
       aN('Supervisor: interacción con NPCs desactivada.');
+      return;
+    }
+    if (G.batallador) {
+      aN('Batallador: interacción con NPCs desactivada.');
       return;
     }
     checkNPC(npcs);
@@ -11969,7 +11975,7 @@ function uCave() {
   }
 
   if (kp(' ')) {
-    if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.');
+    if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.'); else if (G.batallador) aN('Batallador: interacción con NPCs desactivada.');
     else checkNPC(caveNpcs);
   }
   if (kp('x') || kp('Escape')) {
@@ -11982,7 +11988,7 @@ function uCave() {
 }
 
 if (kp(' ')) {
-  if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.');
+  if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.'); else if (G.batallador) aN('Batallador: interacción con NPCs desactivada.');
   else checkNPC(caveNpcs);
 }
 if (kp('x') || kp('Escape')) {
@@ -12014,7 +12020,7 @@ function uCastle() {
   }
 
   if (kp(' ')) {
-    if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.');
+    if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.'); else if (G.batallador) aN('Batallador: interacción con NPCs desactivada.');
     else checkNPC(castNpcs);
   }
   if (kp('x') || kp('Escape')) {
@@ -12537,7 +12543,8 @@ function startWild(forceType) {
   const tp = types[Math.floor(Math.random() * types.length)];
   const pool = POOLS[tp];
   const id = pool[Math.floor(Math.random() * pool.length)];
-  const lv = wildLv();
+  // En modo batallador el enemigo tambien es nivel 20 para pelea equilibrada
+  const lv = G.batallador ? 20 : wildLv();
   const en = new Cre(id, lv);
 
   G.bs = {
@@ -12553,7 +12560,7 @@ function startWild(forceType) {
     af: 0,
     ps: 0,
     es: 0,
-    noExp: false,
+    noExp: G.batallador,  // No dar EXP en modo batallador
     isMerch: false,
     isBoss: false,
     expMult: 1,
@@ -13472,14 +13479,24 @@ function uMenu() {
         G.dexSel = 0;
         break;
       case 6:
-        saveGame();
+        if (G.batallador) {
+          aN('Batallador: no se puede guardar en modo test.');
+          sfx.nef();
+        } else {
+          saveGame();
+        }
         break;
       case 7:
         G.scr = 'world';
         break;
       case 8:
-        G.scr = 'confirmReset';
-        G.resetSel = 0;
+        if (G.batallador) {
+          aN('Batallador: sal del modo test antes de reiniciar.');
+          sfx.nef();
+        } else {
+          G.scr = 'confirmReset';
+          G.resetSel = 0;
+        }
         break;
     }
   }
@@ -13508,7 +13525,7 @@ function dMenu() {
     return;
   }
 
-  dBoxMenu(16, 16, 190, 320, 'MENÚ');
+  dBoxMenu(16, 16, 190, 320, G.batallador ? 'MENÚ ⚔️ BATALLADOR' : 'MENÚ');
   const opts = [
     'Poción',
     'Revivir',
@@ -16119,9 +16136,14 @@ function handleWin() {
 
   // === DAR EXP INMEDIATAMENTE AL DERROTAR CRIATURA ===
   const exp = b.noExp ? 0 : Math.floor((b.en.lv * 15 + 10) * b.expMult);
-  const goldGain = Math.floor(10 + b.en.lv * 3);
+  const goldGain = b.noExp ? 0 : Math.floor(10 + b.en.lv * 3);
 
-  if (exp > 0 && !b.isMerch) {
+  // Mensaje especial en modo batallador
+  if (G.batallador) {
+    sfx.win();
+    b.msg = `¡${b.en.nm} derrotado! [Modo Batallador: sin EXP ni oro]`;
+    b.mq = [];
+  } else if (exp > 0 && !b.isMerch) {
     G.gold += goldGain;
     G.tExp += exp;
     sfx.win();
@@ -16514,13 +16536,18 @@ function drawMap() {
     cx.font = '5px "Press Start 2P"';
     cx.fillText('SUPERVISOR: Y salir', 500, postGame ? 67 : 55);
   }
+  if (G.batallador) {
+    cx.fillStyle = '#68d858';
+    cx.font = '5px "Press Start 2P"';
+    cx.fillText('BATALLADOR: P salir', 500, postGame ? 79 : 67);
+  }
 
   // Controles
   cx.fillStyle = 'rgba(0,0,0,.4)';
-  cx.fillRect(4, 462, 320, 16);
+  cx.fillRect(4, 462, 400, 16);
   cx.fillStyle = '#666';
   cx.font = '5px "Press Start 2P"';
-  cx.fillText('Flechas:Mover Z:Sprint SPACE:Acción X:Menú Y:Supervisor', 8, 473);
+  cx.fillText('Flechas:Mover Z:Sprint SPACE:Acción X:Menú Y:Supervisor P:Batallador', 8, 473);
 
   // === PARTÍCULAS Y NOTIFICACIONES ===
   drawParticles();
@@ -17113,16 +17140,241 @@ function toggleSupervisorMode() {
     G.showMissions = false;
     G.showDex = false;
     aN('MODO SUPERVISOR: rutas libres, sin NPCs ni encuentros');
+    aN('Puedes entrar al Castillo y a la Torre libremente');
   } else {
     aN('Modo supervisor desactivado');
   }
   sfx.sel();
 }
 
+// ============================================================
+// MODO BATALLADOR (testing de combate)
+// ============================================================
+// Activado con la tecla 'P' desde el mundo. Reemplaza temporalmente el
+// equipo del jugador con 6 criaturas nivel 20 elegidas por el jugador,
+// cada una con 4 ataques temáticos según su tipo (1 daño + 1 estado +
+// 1 baja stat rival + 1 sube stat propia).
+//
+// - No gana experiencia
+// - No modifica misiones ni flags
+// - Se guarda el equipo original y se restaura al salir del modo
+// - Sirve para probar mecánicas de estados, drenaje, buffs, etc.
+// ============================================================
+
+// Movesets temáticos por tipo (4 ataques: daño, estado, baja stat, sube stat)
+const BATALLADOR_MOVESETS = {
+  fire: ['Bola Ígnea', 'Lluvia Ígnea', 'Pantalla Humo', 'Nitrocarga'],
+  water: ['Hidrobomba', 'Torbellino', 'Rayo Burbuja', 'Refugio'],
+  plant: ['Bomba Semilla', 'Drenadoras', 'Látigo Cepa', 'Crecimiento'],
+  dragon: ['Aliento Dragón', 'Garra Umbría', 'Mirada Dragón', 'Danza Dragón'],
+  fairy: ['Rayo Feérico', 'Voz Cautivadora', 'Encanto Total', 'Deseo'],
+  normal: ['Golpe Divino', 'Golpe Cuerpo', 'Picotazo', 'Danza Espada'],
+};
+
+// Snapshot del estado del jugador antes de entrar al modo batallador
+let batalladorSnapshot = null;
+
+// Lista de IDs seleccionables (todas las especies base, sin evoluciones repetidas)
+function getBatalladorCandidates() {
+  return Object.keys(CDB); // todos los IDs del CDB
+}
+
+function createBatalladorCre(id) {
+  const cre = new Cre(id, 20);
+  // Reemplazar movimientos por el moveset temático de su tipo
+  const tp = cre.tp;
+  const movesetNames = BATALLADOR_MOVESETS[tp] || BATALLADOR_MOVESETS.normal;
+  const newMoves = movesetNames
+    .map((nm) => ALL_MOVES.find((m) => m.nm === nm))
+    .filter(Boolean)
+    .map((m) => ({ ...m, pp: m.mp }));
+  if (newMoves.length > 0) cre.mv = newMoves;
+  return cre;
+}
+
+function enterBatalladorMode(selectedIds) {
+  // Guardar snapshot del estado original
+  batalladorSnapshot = {
+    party: G.party.map((c) => c.toJSON()),
+    proa: proa.map((c) => c.toJSON()),
+    gold: G.gold,
+    pot: G.pot,
+    rev: G.rev,
+    crv: G.crv,
+    plX: G.pl.x,
+    plY: G.pl.y,
+    curMap: G.curMap,
+  };
+  // Reemplazar equipo con las 6 criaturas seleccionadas
+  G.party = selectedIds.map((id) => createBatalladorCre(id));
+  // Dar objetos de prueba
+  G.gold = 9999;
+  G.pot = 20;
+  G.rev = 10;
+  G.crv = 10;
+  G.batallador = true;
+  G.scr = 'world';
+  aN('MODO BATALLADOR: equipo test cargado');
+  aN('No ganarás EXP. Sin efectos sobre misiones.');
+  sfx.win();
+}
+
+function exitBatalladorMode() {
+  if (!batalladorSnapshot) {
+    G.batallador = false;
+    return;
+  }
+  // Restaurar estado original
+  G.party = batalladorSnapshot.party.map((j) => Cre.fromJSON(j));
+  proa = batalladorSnapshot.proa.map((j) => Cre.fromJSON(j));
+  G.gold = batalladorSnapshot.gold;
+  G.pot = batalladorSnapshot.pot;
+  G.rev = batalladorSnapshot.rev;
+  G.crv = batalladorSnapshot.crv;
+  G.pl.x = batalladorSnapshot.plX;
+  G.pl.y = batalladorSnapshot.plY;
+  G.curMap = batalladorSnapshot.curMap;
+  batalladorSnapshot = null;
+  G.batallador = false;
+  aN('Modo batallador desactivado. Estado original restaurado.');
+  sfx.sel();
+}
+
+function toggleBatalladorMode() {
+  if (G.batallador) {
+    exitBatalladorMode();
+    return;
+  }
+  // Abrir pantalla de selección de 6 criaturas
+  const candidates = getBatalladorCandidates();
+  G.batalladorSel = {
+    candidates,        // IDs disponibles
+    selected: [],      // IDs elegidos (hasta 6)
+    cursor: 0,         // posición en la grilla
+    columns: 6,        // grid 6 columnas
+  };
+  G.scr = 'batalladorSelect';
+  sfx.sel();
+}
+
+// -------- Pantalla de selección de criaturas del modo batallador --------
+function uBatalladorSelect() {
+  const s = G.batalladorSel;
+  if (!s) { G.scr = 'world'; return; }
+
+  const cols = s.columns;
+  const total = s.candidates.length;
+
+  if (kp('ArrowRight')) { s.cursor = (s.cursor + 1) % total; sfx.walk(); }
+  if (kp('ArrowLeft'))  { s.cursor = (s.cursor - 1 + total) % total; sfx.walk(); }
+  if (kp('ArrowDown'))  { s.cursor = Math.min(total - 1, s.cursor + cols); sfx.walk(); }
+  if (kp('ArrowUp'))    { s.cursor = Math.max(0, s.cursor - cols); sfx.walk(); }
+
+  if (kp(' ') || kp('Enter')) {
+    const id = s.candidates[s.cursor];
+    const idx = s.selected.indexOf(id);
+    if (idx >= 0) {
+      s.selected.splice(idx, 1);   // deseleccionar
+      sfx.walk();
+    } else if (s.selected.length < 6) {
+      s.selected.push(id);         // seleccionar
+      sfx.sel();
+      if (s.selected.length === 6) {
+        // Auto-confirmar cuando se llegan a 6
+        const ids = s.selected.slice();
+        G.batalladorSel = null;
+        enterBatalladorMode(ids);
+        return;
+      }
+    }
+  }
+
+  if (kp('x') || kp('Escape')) {
+    G.batalladorSel = null;
+    G.scr = 'world';
+    sfx.sel();
+  }
+}
+
+function dBatalladorSelect() {
+  const s = G.batalladorSel;
+  if (!s) return;
+
+  // Fondo oscuro
+  cx.fillStyle = '#0a0a1e';
+  cx.fillRect(0, 0, 640, 480);
+
+  // Título
+  cx.fillStyle = '#ffd700';
+  cx.font = '14px "Press Start 2P"';
+  cx.textAlign = 'center';
+  cx.fillText('MODO BATALLADOR', 320, 26);
+  cx.font = '9px "Press Start 2P"';
+  cx.fillStyle = '#D8D8E8';
+  cx.fillText(`Elige 6 criaturas nivel 20 (${s.selected.length}/6)`, 320, 46);
+  cx.textAlign = 'left';
+
+  // Grid de candidatos
+  const cols = s.columns;
+  const cellW = 96, cellH = 44;
+  const startX = 32, startY = 62;
+  s.candidates.forEach((id, i) => {
+    const r = Math.floor(i / cols);
+    const c = i % cols;
+    const x = startX + c * cellW;
+    const y = startY + r * cellH;
+    if (y > 420) return; // fuera del canvas visible
+
+    const isCursor = i === s.cursor;
+    const isSelected = s.selected.includes(id);
+
+    // Fondo celda
+    cx.fillStyle = isSelected ? '#2a5a2a' : (isCursor ? '#3a3a5e' : '#1a1a2e');
+    cx.fillRect(x, y, cellW - 4, cellH - 4);
+    // Borde
+    cx.strokeStyle = isCursor ? '#ffd700' : (isSelected ? '#68d858' : '#484858');
+    cx.lineWidth = isCursor ? 2 : 1;
+    cx.strokeRect(x + 0.5, y + 0.5, cellW - 5, cellH - 5);
+
+    const data = CDB[id];
+    if (data) {
+      // Emoji tipo + nombre
+      cx.fillStyle = tCol(data.tp);
+      cx.font = '7px "Press Start 2P"';
+      cx.fillText(`${tEmo(data.tp)}${data.nm.slice(0, 10)}`, x + 4, y + 12);
+      // Stats mini
+      cx.fillStyle = '#B8B8C8';
+      cx.font = '5px "Press Start 2P"';
+      cx.fillText(`HP${data.hp} AK${data.ak} DF${data.df} SP${data.sp}`, x + 4, y + 26);
+      // Marcado si ya está seleccionado (numerito)
+      if (isSelected) {
+        cx.fillStyle = '#ffd700';
+        cx.font = '8px "Press Start 2P"';
+        cx.fillText(`#${s.selected.indexOf(id) + 1}`, x + cellW - 22, y + 12);
+      }
+    }
+  });
+
+  // Footer con controles
+  cx.fillStyle = '#0a0a2e';
+  cx.fillRect(0, 440, 640, 40);
+  cx.strokeStyle = '#ffd700';
+  cx.strokeRect(0.5, 440.5, 639, 39);
+  cx.fillStyle = '#D8D8E8';
+  cx.font = '6px "Press Start 2P"';
+  cx.textAlign = 'center';
+  cx.fillText('Flechas: mover  |  SPACE: agregar/quitar  |  X: cancelar', 320, 456);
+  cx.fillText('Al llegar a 6 se activa automáticamente', 320, 470);
+  cx.textAlign = 'left';
+}
+
 function update() {
   fr++;
-  if (kp('y') && !['battle', 'dialog', 'starter', 'intro', 'confirmReset', 'vision'].includes(G.scr)) {
+  if (kp('y') && !['battle', 'dialog', 'starter', 'intro', 'confirmReset', 'vision', 'batalladorSelect'].includes(G.scr)) {
     toggleSupervisorMode();
+  }
+  if (kp('p') && !['battle', 'dialog', 'starter', 'intro', 'confirmReset', 'vision', 'batalladorSelect'].includes(G.scr)) {
+    toggleBatalladorMode();
   }
   uP();
   updateMusic();
@@ -17173,6 +17425,9 @@ function update() {
     case 'vision':
       uVision();
       break;
+    case 'batalladorSelect':
+      uBatalladorSelect();
+      break;
   }
 }
 
@@ -17219,6 +17474,9 @@ function draw() {
     case 'vision':
       dVision();
       break;
+    case 'batalladorSelect':
+      dBatalladorSelect();
+      break;
   }
 }
 
@@ -17238,6 +17496,9 @@ function init() {
   addOloSecretChamber(cave1);
   genCave(cave2, CC, CR);
   genCastle();
+  // Torre: generada siempre (aunque solo esté "abierta" en post-game).
+  // Modos supervisor/batallador permiten entrar aunque no esté abierta.
+  genTower();
 
   // No autocargar: el título ahora permite Continuar o Nueva partida.
   G.hasSave = hasSaveGame();
