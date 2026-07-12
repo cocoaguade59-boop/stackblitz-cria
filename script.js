@@ -15776,6 +15776,7 @@ function getEffectDesc(ef) {
     flinch15: '15% de hacer retroceder',
     spdDn30: '30% de bajar SPD rival',
     atkDn30: '30% de bajar ATK rival',
+    atkDn50: '50% de bajar ATK rival',
     defDn: 'Baja DEF rival -1',
     atkDn: 'Baja ATK rival -1',
     atkDn2: 'Baja ATK rival -2',
@@ -16829,6 +16830,10 @@ function procAct(act) {
       battleState.enemyStatMods.atk--;
       b.msg += ` ¡ATK rival bajó!`;
     }
+    if (mv.ef === 'atkDn50' && Math.random() < 0.5) {
+      battleState.enemyStatMods.atk--;
+      b.msg += ` ¡ATK rival bajó!`;
+    }
     if (mv.ef === 'defDn') {
       battleState.enemyStatMods.def--;
       b.msg += ` ¡DEF rival bajó!`;
@@ -17056,6 +17061,10 @@ function procAct(act) {
         b.msg = `${b.en.nm}: ${mv.nm}! ¡Tu precisión bajó!`;
       }
       if (mv.ef === 'atkDn') {
+        battleState.playerStatMods.atk--;
+        b.msg = `${b.en.nm}: ${mv.nm}! ¡Tu ATK bajó!`;
+      }
+      if (mv.ef === 'atkDn50' && Math.random() < 0.5) {
         battleState.playerStatMods.atk--;
         b.msg = `${b.en.nm}: ${mv.nm}! ¡Tu ATK bajó!`;
       }

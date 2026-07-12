@@ -483,7 +483,8 @@ const ALL_MOVES = [
     pp: 30,
     mp: 30,
     acc: 100,
-    desc: 'Picotazo rápido y preciso.',
+    ef: 'atkDn50',
+    desc: 'Picotazo rápido y preciso. 50% de bajar ATK rival.',
   },
   {
     nm: 'Placaje',
