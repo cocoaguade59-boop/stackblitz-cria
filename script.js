@@ -9,6 +9,14 @@ import { CRE_DESC } from './src/data/creature-descriptions.js';
 import { POOLS } from './src/data/pools.js';
 import { ALL_MOVES } from './src/data/moves.js';
 
+// [refactor-phase2] utilidades importadas
+import { SPRITE_LOADER } from './src/core/sprite-loader.js';
+import { SFX, sfx } from './src/core/audio.js';
+import { SAVE_KEY, hasSaveGame, clearAllGameSaves } from './src/core/save.js';
+import { SK } from './src/render/skin-colors.js';
+import { SONGS, playMusic, stopMusic } from './src/core/music.js';
+
+
 const cv = document.getElementById('c'),
   cx = cv.getContext('2d');
 
@@ -17,26 +25,7 @@ const cv = document.getElementById('c'),
 // Si el sprite existe y está cargado, dCre() usará drawImage()
 // en vez del dibujo pixel-art para esa criatura.
 // ============================================================
-const SPRITE_LOADER = {
-  imgs: {},   // id -> HTMLImageElement
-  ready: {},  // id -> true cuando la imagen cargó OK
-  load(id) {
-    if (this.imgs[id]) return;
-    const img = new Image();
-    img.onload = () => { this.ready[id] = true; };
-    img.onerror = () => { this.ready[id] = false; };
-    img.src = 'assets/sprites/' + id + '.png';
-    this.imgs[id] = img;
-  },
-  has(id) {
-    return this.ready[id] === true;
-  },
-  get(id) {
-    return this.imgs[id];
-  },
-};
-// Precargar sprites conocidos (agrega más ids aquí cuando subas más PNGs)
-SPRITE_LOADER.load('hydrapom');
+// [refactor-phase2] bloque 'sprite-loader' movido a src/
 
 const T = 32,
   WC = 80,
@@ -65,106 +54,12 @@ let towerKey = {
   ximena: false,
 };
 
-// === AUDIO ===
-class SFX {
-  constructor() {
-    this.c = null;
-    this.on = false;
-  }
-  init() {
-    if (this.on) return;
-    try {
-      this.c = new (window.AudioContext || window.webkitAudioContext)();
-      this.on = true;
-    } catch (e) {}
-  }
-  n(f, d, t = 'square', v = 0.08) {
-    if (!this.c) return;
-    let o = this.c.createOscillator(),
-      g = this.c.createGain();
-    o.connect(g);
-    g.connect(this.c.destination);
-    o.type = t;
-    o.frequency.setValueAtTime(f, this.c.currentTime);
-    g.gain.setValueAtTime(v, this.c.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, this.c.currentTime + d);
-    o.start();
-    o.stop(this.c.currentTime + d);
-  }
-  walk() {
-    this.n(200, 0.05, 'square', 0.03);
-  }
-  sel() {
-    this.n(440, 0.1);
-    setTimeout(() => this.n(660, 0.1), 50);
-  }
-  atk() {
-    this.n(150, 0.15, 'sawtooth', 0.1);
-  }
-  hit() {
-    this.n(100, 0.2, 'sawtooth', 0.12);
-  }
-  heal() {
-    this.n(523, 0.15, 'sine', 0.08);
-    setTimeout(() => this.n(659, 0.15, 'sine', 0.08), 100);
-  }
-  lvl() {
-    [523, 659, 784, 1047].forEach((n, i) =>
-      setTimeout(() => this.n(n, 0.2, 'square', 0.1), i * 120)
-    );
-  }
-  win() {
-    [523, 587, 659, 784, 880, 1047].forEach((n, i) =>
-      setTimeout(() => this.n(n, 0.25, 'square', 0.08), i * 150)
-    );
-  }
-  bat() {
-    this.n(220, 0.15);
-    setTimeout(() => this.n(330, 0.15), 100);
-    setTimeout(() => this.n(440, 0.3), 200);
-  }
-  sup() {
-    this.n(880, 0.1, 'square', 0.12);
-    setTimeout(() => this.n(1100, 0.1), 80);
-  }
-  nef() {
-    this.n(300, 0.2, 'triangle', 0.06);
-    setTimeout(() => this.n(200, 0.3, 'triangle', 0.06), 150);
-  }
-  cap() {
-    [440, 554, 659, 880].forEach((n, i) =>
-      setTimeout(() => this.n(n, 0.3, 'square', 0.1), i * 200)
-    );
-  }
-  def() {
-    [440, 370, 311, 220].forEach((n, i) =>
-      setTimeout(() => this.n(n, 0.4, 'sawtooth', 0.08), i * 250)
-    );
-  }
-}
-const sfx = new SFX();
-
+// [refactor-phase2] bloque 'audio' movido a src/
 // [refactor-phase1] bloque 'types' movido a src/data/types.js
 // [refactor-phase1] bloque 'creatures' movido a src/data/creatures.js
 // [refactor-phase1] bloque 'descriptions' movido a src/data/descriptions.js
 
-// === GUARDADO ===
-const SAVE_KEY = 'criaturasDelReino_v2';
-function hasSaveGame() {
-  try { return !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; }
-}
-function clearAllGameSaves() {
-  try {
-    localStorage.removeItem(SAVE_KEY);
-    // Limpieza de compatibilidad por si StackBlitz conservó claves antiguas.
-    for (let i = localStorage.length - 1; i >= 0; i--) {
-      const k = localStorage.key(i);
-      if (k && /criaturas|reino/i.test(k)) localStorage.removeItem(k);
-    }
-  } catch (e) {
-    console.error('Error limpiando guardado:', e);
-  }
-}
+// [refactor-phase2] bloque 'save' movido a src/
 
 // === CONTADOR DE CAPTURAS POR ESPECIE ===
 let captureCount = {};
@@ -1440,14 +1335,7 @@ function uP() {
   });
 }
 
-// === SKIN COLORS ===
-const SK = {
-  a: '#F0C8A0', // Piel clara estándar
-  b: '#E0B888', // Piel media
-  c: '#C89868', // Piel oscura (Roberto)
-  d: '#F8DCC8', // Piel muy clara (Angelly)
-  e: '#D0A070', // Piel morena
-};
+// [refactor-phase2] bloque 'skin-colors' movido a src/
 // ============================================================
 // BLOQUE 2: UI COMPLETA
 // ============================================================
@@ -18243,122 +18131,7 @@ function loadGame() {
 }
 
 // ============================================================
-// BLOQUE 24: MÚSICA SIMPLE CON OSCILADORES
-// ============================================================
-
-let musicInterval = null;
-let currentSong = null;
-
-const SONGS = {
-  world: [
-    { f: 262, d: 0.2 },
-    { f: 330, d: 0.2 },
-    { f: 392, d: 0.2 },
-    { f: 330, d: 0.2 },
-    { f: 294, d: 0.2 },
-    { f: 349, d: 0.2 },
-    { f: 262, d: 0.4 },
-    { f: 262, d: 0.2 },
-    { f: 392, d: 0.2 },
-    { f: 349, d: 0.2 },
-    { f: 330, d: 0.2 },
-    { f: 294, d: 0.2 },
-    { f: 262, d: 0.4 },
-    { f: 0, d: 0.4 },
-  ],
-  battle: [
-    { f: 330, d: 0.15 },
-    { f: 392, d: 0.15 },
-    { f: 440, d: 0.15 },
-    { f: 392, d: 0.15 },
-    { f: 330, d: 0.15 },
-    { f: 294, d: 0.15 },
-    { f: 330, d: 0.3 },
-    { f: 440, d: 0.15 },
-    { f: 523, d: 0.15 },
-    { f: 440, d: 0.15 },
-    { f: 392, d: 0.15 },
-    { f: 330, d: 0.15 },
-    { f: 294, d: 0.3 },
-    { f: 0, d: 0.3 },
-  ],
-  cave: [
-    { f: 196, d: 0.3 },
-    { f: 220, d: 0.3 },
-    { f: 196, d: 0.3 },
-    { f: 165, d: 0.3 },
-    { f: 196, d: 0.3 },
-    { f: 220, d: 0.2 },
-    { f: 262, d: 0.2 },
-    { f: 220, d: 0.4 },
-    { f: 0, d: 0.4 },
-  ],
-  castle: [
-    { f: 262, d: 0.3 },
-    { f: 294, d: 0.3 },
-    { f: 330, d: 0.3 },
-    { f: 392, d: 0.3 },
-    { f: 349, d: 0.3 },
-    { f: 330, d: 0.3 },
-    { f: 294, d: 0.6 },
-    { f: 0, d: 0.3 },
-  ],
-  tower: [
-    { f: 523, d: 0.3 },
-    { f: 659, d: 0.3 },
-    { f: 784, d: 0.3 },
-    { f: 659, d: 0.3 },
-    { f: 523, d: 0.3 },
-    { f: 440, d: 0.3 },
-    { f: 523, d: 0.6 },
-    { f: 659, d: 0.2 },
-    { f: 784, d: 0.2 },
-    { f: 880, d: 0.4 },
-    { f: 0, d: 0.4 },
-  ],
-  title: [
-    { f: 392, d: 0.3 },
-    { f: 440, d: 0.3 },
-    { f: 523, d: 0.3 },
-    { f: 440, d: 0.3 },
-    { f: 392, d: 0.3 },
-    { f: 330, d: 0.3 },
-    { f: 392, d: 0.6 },
-    { f: 0, d: 0.6 },
-  ],
-};
-
-function playMusic(songName) {
-  if (currentSong === songName) return;
-  stopMusic();
-  currentSong = songName;
-  const song = SONGS[songName];
-  if (!song || !sfx.c) return;
-
-  let noteIdx = 0;
-  let noteTime = 0;
-
-  musicInterval = setInterval(() => {
-    if (!sfx.c || !sfx.on) return;
-    noteTime -= 50;
-    if (noteTime <= 0) {
-      const note = song[noteIdx % song.length];
-      if (note.f > 0) {
-        sfx.n(note.f, note.d, 'triangle', 0.03);
-      }
-      noteTime = note.d * 1000;
-      noteIdx++;
-    }
-  }, 50);
-}
-
-function stopMusic() {
-  if (musicInterval) {
-    clearInterval(musicInterval);
-    musicInterval = null;
-  }
-  currentSong = null;
-}
+// [refactor-phase2] bloque 'music' movido a src/
 
 function updateMusic() {
   if (!sfx.on) return;
