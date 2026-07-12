@@ -246,7 +246,7 @@ const ALL_MOVES = [
     mp: 10,
     acc: 100,
     ef: 'leech4',
-    desc: 'Planta semillas drenadoras por 4 turnos. Roba HP cada turno.',
+    desc: 'Planta semillas drenadoras por 5 turnos. Roba 5% HP del rival y te cura cada turno.',
   },
   {
     nm: 'Espora Sueño',

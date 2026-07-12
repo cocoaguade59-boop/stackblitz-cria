@@ -14580,7 +14580,7 @@ function getEffectDesc(ef) {
     rainUp: 'Lluvia 5 turnos: Agua +50%, Fuego -50%',
     fairyUp: 'Campo mágico 5 turnos: Hada +50%',
     healField3: 'Flores 3 turnos: cura HP cada turno',
-    leech4: 'Drena HP por 4 turnos',
+    leech4: 'Drena 5% HP rival y te cura por 5 turnos',
     sleep2: 'Duerme al rival 2 turnos',
     clearStatus: 'Elimina estados alterados propios',
     wishHeal: 'Turno siguiente: +50% HP',
@@ -15517,7 +15517,7 @@ function procAct(act) {
     }
     if (mv.ef === 'leech4') {
       battleState.enemyStatus = 'leech';
-      battleState.enemyStatusTurns = 4;
+      battleState.enemyStatusTurns = 5;
       sfx.sel();
       b.msg = `${c.nm}: ${mv.nm}! ¡Drenadoras plantadas!`;
     }
@@ -15542,7 +15542,7 @@ function procAct(act) {
       const cost = Math.floor(c.mHp * 0.5);
       c.hp = Math.max(1, c.hp - cost);
       battleState.enemyStatus = 'curse';
-      battleState.enemyStatusTurns = 99;
+      battleState.enemyStatusTurns = 5;
       sfx.nef();
       b.msg = `${c.nm}: ${mv.nm}! ¡Sacrificó ${cost}HP para maldecir!`;
     }
@@ -15615,6 +15615,7 @@ function procAct(act) {
     // Efectos secundarios post-daño
     if (mv.ef === 'burn20' && Math.random() < 0.2 && !battleState.enemyStatus) {
       battleState.enemyStatus = 'burn';
+      battleState.enemyStatusTurns = 5;
       b.msg += ` ¡${b.en.nm} se quemó!`;
     }
     if (
@@ -15623,6 +15624,7 @@ function procAct(act) {
       !battleState.enemyStatus
     ) {
       battleState.enemyStatus = 'paralyze';
+      battleState.enemyStatusTurns = 5;
       b.msg += ` ¡${b.en.nm} paralizado!`;
     }
     if (
@@ -15631,7 +15633,7 @@ function procAct(act) {
       !battleState.enemyStatus
     ) {
       battleState.enemyStatus = 'confuse';
-      battleState.enemyStatusTurns = 3;
+      battleState.enemyStatusTurns = 4;
       b.msg += ` ¡${b.en.nm} confuso!`;
     }
     if (mv.ef === 'flinch20' && Math.random() < 0.2) {
@@ -15699,10 +15701,15 @@ function procAct(act) {
       return;
     }
 
-    // Status del enemigo
-    if (battleState.enemyStatus === 'burn') {
-      const bd = Math.max(1, Math.floor(b.en.mHp * 0.06));
+    // ========== DoT del ENEMIGO (fin de turno) ==========
+    if (
+      battleState.enemyStatus === 'burn' &&
+      battleState.enemyStatusTurns > 0
+    ) {
+      const bd = Math.max(1, Math.floor(b.en.mHp * 0.07));
       b.en.hp = Math.max(0, b.en.hp - bd);
+      battleState.enemyStatusTurns--;
+      if (battleState.enemyStatusTurns <= 0) battleState.enemyStatus = null;
       b.msg = `¡${b.en.nm} sufre quemadura! -${bd}HP`;
       b.ph = 'msg';
       b.tm = 0;
@@ -15722,13 +15729,86 @@ function procAct(act) {
       b.tm = 0;
       if (b.en.hp <= 0) return;
     }
-    if (battleState.enemyStatus === 'curse') {
+    if (
+      battleState.enemyStatus === 'curse' &&
+      battleState.enemyStatusTurns > 0
+    ) {
       const cd = Math.max(1, Math.floor(b.en.mHp * 0.12));
       b.en.hp = Math.max(0, b.en.hp - cd);
+      battleState.enemyStatusTurns--;
+      if (battleState.enemyStatusTurns <= 0) battleState.enemyStatus = null;
       b.msg = `¡Maldición! ${b.en.nm} -${cd}HP`;
       b.ph = 'msg';
       b.tm = 0;
       if (b.en.hp <= 0) return;
+    }
+    if (
+      battleState.enemyStatus === 'poison' &&
+      battleState.enemyStatusTurns > 0
+    ) {
+      const pd = Math.max(1, Math.floor(b.en.mHp * 0.06));
+      b.en.hp = Math.max(0, b.en.hp - pd);
+      battleState.enemyStatusTurns--;
+      if (battleState.enemyStatusTurns <= 0) battleState.enemyStatus = null;
+      b.msg = `¡Veneno! ${b.en.nm} -${pd}HP`;
+      b.ph = 'msg';
+      b.tm = 0;
+      if (b.en.hp <= 0) return;
+    }
+
+    // ========== DoT del JUGADOR (fin de turno) ==========
+    if (
+      battleState.playerStatus === 'burn' &&
+      battleState.playerStatusTurns > 0
+    ) {
+      const bd = Math.max(1, Math.floor(c.mHp * 0.07));
+      c.hp = Math.max(0, c.hp - bd);
+      battleState.playerStatusTurns--;
+      if (battleState.playerStatusTurns <= 0) battleState.playerStatus = null;
+      b.msg = `¡${c.nm} sufre quemadura! -${bd}HP`;
+      b.ph = 'msg';
+      b.tm = 0;
+      if (c.hp <= 0) return;
+    }
+    if (
+      battleState.playerStatus === 'leech' &&
+      battleState.playerStatusTurns > 0
+    ) {
+      const ld = Math.max(1, Math.floor(c.mHp * 0.05));
+      c.hp = Math.max(0, c.hp - ld);
+      b.en.hp = Math.min(b.en.mHp, b.en.hp + ld); // el enemigo se cura
+      battleState.playerStatusTurns--;
+      if (battleState.playerStatusTurns <= 0) battleState.playerStatus = null;
+      b.msg = `¡Drenadoras! ${c.nm} -${ld}HP, ${b.en.nm} +${ld}HP`;
+      b.ph = 'msg';
+      b.tm = 0;
+      if (c.hp <= 0) return;
+    }
+    if (
+      battleState.playerStatus === 'curse' &&
+      battleState.playerStatusTurns > 0
+    ) {
+      const cd = Math.max(1, Math.floor(c.mHp * 0.12));
+      c.hp = Math.max(0, c.hp - cd);
+      battleState.playerStatusTurns--;
+      if (battleState.playerStatusTurns <= 0) battleState.playerStatus = null;
+      b.msg = `¡Maldición! ${c.nm} -${cd}HP`;
+      b.ph = 'msg';
+      b.tm = 0;
+      if (c.hp <= 0) return;
+    }
+    if (
+      battleState.playerStatus === 'poison' &&
+      battleState.playerStatusTurns > 0
+    ) {
+      const pd = Math.max(1, Math.floor(c.mHp * 0.06));
+      c.hp = Math.max(0, c.hp - pd);
+      battleState.playerStatusTurns--;
+      if (battleState.playerStatusTurns <= 0) battleState.playerStatus = null;
+      b.msg = `¡Veneno! ${c.nm} -${pd}HP`;
+      b.ph = 'msg';
+      b.tm = 0;
+      if (c.hp <= 0) return;
     }
 
     // Deseo curación
@@ -15866,8 +15946,23 @@ function procAct(act) {
       }
       if (mv.ef === 'leech4') {
         battleState.playerStatus = 'leech';
-        battleState.playerStatusTurns = 4;
+        battleState.playerStatusTurns = 5;
         b.msg = `${b.en.nm}: ${mv.nm}! ¡Drenadoras en ti!`;
+      }
+      if (mv.ef === 'burn20' && Math.random() < 0.2 && !battleState.playerStatus) {
+        battleState.playerStatus = 'burn';
+        battleState.playerStatusTurns = 5;
+        b.msg = `${b.en.nm}: ${mv.nm}! ¡Te quemaste!`;
+      }
+      if (mv.ef === 'paralyze20' && Math.random() < 0.2 && !battleState.playerStatus) {
+        battleState.playerStatus = 'paralyze';
+        battleState.playerStatusTurns = 5;
+        b.msg = `${b.en.nm}: ${mv.nm}! ¡Te paralizaste!`;
+      }
+      if (mv.ef === 'confuse20' && Math.random() < 0.2 && !battleState.playerStatus) {
+        battleState.playerStatus = 'confuse';
+        battleState.playerStatusTurns = 4;
+        b.msg = `${b.en.nm}: ${mv.nm}! ¡Te confundiste!`;
       }
       if (mv.ef === 'sleep2') {
         battleState.playerStatus = 'sleep';
@@ -15898,7 +15993,7 @@ function procAct(act) {
         const cost = Math.floor(b.en.mHp * 0.5);
         b.en.hp = Math.max(1, b.en.hp - cost);
         battleState.playerStatus = 'curse';
-        battleState.playerStatusTurns = 99;
+        battleState.playerStatusTurns = 5;
         b.msg = `${b.en.nm}: ${mv.nm}! ¡Te maldijo!`;
       }
       if (mv.ef === 'clearStatus') {
@@ -16445,7 +16540,7 @@ function dBattle() {
   if (c.hp > 0) dCre(105 + psx, 238, c.id, c.lv, f);
 
   // Panel enemigo — nuevo HUD estilo NDS pixel-art
-  dBattleHud(8, 8, 300, 84, b.en, {
+  dBattleHud(8, 8, 260, 66, b.en, {
     isPlayer: false,
     status: battleState.enemyStatus,
   });
@@ -16460,12 +16555,12 @@ function dBattle() {
   }
 
   // Panel jugador — nuevo HUD estilo NDS pixel-art
-  dBattleHud(330, 220, 300, 100, c, {
+  dBattleHud(370, 232, 260, 80, c, {
     isPlayer: true,
     status: battleState.playerStatus,
   });
   // Barra de EXP debajo del HUD
-  dEXP(344, 326, 272, 4, c.ex, c.exTo);
+  dEXP(384, 318, 232, 4, c.ex, c.exTo);
 
   // === PANEL INFERIOR SEGÚN FASE ===
 

@@ -108,18 +108,21 @@ function _textOutlined(text, x, y, fill, outline, size = 1) {
 
 // -------------------------------------------------------------
 // Etiqueta PS (amarillo sobre gris oscuro, pegada a la barra)
+// Con borde grueso pixel-art de 2px negro
 // -------------------------------------------------------------
 function dPsLabel(x, y, h) {
-  const w = 26;
+  const w = 22;
+  // Borde negro grueso (2px)
+  cx.fillStyle = '#0A0A0E';
+  cx.fillRect(x - 1, y - 1, w + 2, h + 2);
+  // Cuerpo gris oscuro
   cx.fillStyle = '#282830';
-  cx.fillRect(x, y, w, h);
-  cx.strokeStyle = '#101014';
-  cx.lineWidth = 1;
-  cx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-  cx.font = '10px "Press Start 2P"';
+  cx.fillRect(x + 1, y + 1, w - 2, h - 2);
+  // Texto PS amarillo con outline oscuro
+  cx.font = '8px "Press Start 2P"';
   cx.textBaseline = 'top';
   cx.textAlign = 'left';
-  _textOutlined('PS', x + 4, y + 4, '#F8D838', '#402808', 1);
+  _textOutlined('PS', x + 4, y + 5, '#F8D838', '#402808', 1);
   cx.textBaseline = 'alphabetic';
   return w;
 }
@@ -214,10 +217,10 @@ function dStatusBadge(x, y, w, h, label) {
   cx.fillRect(x + 2, y + 2, w, h);
   // Cuerpo superior
   cx.fillStyle = st.top;
-  cx.fillRect(x, y, w, h - 4);
+  cx.fillRect(x, y, w, h - 3);
   // Cuerpo inferior (más oscuro)
   cx.fillStyle = st.bottom;
-  cx.fillRect(x, y + h - 4, w, 4);
+  cx.fillRect(x, y + h - 3, w, 3);
   // Marco negro
   cx.strokeStyle = '#181820';
   cx.lineWidth = 1;
@@ -227,10 +230,10 @@ function dStatusBadge(x, y, w, h, label) {
   cx.fillStyle = highlight;
   cx.fillRect(x + 1, y + 1, w - 2, 1);
   // Texto blanco con outline oscuro
-  cx.font = '10px "Press Start 2P"';
+  cx.font = '8px "Press Start 2P"';
   cx.textAlign = 'center';
   cx.textBaseline = 'top';
-  _textOutlined(label, x + w / 2, y + 4, '#FFFFFF', st.outline, 1);
+  _textOutlined(label, x + w / 2, y + 3, '#FFFFFF', st.outline, 1);
   cx.textAlign = 'left';
   cx.textBaseline = 'alphabetic';
 }
@@ -261,56 +264,56 @@ export function dBattleHud(x, y, w, h, cre, opts) {
 
   dPillowFrame(x, y, w, h, corners);
 
-  const innerLeft  = x + 14;
-  const innerRight = x + w - 14;
+  const innerLeft  = x + 12;
+  const innerRight = x + w - 12;
 
   // Nombre grande arriba
-  cx.font = '14px "Press Start 2P"';
+  cx.font = '11px "Press Start 2P"';
   cx.fillStyle = '#181828';
   cx.textBaseline = 'top';
   cx.textAlign = 'left';
-  cx.fillText(cre.nm, innerLeft, y + 12);
+  cx.fillText(cre.nm, innerLeft, y + 10);
 
   // Nivel a la derecha
-  cx.font = '12px "Press Start 2P"';
+  cx.font = '9px "Press Start 2P"';
   const lvText = `Lv${cre.lv}`;
   const lvWidth = cx.measureText(lvText).width;
   const lvX = innerRight - lvWidth;
-  cx.fillText(lvText, lvX, y + 14);
+  cx.fillText(lvText, lvX, y + 11);
 
   // Género a la izquierda del Lv
   if (cre.gender) {
-    dGenderIcon(lvX - 18, y + 14, cre.gender);
+    dGenderIcon(lvX - 16, y + 11, cre.gender);
   }
 
   // FILA DE ESTADO + PS + BARRA (misma altura)
-  const rowY = y + 40;
-  const rowH = 18;
+  const rowY = y + 30;
+  const rowH = 15;
   let xCursor = innerLeft;
 
   const statusLabel = _statusToLabel(status);
   if (statusLabel) {
-    const badgeW = 48;
+    const badgeW = 38;
     dStatusBadge(xCursor, rowY, badgeW, rowH, statusLabel);
-    xCursor += badgeW + 6;
+    xCursor += badgeW + 5;
   }
 
   // PS label pegado a la barra
   const psW = dPsLabel(xCursor, rowY, rowH);
-  const barX = xCursor + psW + 1;
+  const barX = xCursor + psW + 2;
   const barEnd = innerRight;
   const barW = barEnd - barX;
-  const barH = 12;
+  const barH = 10;
   const barY = rowY + Math.floor((rowH - barH) / 2);
   dHpBarNew(barX, barY, barW, barH, cre.hp, cre.mHp);
 
   // Números HP debajo (solo jugador)
   if (isPlayer) {
-    cx.font = '11px "Press Start 2P"';
+    cx.font = '9px "Press Start 2P"';
     cx.fillStyle = '#181828';
     const hpText = `${cre.hp}/${cre.mHp}`;
     const tw = cx.measureText(hpText).width;
-    cx.fillText(hpText, innerRight - tw, rowY + rowH + 8);
+    cx.fillText(hpText, innerRight - tw, rowY + rowH + 6);
   }
 
   cx.textBaseline = 'alphabetic';

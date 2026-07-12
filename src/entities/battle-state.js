@@ -6,12 +6,13 @@ import { tEff } from '../data/types.js';
 
 // === ESTADOS DE BATALLA ===
 const STATUS = {
-  burn: { nm: 'Quemado', icon: '🔥', dmg: 0.06 },
-  paralyze: { nm: 'Paralizado', icon: '⚡', skipChance: 0.25 },
-  sleep: { nm: 'Dormido', icon: '💤', turns: 2 },
-  confuse: { nm: 'Confuso', icon: '💫', selfHitChance: 0.33 },
-  leech: { nm: 'Drenadoras', icon: '🌱', dmg: 0.05, turns: 4 },
-  curse: { nm: 'Maldito', icon: '💀', dmg: 0.12 },
+  burn:     { nm: 'Quemado',     icon: '🔥', dmg: 0.07, turns: 5 },
+  paralyze: { nm: 'Paralizado',  icon: '⚡', skipChance: 0.25 },
+  sleep:    { nm: 'Dormido',     icon: '💤', turns: 2 },
+  confuse:  { nm: 'Confuso',     icon: '💫', selfHitChance: 0.33, turns: 4 },
+  leech:    { nm: 'Drenadoras',  icon: '🌱', dmg: 0.05, turns: 5 },
+  curse:    { nm: 'Maldito',     icon: '💀', dmg: 0.12, turns: 5 },
+  poison:   { nm: 'Envenenado',  icon: '☠️', dmg: 0.06, turns: 5 },
 };
 
 let battleState = {
