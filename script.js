@@ -10349,7 +10349,7 @@ const MAP_LOCATIONS = [
 
 
 const ROUTE_SIGNS = [
-  { x: 20, y: 138, name: 'Cartel Aldea Pitch', lines: ['↑ Ruta 1 / Villa Storyboard', '↓ Aldea Pitch', 'Z: correr | X: menú'] },
+  { x: 20, y: 138, name: 'Cartel Aldea Pitch', lines: ['↑ Ruta 1 / Villa Storyboard', '↓ Aldea Pitch', 'Habla con Alexandro para más info.'] },
   { x: 36, y: 115, name: 'Cartel Ruta 1', lines: ['↑ Villa Storyboard', '↓ Aldea Pitch', 'Los Proa bloquean rutas sin diploma.'] },
   { x: 50, y: 104, name: 'Cartel Ruta 2', lines: ['↑ Cantera Rodaje', '↓ Villa Storyboard', '← Cueva Volcánica'] },
   { x: 64, y: 76, name: 'Cartel Ruta 3', lines: ['↑ Feria Última Toma', '↓ Cantera Rodaje', 'Piero suele explorar por aquí.'] },
