@@ -11111,18 +11111,18 @@ function dTitle() {
   });
 
   // Menú de entrada
-  dBoxMenu(122, 368, 396, G.hasSave ? 86 : 62, G.hasSave ? 'INICIO' : 'NUEVA AVENTURA');
+  dBoxMenu(96, 360, 448, G.hasSave ? 108 : 84, G.hasSave ? 'INICIO' : 'NUEVA AVENTURA');
   if (G.hasSave) {
     const opts = ['Continuar partida guardada', 'Nueva partida desde Aldea Pitch'];
     opts.forEach((o, i) => {
       cx.fillStyle = G.titleSel === i ? '#ffd700' : '#D8D8E8';
       cx.font = '8px "Press Start 2P"';
-      cx.fillText(`${G.titleSel === i ? '▶ ' : '  '}${o}`, 320, 396 + i * 24);
+      cx.fillText(`${G.titleSel === i ? '▶ ' : '  '}${o}`, 320, 396 + i * 28);
     });
   } else {
     cx.fillStyle = Math.sin(f * 0.1) > 0 ? '#fff' : '#A0B0C0';
     cx.font = '9px "Press Start 2P"';
-    cx.fillText('ESPACIO para comenzar', 320, 405);
+    cx.fillText('ESPACIO para comenzar', 320, 408);
   }
   cx.fillStyle = '#606878'; cx.font = '6px "Press Start 2P"'; cx.fillText('Flechas = elegir | SPACE = confirmar', 320, 460);
   cx.textAlign = 'left';
@@ -16769,13 +16769,13 @@ function dBattle() {
       if (Math.sin(f * 0.3) > 0) dCre(0, 0, cre.id, cre.lv, f);
       cx.restore();
 
-      dBoxMenu(120, 340, 400, 100, '¡Evolución!');
+      dBoxMenu(80, 330, 480, 120, '¡Evolución!');
       cx.fillStyle = '#ffd700';
       cx.font = '9px "Press Start 2P"';
-      cx.fillText(`¡${b.evoData.oldName} quiere evolucionar!`, 140, 370);
+      cx.fillText(`¡${b.evoData.oldName} quiere evolucionar!`, 100, 368);
       cx.fillStyle = '#fff';
       cx.font = '8px "Press Start 2P"';
-      cx.fillText('SPACE para continuar...', 140, 400);
+      cx.fillText('SPACE para continuar...', 100, 410);
     } else if (b.evoPhase === 1) {
       // Selección sí/no
       // Brillo de fondo
@@ -16796,21 +16796,21 @@ function dBattle() {
       // Nombre de la evolución
       const evoData = CDB[b.evoData.evoId];
 
-      dBoxMenu(100, 300, 440, 140, '¿Evolucionar?');
+      dBoxMenu(70, 290, 500, 168, '¿Evolucionar?');
       cx.fillStyle = '#ffd700';
       cx.font = '8px "Press Start 2P"';
       cx.fillText(
         `${b.evoData.oldName} → ${evoData ? evoData.nm : '???'}`,
-        120,
-        330
+        95,
+        325
       );
 
       cx.fillStyle = b.evoSel === 0 ? '#30D848' : '#888';
       cx.font = '9px "Press Start 2P"';
-      cx.fillText(`${b.evoSel === 0 ? '▶ ' : '  '}¡Sí, evolucionar!`, 140, 370);
+      cx.fillText(`${b.evoSel === 0 ? '▶ ' : '  '}¡Sí, evolucionar!`, 115, 375);
 
       cx.fillStyle = b.evoSel === 1 ? '#E83030' : '#888';
-      cx.fillText(`${b.evoSel === 1 ? '▶ ' : '  '}No, cancelar`, 140, 395);
+      cx.fillText(`${b.evoSel === 1 ? '▶ ' : '  '}No, cancelar`, 115, 415);
     } else if (b.evoPhase === 2) {
       // Resultado - nueva criatura
       // Destellos de celebración
@@ -16829,13 +16829,13 @@ function dBattle() {
       cx.restore();
 
       // Mensaje
-      dBoxMenu(80, 340, 480, 100, '¡Evolución completa!');
+      dBoxMenu(50, 330, 540, 130, '¡Evolución completa!');
       cx.fillStyle = '#ffd700';
       cx.font = '10px "Press Start 2P"';
-      cx.fillText(`¡${cre.nm} ha nacido!`, 120, 375);
+      cx.fillText(`¡${cre.nm} ha nacido!`, 90, 378);
       cx.fillStyle = '#aaa';
       cx.font = '7px "Press Start 2P"';
-      cx.fillText('SPACE para continuar...', 120, 405);
+      cx.fillText('SPACE para continuar...', 90, 418);
     }
   } else {
     // Mensaje de batalla (adaptativo)
