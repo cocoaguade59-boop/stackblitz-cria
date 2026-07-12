@@ -22,10 +22,15 @@ import { LEARN_POOL, checkLearnMove } from './src/entities/learn-pool.js';
 import { checkEvolution, evolveCre } from './src/entities/evolution.js';
 import { STATUS, battleState, resetBattleState, getModdedStat, cDmg } from './src/entities/battle-state.js';
 
+// [refactor-phase4a] fundaciones render importadas
+import { cv, cx } from './src/core/canvas.js';
+import { G } from './src/core/game-state.js';
+import { px, pixelGlow, pixelDiamond } from './src/render/render-utils.js';
 
 
-const cv = document.getElementById('c'),
-  cx = cv.getContext('2d');
+
+
+// [refactor-phase4a] bloque 'canvas' movido a src/
 
 // ============================================================
 // SPRITE LOADER: carga PNGs de assets/sprites/<id>.png
@@ -81,47 +86,7 @@ let captureCount = {};
 // [refactor-phase3] bloque 'evolution' movido a src/entities/evolution.js
 
 // [refactor-phase3] bloque 'battle-state' movido a src/entities/battle-state.js
-// === GAME STATE ===
-const G = {
-  scr: 'title',
-  curMap: 'world',
-  pl: { x: 20, y: 145, d: 0, f: 0, sprint: false },
-  party: [],
-  gold: 200,
-  pot: 5,
-  rev: 2,
-  crv: 3,
-  bWon: 0,
-  tExp: 0,
-  mFriend: 0,
-  bossOk: false,
-  allCaught: false,
-  keys: {},
-  kcd: {},
-  held: {},
-  pts: [],
-  nots: [],
-  tFr: 0,
-  titleSel: 0,
-  titleHornPlayed: false,
-  hasSave: false,
-  showDex: false,
-  dexSel: 0,
-  supervisor: false,
-  sSel: 0,
-  bs: null,
-  ds: null,
-  ms: null,
-  ss: null,
-  talkedTo: {},
-  allTalked: false,
-  bossTeam: null,
-  bossIdx: 0,
-  bossDialogs: 0,
-  prevPos: null,
-  showMap: false, // Para mapa grande
-  proaOpen: false, // Para menú de Proa
-};
+// [refactor-phase4a] bloque 'game-state' movido a src/
 
 // === INPUT ===
 function normKey(k) {
@@ -215,30 +180,7 @@ function uP() {
 // BLOQUE 2: UI COMPLETA
 // ============================================================
 
-function px(x, y, w, h, c) {
-  cx.fillStyle = c;
-  cx.fillRect(x, y, w, h);
-}
-
-function pixelGlow(cx0, cy0, w, h) {
-  // Brillo/sombra 100% pixel-art: sin círculos ni elipses suaves.
-  const x = Math.round(cx0), y = Math.round(cy0);
-  const ww = Math.max(2, Math.round(w)), hh = Math.max(2, Math.round(h));
-  cx.fillRect(x - ww, y - Math.floor(hh * 0.35), ww * 2, Math.max(1, Math.floor(hh * 0.7)));
-  cx.fillRect(x - Math.floor(ww * 0.7), y - Math.floor(hh * 0.65), Math.floor(ww * 1.4), Math.max(1, Math.floor(hh * 1.3)));
-  cx.fillRect(x - Math.floor(ww * 0.35), y - hh, Math.floor(ww * 0.7), hh * 2);
-}
-
-function pixelDiamond(x, y, w, h, c) {
-  // Diamante/trapecio por franjas rectangulares, estilo pixel-art.
-  const rows = 6;
-  for (let i = 0; i < rows; i++) {
-    const t = i < rows / 2 ? i / (rows / 2) : (rows - 1 - i) / (rows / 2);
-    const rw = Math.max(2, Math.round(w * (0.25 + t * 0.75)));
-    const ry = y + Math.round((h / rows) * i);
-    px(x + Math.round((w - rw) / 2), ry, rw, Math.ceil(h / rows), c);
-  }
-}
+// [refactor-phase4a] bloque 'render-utils' movido a src/
 
 // === CAJA DORADA MEDIEVAL (HUD del mundo) ===
 function dBox(x, y, w, h, t) {
