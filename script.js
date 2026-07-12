@@ -15180,7 +15180,7 @@ function uBattle() {
 
     // === MENSAJE ===
     case 'msg':
-      if (b.tm > 40 || kp(' ') || kp('Enter')) {
+      if (b.tm > 90 || kp(' ') || kp('Enter')) {
         if (b.mq.length > 0) {
           procAct(b.mq.shift());
         } else {
@@ -15194,7 +15194,7 @@ function uBattle() {
 
     // === VICTORIA ===
     case 'win':
-      if (b.tm > 40 || kp(' ') || kp('Enter')) {
+      if (b.tm > 90 || kp(' ') || kp('Enter')) {
         if (b.mq.length > 0) {
           const n = b.mq.shift();
           if (n.a === 'lvl') {
@@ -15702,6 +15702,8 @@ function procAct(act) {
     }
 
     // ========== DoT del ENEMIGO (fin de turno) ==========
+    // Cada bloque termina con `return` + encolar otro `eT` para que el
+    // mensaje se muestre completo antes de procesar el siguiente efecto.
     if (
       battleState.enemyStatus === 'burn' &&
       battleState.enemyStatusTurns > 0
@@ -15713,7 +15715,8 @@ function procAct(act) {
       b.msg = `¡${b.en.nm} sufre quemadura! -${bd}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (b.en.hp <= 0) return;
+      if (b.en.hp > 0) b.mq.unshift({ a: 'eT' });
+      return;
     }
     if (
       battleState.enemyStatus === 'leech' &&
@@ -15729,7 +15732,8 @@ function procAct(act) {
       b.msg = `¡El movimiento Drenadoras restó salud a tu rival y te la da a ti! -${ld} / +${ld}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (b.en.hp <= 0) return;
+      if (b.en.hp > 0) b.mq.unshift({ a: 'eT' });
+      return;
     }
     if (
       battleState.enemyStatus === 'curse' &&
@@ -15742,7 +15746,8 @@ function procAct(act) {
       b.msg = `¡Maldición! ${b.en.nm} -${cd}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (b.en.hp <= 0) return;
+      if (b.en.hp > 0) b.mq.unshift({ a: 'eT' });
+      return;
     }
     if (
       battleState.enemyStatus === 'poison' &&
@@ -15755,7 +15760,8 @@ function procAct(act) {
       b.msg = `¡Veneno! ${b.en.nm} -${pd}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (b.en.hp <= 0) return;
+      if (b.en.hp > 0) b.mq.unshift({ a: 'eT' });
+      return;
     }
 
     // ========== DoT del JUGADOR (fin de turno) ==========
@@ -15770,7 +15776,8 @@ function procAct(act) {
       b.msg = `¡${c.nm} sufre quemadura! -${bd}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (c.hp <= 0) return;
+      if (c.hp > 0) b.mq.unshift({ a: 'eT' });
+      return;
     }
     if (
       battleState.playerStatus === 'leech' &&
@@ -15784,7 +15791,8 @@ function procAct(act) {
       b.msg = `¡Drenadoras te restó salud y se la dio a tu rival! -${ld} / +${ld}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (c.hp <= 0) return;
+      if (c.hp > 0) b.mq.unshift({ a: 'eT' });
+      return;
     }
     if (
       battleState.playerStatus === 'curse' &&
@@ -15797,7 +15805,8 @@ function procAct(act) {
       b.msg = `¡Maldición! ${c.nm} -${cd}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (c.hp <= 0) return;
+      if (c.hp > 0) b.mq.unshift({ a: 'eT' });
+      return;
     }
     if (
       battleState.playerStatus === 'poison' &&
@@ -15810,7 +15819,8 @@ function procAct(act) {
       b.msg = `¡Veneno! ${c.nm} -${pd}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (c.hp <= 0) return;
+      if (c.hp > 0) b.mq.unshift({ a: 'eT' });
+      return;
     }
 
     // Deseo curación
