@@ -15720,8 +15720,15 @@ function procAct(act) {
       battleState.enemyStatusTurns > 0
     ) {
       const ld = Math.max(1, Math.floor(b.en.mHp * 0.05));
+      const hpJugadorAntes = c.hp;
+      const hpEnemigoAntes = b.en.hp;
+      // El rival pierde 5% de su HP máx
       b.en.hp = Math.max(0, b.en.hp - ld);
-      c.heal(ld);
+      // El jugador se cura por la misma cantidad (drenaje)
+      c.hp = Math.min(c.mHp, c.hp + ld);
+      console.log(
+        `[DRENADORAS enemigo] ld=${ld} | jugador ${hpJugadorAntes}->${c.hp} | enemigo ${hpEnemigoAntes}->${b.en.hp} | turnos restantes: ${battleState.enemyStatusTurns - 1}`
+      );
       battleState.enemyStatusTurns--;
       if (battleState.enemyStatusTurns <= 0) battleState.enemyStatus = null;
       b.msg = `¡Drenadoras! ${b.en.nm} -${ld}HP, ${c.nm} +${ld}HP`;
@@ -15775,8 +15782,13 @@ function procAct(act) {
       battleState.playerStatusTurns > 0
     ) {
       const ld = Math.max(1, Math.floor(c.mHp * 0.05));
+      const hpJugadorAntes = c.hp;
+      const hpEnemigoAntes = b.en.hp;
       c.hp = Math.max(0, c.hp - ld);
       b.en.hp = Math.min(b.en.mHp, b.en.hp + ld); // el enemigo se cura
+      console.log(
+        `[DRENADORAS jugador] ld=${ld} | jugador ${hpJugadorAntes}->${c.hp} | enemigo ${hpEnemigoAntes}->${b.en.hp} | turnos restantes: ${battleState.playerStatusTurns - 1}`
+      );
       battleState.playerStatusTurns--;
       if (battleState.playerStatusTurns <= 0) battleState.playerStatus = null;
       b.msg = `¡Drenadoras! ${c.nm} -${ld}HP, ${b.en.nm} +${ld}HP`;
