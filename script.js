@@ -15184,6 +15184,8 @@ function uBattle() {
         if (b.mq.length > 0) {
           procAct(b.mq.shift());
         } else {
+          // Fin del turno completo: limpiar flags de DoT para el próximo turno
+          b.dotProcessed = null;
           if (b.en.hp <= 0) handleWin();
           else if (pCre().hp <= 0) handleFaint();
           else b.ph = 'act';
@@ -15519,7 +15521,7 @@ function procAct(act) {
       battleState.enemyStatus = 'leech';
       battleState.enemyStatusTurns = 5;
       sfx.sel();
-      b.msg = `${c.nm}: ${mv.nm}! ¡Drenadoras plantadas!`;
+      b.msg = `¡${b.en.nm} ha sido infectada con Drenadoras!`;
     }
     if (mv.ef === 'sleep2') {
       battleState.enemyStatus = 'sleep';
@@ -15701,10 +15703,20 @@ function procAct(act) {
       return;
     }
 
-    // ========== DoT del ENEMIGO (fin de turno) ==========
-    // Cada bloque termina con `return` + encolar otro `eT` para que el
-    // mensaje se muestre completo antes de procesar el siguiente efecto.
+    // ========== DoT de fin de turno ==========
+    // Aplicamos como máximo UN tick de DoT del enemigo Y UN tick del jugador.
+    // Cada uno usa `dotDone` para NO re-aplicarse en la misma pasada de eT.
+    // Los mensajes se muestran en secuencia gracias a b.mq (cola de acciones).
+    //
+    // IMPORTANTE: NO encolamos más `eT`. Los DoT restantes vendrán en los
+    // turnos siguientes, no en el mismo turno.
+
+    // Init flags de "ya procesado en este turno"
+    if (!b.dotProcessed) b.dotProcessed = {};
+
+    // --- DoT del ENEMIGO ---
     if (
+      !b.dotProcessed.enemy &&
       battleState.enemyStatus === 'burn' &&
       battleState.enemyStatusTurns > 0
     ) {
@@ -15712,30 +15724,35 @@ function procAct(act) {
       b.en.hp = Math.max(0, b.en.hp - bd);
       battleState.enemyStatusTurns--;
       if (battleState.enemyStatusTurns <= 0) battleState.enemyStatus = null;
+      b.dotProcessed.enemy = true;
       b.msg = `¡${b.en.nm} sufre quemadura! -${bd}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (b.en.hp > 0) b.mq.unshift({ a: 'eT' });
+      // Encolar otro eT para procesar el DoT del jugador después
+      b.mq.unshift({ a: 'eT' });
+      if (b.en.hp <= 0) return;
       return;
     }
     if (
+      !b.dotProcessed.enemy &&
       battleState.enemyStatus === 'leech' &&
       battleState.enemyStatusTurns > 0
     ) {
       const ld = Math.max(1, Math.floor(b.en.mHp * 0.05));
-      // El rival pierde 5% de su HP máx
       b.en.hp = Math.max(0, b.en.hp - ld);
-      // El jugador se cura por la misma cantidad (drenaje)
       c.hp = Math.min(c.mHp, c.hp + ld);
       battleState.enemyStatusTurns--;
       if (battleState.enemyStatusTurns <= 0) battleState.enemyStatus = null;
+      b.dotProcessed.enemy = true;
       b.msg = `¡El movimiento Drenadoras restó salud a tu rival y te la da a ti! -${ld} / +${ld}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (b.en.hp > 0) b.mq.unshift({ a: 'eT' });
+      b.mq.unshift({ a: 'eT' });
+      if (b.en.hp <= 0) return;
       return;
     }
     if (
+      !b.dotProcessed.enemy &&
       battleState.enemyStatus === 'curse' &&
       battleState.enemyStatusTurns > 0
     ) {
@@ -15743,13 +15760,16 @@ function procAct(act) {
       b.en.hp = Math.max(0, b.en.hp - cd);
       battleState.enemyStatusTurns--;
       if (battleState.enemyStatusTurns <= 0) battleState.enemyStatus = null;
+      b.dotProcessed.enemy = true;
       b.msg = `¡Maldición! ${b.en.nm} -${cd}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (b.en.hp > 0) b.mq.unshift({ a: 'eT' });
+      b.mq.unshift({ a: 'eT' });
+      if (b.en.hp <= 0) return;
       return;
     }
     if (
+      !b.dotProcessed.enemy &&
       battleState.enemyStatus === 'poison' &&
       battleState.enemyStatusTurns > 0
     ) {
@@ -15757,15 +15777,18 @@ function procAct(act) {
       b.en.hp = Math.max(0, b.en.hp - pd);
       battleState.enemyStatusTurns--;
       if (battleState.enemyStatusTurns <= 0) battleState.enemyStatus = null;
+      b.dotProcessed.enemy = true;
       b.msg = `¡Veneno! ${b.en.nm} -${pd}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (b.en.hp > 0) b.mq.unshift({ a: 'eT' });
+      b.mq.unshift({ a: 'eT' });
+      if (b.en.hp <= 0) return;
       return;
     }
 
-    // ========== DoT del JUGADOR (fin de turno) ==========
+    // --- DoT del JUGADOR ---
     if (
+      !b.dotProcessed.player &&
       battleState.playerStatus === 'burn' &&
       battleState.playerStatusTurns > 0
     ) {
@@ -15773,28 +15796,32 @@ function procAct(act) {
       c.hp = Math.max(0, c.hp - bd);
       battleState.playerStatusTurns--;
       if (battleState.playerStatusTurns <= 0) battleState.playerStatus = null;
+      b.dotProcessed.player = true;
       b.msg = `¡${c.nm} sufre quemadura! -${bd}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (c.hp > 0) b.mq.unshift({ a: 'eT' });
+      if (c.hp <= 0) return;
       return;
     }
     if (
+      !b.dotProcessed.player &&
       battleState.playerStatus === 'leech' &&
       battleState.playerStatusTurns > 0
     ) {
       const ld = Math.max(1, Math.floor(c.mHp * 0.05));
       c.hp = Math.max(0, c.hp - ld);
-      b.en.hp = Math.min(b.en.mHp, b.en.hp + ld); // el enemigo se cura
+      b.en.hp = Math.min(b.en.mHp, b.en.hp + ld);
       battleState.playerStatusTurns--;
       if (battleState.playerStatusTurns <= 0) battleState.playerStatus = null;
+      b.dotProcessed.player = true;
       b.msg = `¡Drenadoras te restó salud y se la dio a tu rival! -${ld} / +${ld}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (c.hp > 0) b.mq.unshift({ a: 'eT' });
+      if (c.hp <= 0) return;
       return;
     }
     if (
+      !b.dotProcessed.player &&
       battleState.playerStatus === 'curse' &&
       battleState.playerStatusTurns > 0
     ) {
@@ -15802,13 +15829,15 @@ function procAct(act) {
       c.hp = Math.max(0, c.hp - cd);
       battleState.playerStatusTurns--;
       if (battleState.playerStatusTurns <= 0) battleState.playerStatus = null;
+      b.dotProcessed.player = true;
       b.msg = `¡Maldición! ${c.nm} -${cd}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (c.hp > 0) b.mq.unshift({ a: 'eT' });
+      if (c.hp <= 0) return;
       return;
     }
     if (
+      !b.dotProcessed.player &&
       battleState.playerStatus === 'poison' &&
       battleState.playerStatusTurns > 0
     ) {
@@ -15816,12 +15845,16 @@ function procAct(act) {
       c.hp = Math.max(0, c.hp - pd);
       battleState.playerStatusTurns--;
       if (battleState.playerStatusTurns <= 0) battleState.playerStatus = null;
+      b.dotProcessed.player = true;
       b.msg = `¡Veneno! ${c.nm} -${pd}HP`;
       b.ph = 'msg';
       b.tm = 0;
-      if (c.hp > 0) b.mq.unshift({ a: 'eT' });
+      if (c.hp <= 0) return;
       return;
     }
+
+    // Al terminar todos los DoT: limpiar flags para el próximo turno
+    b.dotProcessed = null;
 
     // Deseo curación
     if (battleState.wishHealNext) {
@@ -15959,7 +15992,7 @@ function procAct(act) {
       if (mv.ef === 'leech4') {
         battleState.playerStatus = 'leech';
         battleState.playerStatusTurns = 5;
-        b.msg = `${b.en.nm}: ${mv.nm}! ¡Drenadoras en ti!`;
+        b.msg = `¡${c.nm} ha sido infectada con Drenadoras!`;
       }
       if (mv.ef === 'burn20' && Math.random() < 0.2 && !battleState.playerStatus) {
         battleState.playerStatus = 'burn';
