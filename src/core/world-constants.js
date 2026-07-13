@@ -1,15 +1,12 @@
 // Constantes y estado de los mapas del juego.
 //
-// - T: tamaño de tile en píxeles (32)
-// - WC, WR: columnas/filas del mundo (80x150)
-// - CC, CR: columnas/filas de cuevas (40x30)
-// - KC, KR: columnas/filas del castillo (30x25)
-// - cam: posición de la cámara (para scroll del mundo)
-// - wMap, cave1, cave2, castMap: matrices de tiles de cada mapa
+// CRÍTICO StackBlitz: todos los valores mutables viven en window.__wc
+// para garantizar que módulos cargados en orden impredecible compartan
+// la MISMA referencia. Sin esto, tiles-world.js y script.js pueden
+// terminar con copias distintas de wMap (vacías en el render).
 //
-// Los arrays son mutables por referencia — se llenan al generar el mapa
-// desde funciones de src/... y se leen desde funciones de render.
-// La cámara `cam` también es mutable por referencia.
+// script.js inicializa los arrays en genWorld() escribiendo a las
+// mismas referencias que este módulo exporta.
 
 const T = 32;
 const WC = 80;
@@ -19,18 +16,31 @@ const CR = 30;
 const KC = 30;
 const KR = 25;
 
-let cam = { x: 0, y: 0 };
-let wMap = [];
-let cave1 = [];
-let cave2 = [];
-let castMap = [];
+// Singleton via window — si ya existe, reusamos; si no, creamos
+if (!window.__wc) {
+  window.__wc = {
+    cam: { x: 0, y: 0 },
+    wMap: [],
+    cave1: [],
+    cave2: [],
+    castMap: [],
+  };
+}
 
-// Setters para las arrays y cámara (por si se reasigna el binding entero)
-function setCam(v) { cam = v; }
-function setWMap(v) { wMap = v; }
-function setCave1(v) { cave1 = v; }
-function setCave2(v) { cave2 = v; }
-function setCastMap(v) { castMap = v; }
+const wc = window.__wc;
+
+// Referencias directas al singleton (mutable por referencia)
+const cam = wc.cam;
+let wMap = wc.wMap;
+let cave1 = wc.cave1;
+let cave2 = wc.cave2;
+let castMap = wc.castMap;
+
+function setCam(v) { wc.cam.x = v.x; wc.cam.y = v.y; }
+function setWMap(v) { wc.wMap = v; wMap = v; }
+function setCave1(v) { wc.cave1 = v; cave1 = v; }
+function setCave2(v) { wc.cave2 = v; cave2 = v; }
+function setCastMap(v) { wc.castMap = v; castMap = v; }
 
 export {
   T, WC, WR, CC, CR, KC, KR,
