@@ -67,15 +67,30 @@ function dBoxMenu(x, y, w, h, t) {
   px(x + w - 6, y + h - 6, 4, 4, '#1a1a3e');
   // Título
   if (t) {
+    cx.font = '10px "Press Start 2P"';
+    // Medir el ancho real del texto (así funciona bien con emojis, acentos, etc.)
+    const textW = cx.measureText(t).width;
+    const padX = 14; // padding horizontal a cada lado
+    const titleW = Math.ceil(textW + padX * 2);
+    const titleH = 20;
+    // Centrar la banda del título horizontalmente sobre la caja
+    const titleX = x + Math.round((w - titleW) / 2);
+    const titleY = y - Math.round(titleH / 2);
+    // Fondo de la banda
     cx.fillStyle = '#0a0a2e';
-    const titleW = t.length * 11 + 22;
-    cx.fillRect(x + 20, y - 10, titleW, 20);
+    cx.fillRect(titleX, titleY, titleW, titleH);
+    // Borde dorado
     cx.strokeStyle = '#ffd700';
     cx.lineWidth = 2;
-    cx.strokeRect(x + 20, y - 10, titleW, 20);
+    cx.strokeRect(titleX, titleY, titleW, titleH);
+    // Texto centrado dentro de la banda
     cx.fillStyle = '#fff';
-    cx.font = '10px "Press Start 2P"';
-    cx.fillText(t, x + 28, y + 4);
+    cx.textAlign = 'center';
+    cx.textBaseline = 'middle';
+    cx.fillText(t, titleX + titleW / 2, titleY + titleH / 2 + 1);
+    // Restaurar defaults
+    cx.textAlign = 'left';
+    cx.textBaseline = 'alphabetic';
   }
 }
 
