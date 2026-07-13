@@ -7650,15 +7650,15 @@ function draw() {
       cx.textAlign = 'left';
       break;
     case 'intro':
-      // Diag: pintar fondo rojo para confirmar que llegamos aquí
       cx.fillStyle = '#FF0000';
       cx.fillRect(0, 0, 640, 480);
       cx.fillStyle = '#FFF';
       cx.font = '20px "Press Start 2P"';
       cx.textAlign = 'center';
-      cx.fillText('INTRO OK - ' + (G.intro ? G.intro.phase : 'NULL'), 320, 240);
+      cx.fillText('INTRO FUNCIONA', 320, 200);
+      cx.font = '12px "Press Start 2P"';
+      cx.fillText('Presiona SPACE', 320, 260);
       cx.textAlign = 'left';
-      try { dIntro(); } catch(e) { console.error('[draw intro]', e.message); }
       break;
     case 'starter':
       dStarter();
