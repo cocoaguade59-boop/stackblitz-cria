@@ -1,10 +1,8 @@
 // Menú principal del juego (X/Escape en el mundo).
 //
-// drawMap() se llama desde script.js ANTES de despachar a este módulo,
-// por lo que solo dibujamos el overlay oscuro y los paneles.
-//
-// Sub-pantallas importadas para que dMenu() pueda delegar el dibujo
-// cuando G.showMap/G.proaOpen/G.showMissions/G.showDex están activos.
+// Este módulo NO importa sub-pantallas (proa, dex, missions, map-screen)
+// para evitar fallos en cadena si alguno de esos módulos falla al cargar.
+// El dispatch a sub-pantallas lo maneja script.js en el switch de update/draw.
 
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';
@@ -16,19 +14,9 @@ import { tCol, tEmo, tNam } from '../data/types.js';
 import { aN } from '../utils/particles.js';
 import { proa } from '../core/game-flags.js';
 
-// saveGame se toma de window.__gameSaveGame (script.js lo expone en init())
-
-// Sub-pantallas del menú (sin dependencia circular: ninguna importa menu.js)
-import { uMapScreen, dMapScreen } from './map-screen.js';
-import { uMissions, dMissions } from './missions.js';
-import { uDex, dDex } from './dex.js';
-import { uProa, dProa, uCreData, dCreData, uMoveDetail, dMoveDetail } from './proa.js';
-
 function uMenu() {
-  if (G.showMap) { uMapScreen(); return; }
-  if (G.proaOpen) { uProa(); return; }
-  if (G.showMissions) { uMissions(); return; }
-  if (G.showDex) { uDex(); return; }
+  // Sub-pantallas despachadas por script.js (no aquí)
+  if (G.showMap || G.proaOpen || G.showMissions || G.showDex) return;
 
   if (kp('ArrowUp') || kp('ArrowLeft')) {
     G.ms.s = (G.ms.s + 8) % 9;
@@ -101,14 +89,11 @@ function uMenu() {
 }
 
 function dMenu() {
-  // drawMap() ya fue llamado por script.js. Solo dibujamos overlay + paneles.
+  // Sub-pantallas despachadas por script.js (no aquí)
+  if (G.showMap || G.proaOpen || G.showMissions || G.showDex) return;
+
   cx.fillStyle = 'rgba(0,0,0,.6)';
   cx.fillRect(0, 0, 640, 480);
-
-  if (G.showMap) { dMapScreen(); return; }
-  if (G.proaOpen) { dProa(); return; }
-  if (G.showMissions) { dMissions(); return; }
-  if (G.showDex) { dDex(); return; }
 
   dBoxMenu(16, 16, 190, 320, G.batallador ? 'MENÚ ⚔️ BATALLADOR' : 'MENÚ');
   const opts = [

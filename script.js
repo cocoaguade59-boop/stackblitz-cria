@@ -89,6 +89,7 @@ import { uDialog, dDialog, showQuickDialog, showDialogThen, showTalkedChecklist 
 import { uDex, dDex, hasCapturedSpecies } from './src/screens/dex.js';
 import { uMissions, dMissions } from './src/screens/missions.js';
 import { uMapScreen, dMapScreen } from './src/screens/map-screen.js';
+import { uProa, dProa } from './src/screens/proa.js';
 import { uShop, dShop, shopExitDialog, setShopBattleStarter, shopLore } from './src/screens/shop.js';
 
 
@@ -8123,6 +8124,11 @@ function update() {
       }
       break;
     case 'menu':
+      // Sub-pantallas del menú despachadas directamente
+      if (G.showMap) { uMapScreen(); break; }
+      if (G.proaOpen) { uProa(); break; }
+      if (G.showMissions) { uMissions(); break; }
+      if (G.showDex) { uDex(); break; }
       uMenu();
       break;
     case 'shop':
@@ -8179,6 +8185,11 @@ function draw() {
       drawMap();
       break;
     case 'menu':
+      // Sub-pantallas del menú despachadas directamente
+      if (G.showMap) { drawMap(); dMapScreen(); break; }
+      if (G.proaOpen) { drawMap(); dProa(); break; }
+      if (G.showMissions) { drawMap(); dMissions(); break; }
+      if (G.showDex) { drawMap(); dDex(); break; }
       drawMap();
       dMenu();
       break;
