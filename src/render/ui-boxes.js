@@ -67,6 +67,9 @@ function dBoxMenu(x, y, w, h, t) {
   px(x + w - 6, y + h - 6, 4, 4, '#1a1a3e');
   // Título
   if (t) {
+    // save/restore para NO ensuciar textAlign/textBaseline del contexto
+    // (el llamador puede tener textAlign='center' activo, por ej. dTitle)
+    cx.save();
     const fontSize = 10;
     cx.font = fontSize + 'px "Press Start 2P"';
     cx.textAlign = 'left';
@@ -93,6 +96,7 @@ function dBoxMenu(x, y, w, h, t) {
     // sumamos padY + fontSize para que el texto quede visualmente centrado.
     cx.fillStyle = '#fff';
     cx.fillText(t, titleX + padX, titleY + padY + fontSize - 1);
+    cx.restore();
   }
 }
 
