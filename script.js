@@ -8161,7 +8161,13 @@ function draw() {
 
   switch (G.scr) {
         case 'title':
-      dTitle();
+      try { dTitle(); } catch(e) { 
+        cx.fillStyle = '#FF00FF';
+        cx.fillRect(0,0,640,480);
+        cx.fillStyle = '#FFF';
+        cx.font = '10px "Press Start 2P"';
+        cx.fillText('TITLE ERROR: '+e.message, 20, 240);
+      }
       break;
     case 'intro':
       dIntro();
