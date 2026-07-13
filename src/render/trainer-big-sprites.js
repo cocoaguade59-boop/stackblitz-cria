@@ -17,6 +17,20 @@ function dTrainerBig(x, y, id, f) {
   const bob = Math.sin(f * 0.08) * 2,
     by = y + bob;
 
+  // Si hay sprite PNG en assets/sprites/trainers/<id>.png, úsalo
+  const trainerKey = 'trainers/' + id;
+  if (SPRITE_LOADER.has(trainerKey)) {
+    const img = SPRITE_LOADER.get(trainerKey);
+    const prevSmoothing = cx.imageSmoothingEnabled;
+    cx.imageSmoothingEnabled = false;
+    const targetH = 140;
+    const ratio = img.naturalWidth / img.naturalHeight;
+    const targetW = targetH * ratio;
+    cx.drawImage(img, x - targetW / 2, y + by + 60 - targetH, targetW, targetH);
+    cx.imageSmoothingEnabled = prevSmoothing;
+    return;
+  }
+
   switch (id) {
     case 'alessandro': // Armadura parcial, rojo/azul, pelo castaño
       px(x + 20, by + 60, 10, 8, '#5A3818');

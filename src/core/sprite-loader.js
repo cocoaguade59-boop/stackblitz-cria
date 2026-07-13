@@ -26,7 +26,12 @@ const SPRITE_LOADER = {
 // Criaturas van en assets/sprites/<id>.png
 SPRITE_LOADER.load('hydrapom');
 
-// NPCs van en assets/sprites/npcs/<id>.png para separarlos de las criaturas
+// NPCs del mapa van en assets/sprites/npcs/<id>.png
 SPRITE_LOADER.load('npcs/alejandro');
+
+// Entrenadores de batalla van en assets/sprites/trainers/<id>.png
+// (cuando subas los PNG, agrega las líneas aquí, ej:)
+// SPRITE_LOADER.load('trainers/alejandro');
+// SPRITE_LOADER.load('trainers/alessandro');
 
 export { SPRITE_LOADER };
