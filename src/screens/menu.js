@@ -14,8 +14,9 @@ import { dBoxMenu } from '../render/ui-boxes.js';
 import { dHP, dEXP } from '../render/ui-bars.js';
 import { tCol, tEmo, tNam } from '../data/types.js';
 import { aN } from '../utils/particles.js';
-import { saveGame } from '../core/save.js';
 import { proa } from '../core/game-flags.js';
+
+// saveGame se toma de window.__gameSaveGame (script.js lo expone en init())
 
 // Sub-pantallas del menú (sin dependencia circular: ninguna importa menu.js)
 import { uMapScreen, dMapScreen } from './map-screen.js';
@@ -79,7 +80,7 @@ function uMenu() {
           aN('Batallador: no se puede guardar en modo test.');
           sfx.nef();
         } else {
-          saveGame();
+          if (window.__gameSaveGame) window.__gameSaveGame();
         }
         break;
       case 7:

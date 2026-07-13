@@ -7562,8 +7562,7 @@ function uTitle() {
     playTitleHorn();
     G.titleHornPlayed = true;
   }
-  G.hasSave = hasSaveGame();
-  const optCount = G.hasSave ? 2 : 1;
+  const optCount = 2; // Siempre 2 opciones: Continuar y Nueva partida
   if (kp('ArrowUp') || kp('ArrowLeft')) {
     G.titleSel = (G.titleSel + optCount - 1) % optCount;
     sfx.sel();
@@ -7574,6 +7573,7 @@ function uTitle() {
   }
   if (kp(' ') || kp('Enter')) {
     sfx.sel();
+    G.hasSave = hasSaveGame(); // refrescar cada vez
     if (G.hasSave && G.titleSel === 0) {
       const fn = window.__gameLoadGame;
       if (fn && fn()) {
@@ -7797,19 +7797,15 @@ function dTitle() {
   });
 
   // Menú de entrada
-  dBoxMenu(96, 360, 448, G.hasSave ? 108 : 84, G.hasSave ? 'INICIO' : 'NUEVA AVENTURA');
-  cx.textAlign = 'center'; // Forzamos explícitamente por si dBoxMenu lo cambió
-  if (G.hasSave) {
+  dBoxMenu(96, 360, 448, 108, 'INICIO');
+  cx.textAlign = 'center';
+  {
     const opts = ['Continuar partida guardada', 'Nueva partida desde Aldea Pitch'];
     opts.forEach((o, i) => {
       cx.fillStyle = G.titleSel === i ? '#ffd700' : '#D8D8E8';
       cx.font = '8px "Press Start 2P"';
       cx.fillText(`${G.titleSel === i ? '▶ ' : '  '}${o}`, 320, 396 + i * 28);
     });
-  } else {
-    cx.fillStyle = Math.sin(f * 0.1) > 0 ? '#fff' : '#A0B0C0';
-    cx.font = '9px "Press Start 2P"';
-    cx.fillText('ESPACIO para comenzar', 320, 408);
   }
   cx.fillStyle = '#606878'; cx.font = '6px "Press Start 2P"'; cx.fillText('Flechas = elegir | SPACE = confirmar', 320, 460);
   cx.textAlign = 'left';
@@ -8161,13 +8157,7 @@ function draw() {
 
   switch (G.scr) {
         case 'title':
-      try { dTitle(); } catch(e) { 
-        cx.fillStyle = '#FF00FF';
-        cx.fillRect(0,0,640,480);
-        cx.fillStyle = '#FFF';
-        cx.font = '10px "Press Start 2P"';
-        cx.fillText('TITLE ERROR: '+e.message, 20, 240);
-      }
+      dTitle();
       break;
     case 'intro':
       dIntro();
@@ -8252,6 +8242,7 @@ function init() {
   // [refactor-phase5c] conectar callback de batalla de la tienda
   // Exponer funciones que modulos necesitan via window (sin orden de carga)
   window.__gameLoadGame = loadGame;
+  window.__gameSaveGame = saveGame;
   setShopBattleStarter(startNPCBattle);
 
   // Iniciar loop
