@@ -7462,6 +7462,7 @@ function dTitle() {
 
   // Menú de entrada
   dBoxMenu(96, 360, 448, G.hasSave ? 108 : 84, G.hasSave ? 'INICIO' : 'NUEVA AVENTURA');
+  cx.textAlign = 'center'; // Forzamos explícitamente por si dBoxMenu lo cambió
   if (G.hasSave) {
     const opts = ['Continuar partida guardada', 'Nueva partida desde Aldea Pitch'];
     opts.forEach((o, i) => {
@@ -13456,30 +13457,34 @@ function loadGame() {
     const save = JSON.parse(raw);
 
     // Posición
-    G.pl.x = save.plx || 20;
-    G.pl.y = save.ply || 32;
-    G.pl.d = save.plD || 0;
-    G.curMap = save.curMap || 'world';
+    // Uso ?? (nullish coalescing) en vez de || para que valores como 0
+    // NO sean sobrescritos por el fallback (bug clásico: y=0 caía al default).
+    // El default de y ahora es 145 (Aldea Pitch), no 32 (que dejaba al jugador
+    // en el norte del mapa, lugar sin sentido para respawn).
+    G.pl.x = save.plx ?? 20;
+    G.pl.y = save.ply ?? 145;
+    G.pl.d = save.plD ?? 0;
+    G.curMap = save.curMap ?? 'world';
 
     // Equipo
     G.party = (save.party || []).map((j) => Cre.fromJSON(j));
     proa = (save.proa || []).map((j) => Cre.fromJSON(j));
 
     // Inventario
-    G.gold = save.gold || 200;
-    G.pot = save.pot || 5;
-    G.rev = save.rev || 2;
-    G.crv = save.crv || 3;
+    G.gold = save.gold ?? 200;
+    G.pot = save.pot ?? 5;
+    G.rev = save.rev ?? 2;
+    G.crv = save.crv ?? 3;
 
     // Progreso
     G.talkedTo = save.talkedTo || {};
     G.bossOk = save.bossOk || false;
     G.allTalked = save.allTalked || false;
     G.allCaught = save.allCaught || false;
-    G.bWon = save.bWon || 0;
-    G.tExp = save.tExp || 0;
-    G.mFriend = save.mFriend || 0;
-    G.bossDialogs = save.bossDialogs || 0;
+    G.bWon = save.bWon ?? 0;
+    G.tExp = save.tExp ?? 0;
+    G.mFriend = save.mFriend ?? 0;
+    G.bossDialogs = save.bossDialogs ?? 0;
     diplomas = save.diplomas || {
       tamara: !!save.npcDefeats?.metTamara,
       luchito: !!save.npcDefeats?.metLuchito,
@@ -13500,7 +13505,8 @@ function loadGame() {
       ximena: false,
     };
     captureCount = save.captureCount || {};
-    lastHealPos = save.lastHealPos || { x: 20, y: 32, map: 'world' };
+    // Default de lastHealPos: y=145 (Aldea Pitch), no 32 que caía al norte
+    lastHealPos = save.lastHealPos || { x: 20, y: 145, map: 'world' };
 
     G.prevPos = save.prevPos || null;
 
