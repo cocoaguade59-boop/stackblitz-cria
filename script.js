@@ -81,7 +81,7 @@ import { dBattleHud } from './src/render/battle-hud.js';
 import { kp, kh, normKey } from './src/core/input.js';
 import { updateCamera } from './src/core/camera.js';
 import { DEX_ORDER, dexIds } from './src/data/dex-order.js';
-import { playTitleHorn, startNewGameFlow, uTitle, dTitle } from './src/screens/title.js';
+import { playTitleHorn, dTitle } from './src/screens/title.js';
 import { INTRO_LINES, uIntro, dIntro } from './src/screens/intro.js';
 import { uStarter, dStarter } from './src/screens/starter.js';
 
@@ -7542,6 +7542,59 @@ function dBatalladorSelect() {
   cx.textAlign = 'left';
 }
 
+// ============================================================
+// LOCAL TITLE FUNCTIONS (usan la misma G de script.js)
+// ============================================================
+function startNewGameFlow() {
+  clearAllGameSaves();
+  G.hasSave = false;
+  G.sSel = 0;
+  G.curMap = 'world';
+  G.pl.x = 20;
+  G.pl.y = 145;
+  G.pl.d = 3;
+  G.pl.stepTarget = null;
+  G.pl.moving = false;
+  G.scr = 'intro';
+  G.intro = { phase: 0, y: 82, li: 0, ci: 0, tm: 0, full: false };
+}
+
+function uTitle() {
+  G.tFr++;
+  if (G.tFr > 182 && !G.titleHornPlayed) {
+    playTitleHorn();
+    G.titleHornPlayed = true;
+  }
+  G.hasSave = hasSaveGame();
+  const optCount = G.hasSave ? 2 : 1;
+  if (kp('ArrowUp') || kp('ArrowLeft')) {
+    G.titleSel = (G.titleSel + optCount - 1) % optCount;
+    sfx.sel();
+  }
+  if (kp('ArrowDown') || kp('ArrowRight')) {
+    G.titleSel = (G.titleSel + 1) % optCount;
+    sfx.sel();
+  }
+  if (kp(' ') || kp('Enter')) {
+    sfx.sel();
+    if (G.hasSave && G.titleSel === 0) {
+      const fn = window.__gameLoadGame;
+      if (fn && fn()) {
+        G.scr = 'world';
+        aN('¡Partida cargada!');
+      } else {
+        startNewGameFlow();
+      }
+    } else if (G.hasSave && G.titleSel === 1) {
+      G.scr = 'confirmReset';
+      G.resetSel = 1;
+      G.resetFromTitle = true;
+    } else {
+      startNewGameFlow();
+    }
+  }
+}
+
 function update() {
   tickFrame();
   if (kp('y') && !['battle', 'dialog', '_dialogDone', 'starter', 'intro', 'confirmReset', 'vision', 'batalladorSelect'].includes(G.scr)) {
@@ -7650,15 +7703,7 @@ function draw() {
       cx.textAlign = 'left';
       break;
     case 'intro':
-      cx.fillStyle = '#FF0000';
-      cx.fillRect(0, 0, 640, 480);
-      cx.fillStyle = '#FFF';
-      cx.font = '20px "Press Start 2P"';
-      cx.textAlign = 'center';
-      cx.fillText('INTRO FUNCIONA', 320, 200);
-      cx.font = '12px "Press Start 2P"';
-      cx.fillText('Presiona SPACE', 320, 260);
-      cx.textAlign = 'left';
+      dIntro();
       break;
     case 'starter':
       dStarter();
