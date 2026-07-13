@@ -8,7 +8,7 @@
 // Todo lo demás es interno al módulo.
 
 import { cx } from '../core/canvas.js';
-import { px } from './render-utils.js';
+import { px, pixelGlow } from './render-utils.js';
 import { G } from '../core/game-state.js';
 import { SK } from './skin-colors.js';
 
