@@ -8124,12 +8124,16 @@ function update() {
       }
       break;
     case 'menu':
-      // Sub-pantallas del menú despachadas directamente
-      if (G.showMap) { uMapScreen(); break; }
-      if (G.proaOpen) { uProa(); break; }
-      if (G.showMissions) { uMissions(); break; }
-      if (G.showDex) { uDex(); break; }
-      uMenu();
+      try {
+        if (G.showMap) { uMapScreen(); break; }
+        if (G.proaOpen) { uProa(); break; }
+        if (G.showMissions) { uMissions(); break; }
+        if (G.showDex) { uDex(); break; }
+        uMenu();
+      } catch(e) {
+        console.error('[menu update]', e.message, e.stack);
+        G.scr = 'world';
+      }
       break;
     case 'shop':
       uShop();
@@ -8185,13 +8189,21 @@ function draw() {
       drawMap();
       break;
     case 'menu':
-      // Sub-pantallas del menú despachadas directamente
-      if (G.showMap) { drawMap(); dMapScreen(); break; }
-      if (G.proaOpen) { drawMap(); dProa(); break; }
-      if (G.showMissions) { drawMap(); dMissions(); break; }
-      if (G.showDex) { drawMap(); dDex(); break; }
-      drawMap();
-      dMenu();
+      try {
+        if (G.showMap) { drawMap(); dMapScreen(); break; }
+        if (G.proaOpen) { drawMap(); dProa(); break; }
+        if (G.showMissions) { drawMap(); dMissions(); break; }
+        if (G.showDex) { drawMap(); dDex(); break; }
+        drawMap();
+        dMenu();
+      } catch(e) {
+        console.error('[menu draw]', e.message, e.stack);
+        cx.fillStyle = '#FF00FF';
+        cx.fillRect(0,0,640,480);
+        cx.fillStyle = '#FFF';
+        cx.font = '10px "Press Start 2P"';
+        cx.fillText('MENU ERROR: '+e.message.substring(0,80), 20, 240);
+      }
       break;
     case 'shop':
       drawMap();
