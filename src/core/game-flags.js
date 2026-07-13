@@ -4,7 +4,8 @@
 // para garantizar que módulos cargados en orden impredecible compartan
 // la MISMA referencia (mismo fix que world-constants.js).
 
-if (!window.__gf) {
+const _hasWindow = typeof window !== 'undefined';
+if (_hasWindow && !window.__gf) {
   window.__gf = {
     postGame: false,
     towerOpen: false,

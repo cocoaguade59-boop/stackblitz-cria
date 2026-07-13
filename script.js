@@ -8059,6 +8059,44 @@ function dStarter() {
   cx.textAlign = 'left';
 }
 
+// ============================================================
+// MENÚ PRINCIPAL (inline - comparte G de script.js)
+// ============================================================
+
+function uMenu() {
+  if (G.showMap || G.proaOpen || G.showMissions || G.showDex) return;
+  if (kp('ArrowUp') || kp('ArrowLeft')) { G.ms.s = (G.ms.s + 8) % 9; sfx.sel(); }
+  if (kp('ArrowDown') || kp('ArrowRight')) { G.ms.s = (G.ms.s + 1) % 9; sfx.sel(); }
+  if (kp(' ') || kp('Enter')) {
+    sfx.sel();
+    switch (G.ms.s) {
+      case 0: if (G.pot > 0 && G.party.length > 0) { G.pot--; G.party[0].heal(Math.floor(G.party[0].mHp * 0.2)); sfx.heal(); aN('+HP!'); } else aN('¡Sin pociones!'); break;
+      case 1: { const f = G.party.find((c) => c.hp <= 0); if (f && G.rev > 0) { G.rev--; f.hp = Math.floor(f.mHp * 0.5); sfx.heal(); aN(`${f.nm} revivió!`); } else aN('Nadie caído o sin revivir.'); } break;
+      case 2: G.proaOpen = true; G.proaSel = 0; G.proaMode = 'view'; break;
+      case 3: G.showMap = true; break;
+      case 4: G.showMissions = true; break;
+      case 5: G.showDex = true; G.dexSel = 0; break;
+      case 6: if (G.batallador) { aN('Batallador: no se puede guardar en modo test.'); sfx.nef(); } else { if (window.__gameSaveGame) window.__gameSaveGame(); } break;
+      case 7: G.scr = 'world'; break;
+      case 8: if (G.batallador) { aN('Batallador: sal del modo test antes de reiniciar.'); sfx.nef(); } else { G.scr = 'confirmReset'; G.resetSel = 0; } break;
+    }
+  }
+  if (kp('x') || kp('Escape')) G.scr = 'world';
+}
+
+function dMenu() {
+  if (G.showMap || G.proaOpen || G.showMissions || G.showDex) return;
+  cx.fillStyle = 'rgba(0,0,0,.6)'; cx.fillRect(0, 0, 640, 480);
+  dBoxMenu(16, 16, 190, 320, G.batallador ? 'MENÚ ⚔️ BATALLADOR' : 'MENÚ');
+  const opts = ['Poción', 'Revivir', 'Equipo', 'Mapa', 'Misiones', 'Criaturario', 'Guardar', 'Volver', 'Reiniciar toda la partida'];
+  opts.forEach((o, i) => { cx.fillStyle = G.ms.s === i ? '#ffd700' : '#fff'; cx.font = i === 8 ? '6px "Press Start 2P"' : '8px "Press Start 2P"'; cx.fillText(`${G.ms.s === i ? '▶ ' : '  '}${o}`, 34, 48 + i * 28); });
+  cx.fillStyle = '#aaa'; cx.font = '6px "Press Start 2P"'; cx.fillText(`🧪${G.pot} 💎${G.crv} ❤${G.rev} 💰${G.gold}`, 34, 314);
+  dBoxMenu(220, 16, 410, 450, 'EQUIPO');
+  if (G.party.length === 0) { cx.fillStyle = '#888'; cx.font = '8px "Press Start 2P"'; cx.fillText('Sin criaturas.', 230, 50); }
+  else { G.party.forEach((c, i) => { const cy = 42 + i * 62; if (i % 2 === 0) { cx.fillStyle = 'rgba(255,255,255,.03)'; cx.fillRect(218, cy - 8, 404, 58); } cx.fillStyle = tCol(c.tp); cx.font = '8px "Press Start 2P"'; cx.fillText(`${tEmo(c.tp)} ${c.nm}`, 230, cy); cx.fillStyle = '#ffd700'; cx.font = '7px "Press Start 2P"'; cx.fillText(`Lv.${c.lv}`, 450, cy); cx.fillStyle = '#aaa'; cx.font = '6px "Press Start 2P"'; cx.fillText(tNam(c.tp), 530, cy); dHP(230, cy + 8, 140, 6, c.hp, c.mHp); cx.fillStyle = '#fff'; cx.font = '6px "Press Start 2P"'; cx.fillText(`ATK:${c.ak}`, 230, cy + 26); cx.fillText(`DEF:${c.df}`, 310, cy + 26); cx.fillText(`SPD:${c.sp}`, 390, cy + 26); cx.fillStyle = '#aaa'; cx.font = '5px "Press Start 2P"'; cx.fillText('EXP:', 230, cy + 38); dEXP(260, cy + 33, 140, 4, c.ex, c.exTo); if (c.hp <= 0) { cx.fillStyle = 'rgba(200,0,0,.3)'; cx.fillRect(218, cy - 8, 404, 58); cx.fillStyle = '#E83030'; cx.font = '6px "Press Start 2P"'; cx.fillText('CAÍDO', 550, cy + 26); } }); }
+  if (proa.length > 0) { cx.fillStyle = '#888'; cx.font = '6px "Press Start 2P"'; cx.fillText(`Proa: ${proa.length} criaturas`, 230, 440); }
+}
+
 function update() {
   tickFrame();
   if (kp('y') && !['battle', 'dialog', '_dialogDone', 'starter', 'intro', 'confirmReset', 'vision', 'batalladorSelect'].includes(G.scr)) {
@@ -8124,16 +8162,11 @@ function update() {
       }
       break;
     case 'menu':
-      try {
-        if (G.showMap) { uMapScreen(); break; }
-        if (G.proaOpen) { uProa(); break; }
-        if (G.showMissions) { uMissions(); break; }
-        if (G.showDex) { uDex(); break; }
-        uMenu();
-      } catch(e) {
-        console.error('[menu update]', e.message, e.stack);
-        G.scr = 'world';
-      }
+      if (G.showMap) { uMapScreen(); break; }
+      if (G.proaOpen) { uProa(); break; }
+      if (G.showMissions) { uMissions(); break; }
+      if (G.showDex) { uDex(); break; }
+      uMenu();
       break;
     case 'shop':
       uShop();
@@ -8189,21 +8222,12 @@ function draw() {
       drawMap();
       break;
     case 'menu':
-      try {
-        if (G.showMap) { drawMap(); dMapScreen(); break; }
-        if (G.proaOpen) { drawMap(); dProa(); break; }
-        if (G.showMissions) { drawMap(); dMissions(); break; }
-        if (G.showDex) { drawMap(); dDex(); break; }
-        drawMap();
-        dMenu();
-      } catch(e) {
-        console.error('[menu draw]', e.message, e.stack);
-        cx.fillStyle = '#FF00FF';
-        cx.fillRect(0,0,640,480);
-        cx.fillStyle = '#FFF';
-        cx.font = '10px "Press Start 2P"';
-        cx.fillText('MENU ERROR: '+e.message.substring(0,80), 20, 240);
-      }
+      if (G.showMap) { drawMap(); dMapScreen(); break; }
+      if (G.proaOpen) { drawMap(); dProa(); break; }
+      if (G.showMissions) { drawMap(); dMissions(); break; }
+      if (G.showDex) { drawMap(); dDex(); break; }
+      drawMap();
+      dMenu();
       break;
     case 'shop':
       drawMap();
