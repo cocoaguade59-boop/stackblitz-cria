@@ -24,6 +24,7 @@ const INTRO_LINES = [
 function uIntro() {
   if (!G.intro) G.intro = { phase: 0, y: 82, li: 0, ci: 0, tm: 0, full: false };
   const it = G.intro;
+  if (G.tFr % 60 === 0) console.log('[uIntro] phase:', it.phase, 'y:', it.y, 'scr:', G.scr);
   if (it.phase === 0) {
     it.y += 2.4;
     if (it.y >= 198 || kp(' ') || kp('Enter')) {
