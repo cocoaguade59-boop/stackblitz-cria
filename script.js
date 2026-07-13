@@ -2412,6 +2412,7 @@ const castNpcs = [
     battle: true,
     battleIntro: ['¡¡¡BIENVENIDO!!!', '¡¡¡Soy Yam!!!', '¡¡¡PREPARATE!!!'],
     team: [new Cre('flameye', 8), new Cre('pixie', 9)],
+    flag: 'metYamCastle',
   },
 
   {
@@ -2431,6 +2432,7 @@ const castNpcs = [
     battle: true,
     battleIntro: ['No puedo salir todavía...', 'pero sí puedo pelear.'],
     team: [new Cre('serpentdrg', 8), new Cre('gorilan', 9)],
+    flag: 'metAndreCastle',
   },
 
   {
@@ -2457,6 +2459,7 @@ const castNpcs = [
     battle: true,
     battleIntro: ['Un bufón también puede', 'dar un buen espectáculo.'],
     team: [new Cre('sidhe', 18), new Cre('axolotl', 18)],
+    flag: 'metRavellCastle',
   },
 
   {
@@ -2770,6 +2773,14 @@ function canRebattle(npc) {
 
 function markNPCDefeated(npc) {
   if (npc?.flag) npcDefeats[npc.flag] = true;
+}
+
+// ¿Se puede entrar a la sala del trono del Rey Navarrete?
+// Requisito: derrotar a Yam Y (André o Ravell, según pre/post-game).
+function canEnterThroneRoom() {
+  const yamOk = !!npcDefeats.metYamCastle;
+  const guardianOk = !!npcDefeats.metAndreCastle || !!npcDefeats.metRavellCastle;
+  return yamOk && guardianOk;
 }
 
 // Reinicia re-batallas tras vencer a Olo-Man
@@ -4137,6 +4148,35 @@ updateCamera(CC, CR);
 
 // === CASTILLO ===
 function uCastle() {
+  // === Bloqueo de la sala del trono ===
+  // Si el jugador está justo abajo de la puerta del trono (15, 21) y
+  // trata de subir sin haber derrotado a Yam Y a André (o Ravell post-game),
+  // mostramos un mensaje y bloqueamos el paso.
+  // Sin supervisor/batallador, claro (esos modos ignoran el bloqueo).
+  const px = Math.round(G.pl.x);
+  const py = Math.round(G.pl.y);
+  if (
+    !G.supervisor && !G.batallador &&
+    !canEnterThroneRoom() &&
+    px === 15 && py === 22 && kh('ArrowUp') && !G.pl.stepTarget
+  ) {
+    if (!G._throneBlockedShown || fr - G._throneBlockedShown > 120) {
+      const missingText = !npcDefeats.metYamCastle
+        ? '¡Derrota primero a Yam en el ala oeste!'
+        : '¡Derrota al centinela del ala este antes de pasar!';
+      aN(missingText);
+      sfx.nef();
+      G._throneBlockedShown = fr;
+    }
+    // Cortar el movimiento: no dejamos que moveEntity siquiera arranque el step
+    G.pl.d = 3;         // seguimos mirando hacia arriba (visual)
+    G.pl.moving = false;
+    updateCamera(KC, KR);
+    // Aún permitimos otras teclas (menú, batallador, etc.) por fuera
+    if (kp('x') || kp('Escape')) { sfx.sel(); G.scr = 'menu'; G.ms = { s: 0 }; }
+    return;
+  }
+
   const mv = moveEntity(solidC, KC, KR, castMap);
 
   if (mv) {
@@ -8573,6 +8613,25 @@ function drawMap() {
         }
       }
     });
+
+    // Guardia bloqueando la sala del trono si aún no cumples requisitos
+    if (!canEnterThroneRoom() && !G.supervisor && !G.batallador) {
+      const gx = 15 * T - cam.x;
+      const gy = 21 * T - cam.y;
+      if (gx > -40 && gx < 680 && gy > -40 && gy < 520) {
+        // Sprite de guardia con lanza
+        dNPC(gx, gy - 8, 'luis', fr); // reutilizamos sprite de Luis (bastón/lanza)
+        // Emoji ⚔ arriba flotando para indicar bloqueo
+        cx.fillStyle = '#ff4040';
+        cx.font = '10px "Press Start 2P"';
+        cx.textAlign = 'center';
+        cx.fillText('⚔', gx + 16, gy - 18 + Math.sin(fr * 0.15) * 2);
+        cx.fillStyle = '#ffd700';
+        cx.font = '6px "Press Start 2P"';
+        cx.fillText('Guardia', gx + 16, gy - 28);
+        cx.textAlign = 'left';
+      }
+    }
 
     dBox(250, 4, 140, 18);
     cx.fillStyle = '#ffd700';
