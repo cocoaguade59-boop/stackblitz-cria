@@ -10,6 +10,8 @@ import { cx } from '../core/canvas.js';
 import { px } from './render-utils.js';
 import { SK } from './skin-colors.js';
 import { SPRITE_LOADER } from '../core/sprite-loader.js';
+import { dNPC } from './npc-sprites.js';
+import { postGame } from '../core/game-flags.js';
 
 function dTrainerBig(x, y, id, f) {
   const bob = Math.sin(f * 0.08) * 2,

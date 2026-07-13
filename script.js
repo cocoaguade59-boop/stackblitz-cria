@@ -45,6 +45,15 @@ import { dNPC } from './src/render/npc-sprites.js';
 
 // [refactor-phase4e] sprites de entrenadores importados
 import { dTrainerBig } from './src/render/trainer-big-sprites.js';
+// [refactor-game-flags] flags mutables globales importadas
+import {
+  postGame, towerOpen, oloDefeated, pairBattles,
+  npcDefeats, proa, captureCount, lastHealPos, towerKey, diplomas,
+  setPostGame, setTowerOpen, setOloDefeated, setPairBattles,
+  setNpcDefeats, setProa, setCaptureCount, setLastHealPos,
+  setTowerKey, setDiplomas,
+} from './src/core/game-flags.js';
+
 
 
 
@@ -75,19 +84,11 @@ let cam = { x: 0, y: 0 },
   cave1 = [],
   cave2 = [],
   castMap = [];
-let lastHealPos = { x: 20, y: 145, map: 'world' };
-let postGame = false,
-  towerOpen = false,
-  oloDefeated = false;
-let npcDefeats = {},
-  pairBattles = false;
-let proa = []; // Almacén de criaturas extra
-let towerKey = {
-  edison: false,
-  roberto: false,
-  gabriela: false,
-  ximena: false,
-};
+// [refactor-game-flags] 'lastHealPos' movido a src/core/game-flags.js
+// [refactor-game-flags] postGame/towerOpen/oloDefeated movidos a src/core/game-flags.js
+// [refactor-game-flags] npcDefeats/pairBattles movidos a src/core/game-flags.js
+// [refactor-game-flags] 'proa' movido a src/core/game-flags.js
+// [refactor-game-flags] 'towerKey' movido a src/core/game-flags.js
 
 // [refactor-phase2] bloque 'audio' movido a src/
 // [refactor-phase1] bloque 'types' movido a src/data/types.js
@@ -97,7 +98,7 @@ let towerKey = {
 // [refactor-phase2] bloque 'save' movido a src/
 
 // === CONTADOR DE CAPTURAS POR ESPECIE ===
-let captureCount = {};
+// [refactor-game-flags] 'captureCount' movido a src/core/game-flags.js
 
 // [refactor-phase1] bloque 'pools' movido a src/data/pools.js
 
@@ -7044,7 +7045,7 @@ function resetRebattles() {
   Object.keys(npcDefeats).forEach((k) => {
     if (k !== 'metOlo') npcDefeats[k] = false;
   });
-  oloDefeated = false;
+  setOloDefeated(false);
   aN('¡Todos quieren combatir otra vez!');
 }
 
@@ -7619,7 +7620,7 @@ function uStarter() {
     const ids = ['flameye', 'axolotl', 'gorilan'];
     const c = new Cre(ids[G.sSel], 5);
     G.party = [c];
-    proa = [];
+    setProa([]);
     sfx.cap();
     G.curMap = 'world';
     G.pl.x = 20;
@@ -7875,12 +7876,7 @@ function resetLeaderMissions() {
 }
 
 // Estado de diplomas del jugador
-let diplomas = {
-  tamara: false,
-  luchito: false,
-  andrea: false,
-  dan: false,
-};
+// [refactor-game-flags] 'diplomas' movido a src/core/game-flags.js
 
 function hasAllDiplomas() {
   return diplomas.tamara && diplomas.luchito && diplomas.andrea && diplomas.dan;
@@ -8028,7 +8024,7 @@ function checkTowerKey() {
     towerKey.gabriela &&
     towerKey.ximena
   ) {
-    towerOpen = true;
+    setTowerOpen(true);
     aN('¡La llave de la torre brilla!');
     sfx.cap();
   }
@@ -8764,7 +8760,7 @@ function checkNPC(list) {
     // Curandero
     if (n.heal) {
       G.party.forEach((c) => c.full());
-      lastHealPos = { x: G.pl.x, y: G.pl.y, map: G.curMap };
+      setLastHealPos({ x: G.pl.x, y: G.pl.y, map: G.curMap });
       sfx.heal();
       aN('¡Curados!');
       return;
@@ -9395,7 +9391,7 @@ function uEdisonChoice() {
       startNPCBattle(edisonNPC);
     } else {
       // Desbloquear combates en pareja
-      pairBattles = true;
+      setPairBattles(true);
       aN('¡Combates en pareja desbloqueados!');
       G.scr = 'pairSelect';
       G.pairSel = 0;
@@ -10105,16 +10101,16 @@ function resetGame(startIntro = false) {
   G.dexSel = 0;
   G.supervisor = false;
 
-  postGame = false;
-  towerOpen = false;
-  oloDefeated = false;
-  npcDefeats = {};
-  pairBattles = false;
-  proa = [];
-  towerKey = { edison: false, roberto: false, gabriela: false, ximena: false };
-  diplomas = { tamara: false, luchito: false, andrea: false, dan: false };
-  captureCount = {};
-  lastHealPos = { x: 20, y: 145, map: 'world' };
+  setPostGame(false);
+  setTowerOpen(false);
+  setOloDefeated(false);
+  setNpcDefeats({});
+  setPairBattles(false);
+  setProa([]);
+  setTowerKey({ edison: false, roberto: false, gabriela: false, ximena: false });
+  setDiplomas({ tamara: false, luchito: false, andrea: false, dan: false });
+  setCaptureCount({});
+  setLastHealPos({ x: 20, y: 145, map: 'world' });
 
   // Regenerar mapas
   // === HELPERS DE CAMINOS PARA EL MAPA GRANDE ===
@@ -10604,7 +10600,7 @@ function uProa() {
       allCre[G.proaSwap] = allCre[G.proaSel];
       allCre[G.proaSel] = temp;
       G.party = allCre.slice(0, Math.min(6, allCre.length));
-      proa = allCre.slice(Math.min(6, allCre.length));
+      setProa(allCre.slice(Math.min(6, allCre.length)));
       if (G.party.length === 0 && proa.length > 0) G.party.push(proa.shift());
       sfx.sel();
       aN('¡Intercambiado!');
@@ -11662,7 +11658,7 @@ function uBattle() {
           } else if (n.a === 'end') {
             if (b.npcData) markNPCDefeated(b.npcData);
             if (b.npcData?.isPunk && postGame) {
-              oloDefeated = true;
+              setOloDefeated(true);
               resetRebattles();
             }
             resetBattleState();
@@ -12528,7 +12524,7 @@ function procAct(act) {
   } else if (act.a === 'end') {
     if (b.npcData) markNPCDefeated(b.npcData);
     if (b.npcData?.isPunk && postGame) {
-      oloDefeated = true;
+      setOloDefeated(true);
       resetRebattles();
     }
     resetBattleState();
@@ -12698,7 +12694,7 @@ function handleFaint() {
 // === ACTIVAR POST-GAME ===
 function activatePostGame() {
   if (postGame) return;
-  postGame = true;
+  setPostGame(true);
 
   // Generar torre
   genTower();
@@ -13472,7 +13468,7 @@ function loadGame() {
 
     // Equipo
     G.party = (save.party || []).map((j) => Cre.fromJSON(j));
-    proa = (save.proa || []).map((j) => Cre.fromJSON(j));
+    setProa((save.proa || []).map((j) => Cre.fromJSON(j)));
 
     // Inventario
     G.gold = save.gold ?? 200;
@@ -13489,28 +13485,28 @@ function loadGame() {
     G.tExp = save.tExp ?? 0;
     G.mFriend = save.mFriend ?? 0;
     G.bossDialogs = save.bossDialogs ?? 0;
-    diplomas = save.diplomas || {
+    setDiplomas(save.diplomas || {
       tamara: !!save.npcDefeats?.metTamara,
       luchito: !!save.npcDefeats?.metLuchito,
       andrea: !!save.npcDefeats?.metAndrea,
       dan: !!save.npcDefeats?.metDan,
-    };
+    });
 
     // Post-game
-    postGame = save.postGame || false;
-    towerOpen = save.towerOpen || false;
-    oloDefeated = save.oloDefeated || false;
-    pairBattles = save.pairBattles || false;
-    npcDefeats = save.npcDefeats || {};
-    towerKey = save.towerKey || {
+    setPostGame(save.postGame || false);
+    setTowerOpen(save.towerOpen || false);
+    setOloDefeated(save.oloDefeated || false);
+    setPairBattles(save.pairBattles || false);
+    setNpcDefeats(save.npcDefeats || {});
+    setTowerKey(save.towerKey || {
       edison: false,
       roberto: false,
       gabriela: false,
       ximena: false,
-    };
-    captureCount = save.captureCount || {};
+    });
+    setCaptureCount(save.captureCount || {});
     // Default de lastHealPos: y=145 (Aldea Pitch), no 32 que caía al norte
-    lastHealPos = save.lastHealPos || { x: 20, y: 145, map: 'world' };
+    setLastHealPos(save.lastHealPos || { x: 20, y: 145, map: 'world' });
 
     G.prevPos = save.prevPos || null;
 
@@ -13643,7 +13639,7 @@ function exitBatalladorMode() {
   }
   // Restaurar estado original
   G.party = batalladorSnapshot.party.map((j) => Cre.fromJSON(j));
-  proa = batalladorSnapshot.proa.map((j) => Cre.fromJSON(j));
+  setProa(batalladorSnapshot.proa.map((j) => Cre.fromJSON(j)));
   G.gold = batalladorSnapshot.gold;
   G.pot = batalladorSnapshot.pot;
   G.rev = batalladorSnapshot.rev;

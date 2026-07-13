@@ -10,6 +10,8 @@ import { px } from './render-utils.js';
 import { SK } from './skin-colors.js';
 import { dShadow } from './world-decor.js';
 import { SPRITE_LOADER } from '../core/sprite-loader.js';
+import { fr } from '../core/frame.js';
+import { postGame } from '../core/game-flags.js';
 
 function dNPC(x, y, id, f) {
   const bob = Math.sin(f * 0.1) * 1,
