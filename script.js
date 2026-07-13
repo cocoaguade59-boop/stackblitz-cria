@@ -13459,11 +13459,15 @@ function loadGame() {
     // Posición
     // Uso ?? (nullish coalescing) en vez de || para que valores como 0
     // NO sean sobrescritos por el fallback (bug clásico: y=0 caía al default).
-    // El default de y ahora es 145 (Aldea Pitch), no 32 (que dejaba al jugador
-    // en el norte del mapa, lugar sin sentido para respawn).
     G.pl.x = save.plx ?? 20;
     G.pl.y = save.ply ?? 145;
     G.pl.d = save.plD ?? 0;
+    // Reset de estado de movimiento: si venimos de una sesión donde el
+    // jugador estaba a medio moverse, sin esto quedaba congelado.
+    G.pl.f = 0;
+    G.pl.sprint = false;
+    G.pl.moving = false;
+    G.pl.stepTarget = null;
     G.curMap = save.curMap ?? 'world';
 
     // Equipo
@@ -13788,6 +13792,21 @@ function update() {
   }
   if (kp('p') && !['battle', 'dialog', 'starter', 'intro', 'confirmReset', 'vision', 'batalladorSelect'].includes(G.scr)) {
     toggleBatalladorMode();
+  }
+  // EMERGENCIA: si el jugador queda atascado en un lugar imposible
+  // (save corrupto, spawn fuera de mapa, etc.), la tecla R lo teleport
+  // de vuelta a Aldea Pitch y limpia el estado de movimiento.
+  if (kp('r') && G.scr === 'world') {
+    G.curMap = 'world';
+    G.pl.x = 20;
+    G.pl.y = 145;
+    G.pl.d = 0;
+    G.pl.f = 0;
+    G.pl.sprint = false;
+    G.pl.moving = false;
+    G.pl.stepTarget = null;
+    aN('Respawn de emergencia: Aldea Pitch');
+    sfx.sel();
   }
   uP();
   updateMusic();
