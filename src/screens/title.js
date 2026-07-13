@@ -17,6 +17,10 @@ import { dBoxMenu } from '../render/ui-boxes.js';
 import { px, pixelGlow } from '../render/render-utils.js';
 import { aN } from '../utils/particles.js';
 
+// loadGame se inyecta desde script.js (función gigante que usa muchas globales)
+let _loadGame = null;
+export function setTitleCallbacks(cbs) { _loadGame = cbs.loadGame; }
+
 // === PANTALLA DE TÍTULO ===
 function playTitleHorn() {
   if (!sfx.on || !sfx.c) return;
@@ -60,7 +64,7 @@ function uTitle() {
   if (kp(' ') || kp('Enter')) {
     sfx.sel();
     if (G.hasSave && G.titleSel === 0) {
-      if (loadGame()) {
+      if (_loadGame && _loadGame()) {
         G.scr = 'world';
         aN('¡Partida cargada!');
       } else {
