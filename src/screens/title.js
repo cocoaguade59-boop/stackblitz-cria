@@ -61,19 +61,27 @@ function uTitle() {
   }
   if (kp(' ') || kp('Enter')) {
     sfx.sel();
-    if (G.hasSave && G.titleSel === 0) {
-      if (window.__gameLoadGame && window.__gameLoadGame()) {
-        G.scr = 'world';
-        aN('¡Partida cargada!');
+    try {
+      if (G.hasSave && G.titleSel === 0) {
+        const fn = window.__gameLoadGame;
+        console.log('[title] loadGame available:', typeof fn);
+        if (fn && fn()) {
+          G.scr = 'world';
+          aN('¡Partida cargada!');
+        } else {
+          startNewGameFlow();
+        }
+      } else if (G.hasSave && G.titleSel === 1) {
+        G.scr = 'confirmReset';
+        G.resetSel = 1;
+        G.resetFromTitle = true;
       } else {
+        console.log('[title] calling startNewGameFlow');
         startNewGameFlow();
+        console.log('[title] G.scr after:', G.scr);
       }
-    } else if (G.hasSave && G.titleSel === 1) {
-      G.scr = 'confirmReset';
-      G.resetSel = 1; // en Nueva partida, la opción principal es confirmar
-      G.resetFromTitle = true;
-    } else {
-      startNewGameFlow();
+    } catch(e) {
+      console.error('[title] ERROR en SPACE:', e.message, e.stack);
     }
   }
 }
