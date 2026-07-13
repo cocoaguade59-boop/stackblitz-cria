@@ -67,30 +67,32 @@ function dBoxMenu(x, y, w, h, t) {
   px(x + w - 6, y + h - 6, 4, 4, '#1a1a3e');
   // Título
   if (t) {
-    cx.font = '10px "Press Start 2P"';
-    // Medir el ancho real del texto (así funciona bien con emojis, acentos, etc.)
-    const textW = cx.measureText(t).width;
-    const padX = 14; // padding horizontal a cada lado
-    const titleW = Math.ceil(textW + padX * 2);
-    const titleH = 20;
+    const fontSize = 10;
+    cx.font = fontSize + 'px "Press Start 2P"';
+    cx.textAlign = 'left';
+    cx.textBaseline = 'alphabetic';
+    // Medir ancho real del texto (más robusto que t.length * N)
+    const textW = Math.ceil(cx.measureText(t).width);
+    const padX = 12;                          // padding horizontal a cada lado
+    const padY = 5;                           // padding vertical arriba y abajo
+    const titleW = textW + padX * 2;
+    const titleH = fontSize + padY * 2;       // 10 + 5 + 5 = 20 px
     // Centrar la banda del título horizontalmente sobre la caja
     const titleX = x + Math.round((w - titleW) / 2);
-    const titleY = y - Math.round(titleH / 2);
+    // La banda va POR ENCIMA de la caja: su base coincide con el borde superior
+    const titleY = y - titleH;
     // Fondo de la banda
     cx.fillStyle = '#0a0a2e';
     cx.fillRect(titleX, titleY, titleW, titleH);
     // Borde dorado
     cx.strokeStyle = '#ffd700';
     cx.lineWidth = 2;
-    cx.strokeRect(titleX, titleY, titleW, titleH);
-    // Texto centrado dentro de la banda
+    cx.strokeRect(titleX + 0.5, titleY + 0.5, titleW - 1, titleH - 1);
+    // Texto: posición manual usando measureText y padding fijo.
+    // Con Press Start 2P, la baseline queda a ~0.85 del top del glyph, así que
+    // sumamos padY + fontSize para que el texto quede visualmente centrado.
     cx.fillStyle = '#fff';
-    cx.textAlign = 'center';
-    cx.textBaseline = 'middle';
-    cx.fillText(t, titleX + titleW / 2, titleY + titleH / 2 + 1);
-    // Restaurar defaults
-    cx.textAlign = 'left';
-    cx.textBaseline = 'alphabetic';
+    cx.fillText(t, titleX + padX, titleY + padY + fontSize - 1);
   }
 }
 
