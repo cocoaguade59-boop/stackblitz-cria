@@ -26,6 +26,17 @@ import { STATUS, battleState, resetBattleState, getModdedStat, cDmg } from './sr
 import { cv, cx } from './src/core/canvas.js';
 import { G } from './src/core/game-state.js';
 import { px, pixelGlow, pixelDiamond } from './src/render/render-utils.js';
+
+// [refactor-phase4b] UI y utilidades importadas
+import { fr, tickFrame } from './src/core/frame.js';
+import { aP, aN, uP } from './src/utils/particles.js';
+import { dBox, dBoxMenu, dDialogBox, dDialogAdaptive, wrapText, dMenuOption, dArrow } from './src/render/ui-boxes.js';
+import { dHP, dEXP, dBattlePanel } from './src/render/ui-bars.js';
+import { dTypeIcon, moveUiCol, movePpColor, dMoveButton } from './src/render/ui-type-icons.js';
+import { dShadow, dRouteTree, dRouteProa, dRouteSign, dFallenPortrait } from './src/render/world-decor.js';
+import { initBattleBackgroundAssets, drawBattleBackgroundAsset, dWorldEncounterBG, dBattleBG, dBattleIntroBG } from './src/render/battle-backgrounds.js';
+import { drawNotifications, drawParticles } from './src/render/notifications-draw.js';
+
 import { dBattleHud } from './src/render/battle-hud.js';
 
 
@@ -48,7 +59,6 @@ const T = 32,
   KC = 30,
   KR = 25;
 let cam = { x: 0, y: 0 },
-  fr = 0,
   wMap = [],
   cave1 = [],
   cave2 = [],
@@ -147,35 +157,7 @@ function kh(k) {
   return !!G.keys[k];
 }
 
-// === PARTICLES & NOTIFICATIONS ===
-function aP(x, y, c, l = 30) {
-  G.pts.push({
-    x,
-    y,
-    c,
-    l,
-    ml: l,
-    vx: (Math.random() - 0.5) * 3,
-    vy: -Math.random() * 3 - 1,
-    s: 2 + Math.random() * 3,
-  });
-}
-function aN(t, d = 150) {
-  G.nots.push({ t, l: d, ml: d });
-}
-function uP() {
-  G.pts = G.pts.filter((p) => {
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += 0.1;
-    p.l--;
-    return p.l > 0;
-  });
-  G.nots = G.nots.filter((n) => {
-    n.l--;
-    return n.l > 0;
-  });
-}
+// [refactor-phase4b] bloque 'particles' movido a src/
 
 // [refactor-phase2] bloque 'skin-colors' movido a src/
 // ============================================================
@@ -184,655 +166,35 @@ function uP() {
 
 // [refactor-phase4a] bloque 'render-utils' movido a src/
 
-// === CAJA DORADA MEDIEVAL (HUD del mundo) ===
-function dBox(x, y, w, h, t) {
-  // Sombra
-  cx.fillStyle = 'rgba(0,0,0,.6)';
-  cx.fillRect(x + 3, y + 3, w, h);
-  // Fondo azul oscuro
-  cx.fillStyle = '#1a1a3e';
-  cx.fillRect(x, y, w, h);
-  // Borde dorado
-  cx.strokeStyle = '#8b6914';
-  cx.lineWidth = 3;
-  cx.strokeRect(x + 1, y + 1, w - 2, h - 2);
-  cx.strokeStyle = '#6a4a0a';
-  cx.lineWidth = 1;
-  cx.strokeRect(x + 4, y + 4, w - 8, h - 8);
-  // Esquinas decorativas
-  px(x, y, 6, 6, '#ffd700');
-  px(x + w - 6, y, 6, 6, '#ffd700');
-  px(x, y + h - 6, 6, 6, '#ffd700');
-  px(x + w - 6, y + h - 6, 6, 6, '#ffd700');
-  // Título si existe
-  if (t) {
-    cx.fillStyle = '#1a1a3e';
-    cx.fillRect(x + 14, y - 8, t.length * 8 + 10, 16);
-    cx.strokeStyle = '#8b6914';
-    cx.lineWidth = 2;
-    cx.strokeRect(x + 14, y - 8, t.length * 8 + 10, 16);
-    cx.fillStyle = '#ffd700';
-    cx.font = '9px "Press Start 2P"';
-    cx.fillText(t, x + 20, y + 4);
-  }
-}
+// [refactor-phase4b] bloque 'ui-boxes-dBox' movido a src/
+// [refactor-phase4b] bloque 'ui-boxes-dBoxMenu' movido a src/
+// [refactor-phase4b] bloque 'ui-boxes-dDialogBox' movido a src/
+// [refactor-phase4b] bloque 'ui-bars-dHP' movido a src/
+// [refactor-phase4b] bloque 'ui-bars-dEXP' movido a src/
+// [refactor-phase4b] bloque 'ui-bars-dBattlePanel' movido a src/
+// [refactor-phase4b] bloque 'ui-boxes-dDialogAdaptive' movido a src/
+// [refactor-phase4b] bloque 'ui-boxes-wrapText' movido a src/
+// [refactor-phase4b] bloque 'ui-boxes-dMenuOption' movido a src/
+// [refactor-phase4b] bloque 'ui-type-icons-dTypeIcon' movido a src/
+// [refactor-phase4b] bloque 'ui-type-icons-moveUiCol' movido a src/
+// [refactor-phase4b] bloque 'ui-type-icons-movePpColor' movido a src/
+// [refactor-phase4b] bloque 'ui-type-icons-dMoveButton' movido a src/
+// [refactor-phase4b] bloque 'ui-boxes-dArrow' movido a src/
 
-// === CAJA MENÚ/TIENDA (azul noche con dorado) ===
-function dBoxMenu(x, y, w, h, t) {
-  // Sombra
-  cx.fillStyle = 'rgba(0,0,0,.6)';
-  cx.fillRect(x + 4, y + 4, w, h);
-  // Fondo azul noche
-  cx.fillStyle = '#0a0a2e';
-  cx.fillRect(x, y, w, h);
-  // Borde dorado exterior grueso
-  cx.strokeStyle = '#ffd700';
-  cx.lineWidth = 4;
-  cx.strokeRect(x, y, w, h);
-  // Borde dorado interior
-  cx.strokeStyle = '#8b6914';
-  cx.lineWidth = 2;
-  cx.strokeRect(x + 6, y + 6, w - 12, h - 12);
-  // Esquinas decorativas doradas
-  px(x, y, 8, 8, '#ffd700');
-  px(x + w - 8, y, 8, 8, '#ffd700');
-  px(x, y + h - 8, 8, 8, '#ffd700');
-  px(x + w - 8, y + h - 8, 8, 8, '#ffd700');
-  // Detalle interno en esquinas
-  px(x + 2, y + 2, 4, 4, '#1a1a3e');
-  px(x + w - 6, y + 2, 4, 4, '#1a1a3e');
-  px(x + 2, y + h - 6, 4, 4, '#1a1a3e');
-  px(x + w - 6, y + h - 6, 4, 4, '#1a1a3e');
-  // Título
-  if (t) {
-    cx.fillStyle = '#0a0a2e';
-    const titleW = t.length * 11 + 22;
-    cx.fillRect(x + 20, y - 10, titleW, 20);
-    cx.strokeStyle = '#ffd700';
-    cx.lineWidth = 2;
-    cx.strokeRect(x + 20, y - 10, titleW, 20);
-    cx.fillStyle = '#fff';
-    cx.font = '10px "Press Start 2P"';
-    cx.fillText(t, x + 28, y + 4);
-  }
-}
-
-// === CAJA DE DIÁLOGO (blanca con borde negro) ===
-function dDialogBox(x, y, w, h, name) {
-  // Borde negro exterior
-  cx.fillStyle = '#000';
-  cx.fillRect(x, y, w, h);
-  // Fondo blanco
-  cx.fillStyle = '#F8F8F8';
-  cx.fillRect(x + 3, y + 3, w - 6, h - 6);
-  // Bordes interiores sutiles
-  cx.fillStyle = '#000';
-  cx.fillRect(x + 2, y + 2, w - 4, 1);
-  cx.fillStyle = '#000';
-  cx.fillRect(x + 2, y + h - 3, w - 4, 1);
-  cx.fillStyle = '#000';
-  cx.fillRect(x + 2, y + 2, 1, h - 4);
-  cx.fillStyle = '#000';
-  cx.fillRect(x + w - 3, y + 2, 1, h - 4);
-  // Nombre del NPC arriba si existe
-  if (name) {
-    const nameW = name.length * 9 + 14;
-    cx.fillStyle = '#000';
-    cx.fillRect(x + 10, y - 18, nameW, 20);
-    cx.fillStyle = '#F8F8F8';
-    cx.fillRect(x + 12, y - 16, nameW - 4, 16);
-    cx.fillStyle = '#000';
-    cx.font = '8px "Press Start 2P"';
-    cx.fillText(name, x + 18, y - 4);
-  }
-}
-
-// === BARRA DE HP estilo GBA ===
-function dHP(x, y, w, h, c, m) {
-  const r = c / m;
-  const co = r > 0.5 ? '#30D848' : r > 0.25 ? '#E8C020' : '#E03020';
-  // Borde negro
-  cx.fillStyle = '#000';
-  cx.fillRect(x - 1, y - 1, w + 2, h + 2);
-  // Fondo
-  cx.fillStyle = '#383838';
-  cx.fillRect(x, y, w, h);
-  // Barra de vida
-  cx.fillStyle = co;
-  cx.fillRect(x, y, Math.max(0, w * r), h);
-  // Brillo superior
-  cx.fillStyle = 'rgba(255,255,255,.3)';
-  cx.fillRect(x, y, Math.max(0, w * r), Math.floor(h / 2));
-  // Label HP
-  cx.fillStyle = '#ffd700';
-  cx.font = '6px "Press Start 2P"';
-  cx.fillText('HP', x - 18, y + h);
-  // Texto numérico
-  cx.fillStyle = '#fff';
-  cx.font = '7px "Press Start 2P"';
-  cx.fillText(`${c}/${m}`, x + w + 4, y + h);
-}
-
-// === BARRA DE EXP ===
-function dEXP(x, y, w, h, c, m) {
-  cx.fillStyle = '#000';
-  cx.fillRect(x - 1, y - 1, w + 2, h + 2);
-  cx.fillStyle = '#383838';
-  cx.fillRect(x, y, w, h);
-  cx.fillStyle = '#3888E0';
-  cx.fillRect(x, y, w * (c / m), h);
-  cx.fillStyle = 'rgba(255,255,255,.3)';
-  cx.fillRect(x, y, w * (c / m), 1);
-}
-
-// === PANEL DE BATALLA (enemigo arriba / jugador abajo) ===
-function dBattlePanel(x, y, w, h, isEnemy) {
-  // Sombra
-  cx.fillStyle = 'rgba(0,0,0,.5)';
-  cx.fillRect(x + 3, y + 3, w, h);
-  // Fondo según lado
-  cx.fillStyle = isEnemy ? '#2a1a3e' : '#1a2a4e';
-  cx.fillRect(x, y, w, h);
-  // Borde dorado
-  cx.strokeStyle = '#ffd700';
-  cx.lineWidth = 2;
-  cx.strokeRect(x, y, w, h);
-  cx.strokeStyle = '#8b6914';
-  cx.lineWidth = 1;
-  cx.strokeRect(x + 3, y + 3, w - 6, h - 6);
-  // Esquinas
-  px(x, y, 4, 4, '#ffd700');
-  px(x + w - 4, y, 4, 4, '#ffd700');
-  px(x, y + h - 4, 4, 4, '#ffd700');
-  px(x + w - 4, y + h - 4, 4, 4, '#ffd700');
-}
-
-// === CAJA DE DIÁLOGO ADAPTATIVA ===
-// Calcula altura según líneas y centra texto verticalmente
-function dDialogAdaptive(x, y, w, lines, name) {
-  const padY = 14,
-    lineH = 15;
-  const h = padY * 2 + Math.max(1, lines.length) * lineH + 4;
-  dDialogBox(x, y, w, h, name);
-  return { x, y, w, h };
-}
-
-// === SEPARAR TEXTO EN LÍNEAS según ancho ===
-function wrapText(text, maxChars) {
-  const words = text.split(' ');
-  const lines = [];
-  let current = '';
-  for (const word of words) {
-    if ((current + word).length > maxChars) {
-      if (current) lines.push(current.trim());
-      current = word + ' ';
-    } else {
-      current += word + ' ';
-    }
-  }
-  if (current.trim()) lines.push(current.trim());
-  return lines;
-}
-
-// === BOTÓN/OPCIÓN DE MENÚ ===
-function dMenuOption(x, y, text, selected, color = '#fff') {
-  cx.fillStyle = selected ? '#ffd700' : color;
-  cx.font = '8px "Press Start 2P"';
-  cx.fillText(`${selected ? '▶ ' : '  '}${text}`, x, y);
-}
-
-// === ICONO DE TIPO DE CRIATURA ===
-function dTypeIcon(x, y, tp) {
-  const c = tCol(tp);
-  cx.fillStyle = '#000';
-  cx.fillRect(x - 1, y - 1, 38, 12);
-  cx.fillStyle = c;
-  cx.fillRect(x, y, 36, 10);
-  cx.fillStyle = '#fff';
-  cx.font = '6px "Press Start 2P"';
-  cx.fillText(tNam(tp), x + 2, y + 8);
-}
+// [refactor-phase4b] bloque 'world-decor-dShadow' movido a src/
 
 
-// === BOTÓN DE ATAQUE ESTILO RPG CLÁSICO ===
-const MOVE_UI_COLORS = {
-  fire: ['#E04030', '#8C1F18'],
-  water: ['#3888E0', '#1B4F93'],
-  plant: ['#48A038', '#246A22'],
-  dragon: ['#6838A0', '#3E206E'],
-  fairy: ['#D860A8', '#8E336C'],
-  normal: ['#A8A878', '#6E704A'],
-  ice: ['#70C8E8', '#3B86A0'],
-  ground: ['#C09050', '#79572D'],
-  fighting: ['#C85038', '#7D2D22'],
-  electric: ['#E8C830', '#9A7B15'],
-  psychic: ['#E85888', '#943354'],
-  dark: ['#584838', '#30261E'],
-  steel: ['#A8A8C0', '#686878'],
-  poison: ['#A040A0', '#642064'],
-  bug: ['#90A820', '#566812'],
-  rock: ['#B8A038', '#75651F'],
-  ghost: ['#705898', '#42315D'],
-};
-function moveUiCol(tp, dark = false) {
-  const pair = MOVE_UI_COLORS[tp] || [tCol(tp), '#555'];
-  return pair[dark ? 1 : 0];
-}
-function movePpColor(pp, max) {
-  const r = max > 0 ? pp / max : 0;
-  if (pp <= 0 || r <= 0.2) return '#D02020';
-  if (r <= 0.5) return '#C89000';
-  return '#1A1A1A';
-}
-function dMoveButton(x, y, w, h, mv, selected) {
-  const disabled = mv.pp <= 0;
-  const main = disabled ? '#777' : moveUiCol(mv.tp);
-  const dark = disabled ? '#444' : moveUiCol(mv.tp, true);
-  const inner = disabled ? '#C8C8C0' : '#E6EAD8';
-  const inner2 = disabled ? '#A8A8A0' : '#D2D9C4';
+// [refactor-phase4b] bloque 'world-decor-dRouteTree' movido a src/
 
-  // sombra externa + relieve por capas, con esquinas pixeladas
-  px(x + 3, y + 4, w - 3, h - 2, 'rgba(0,0,0,.45)');
-  px(x + 3, y, w - 6, h, dark);
-  px(x, y + 3, w, h - 6, dark);
-  px(x + 4, y + 1, w - 8, h - 2, main);
-  px(x + 1, y + 4, w - 2, h - 8, main);
-  // brillo superior/izquierdo
-  px(x + 5, y + 3, w - 10, 2, selected ? '#FFF2A0' : 'rgba(255,255,255,.35)');
-  px(x + 3, y + 5, 2, h - 10, 'rgba(255,255,255,.25)');
-  // sombra inferior/derecha
-  px(x + 5, y + h - 5, w - 10, 3, dark);
-  px(x + w - 5, y + 5, 3, h - 10, dark);
+// [refactor-phase4b] bloque 'world-decor-dRouteProa' movido a src/
 
-  // interior común
-  px(x + 8, y + 8, w - 16, h - 16, inner);
-  px(x + 10, y + 10, w - 20, h - 20, inner2);
-  px(x + 10, y + 10, w - 20, 2, 'rgba(255,255,255,.45)');
+// [refactor-phase4b] bloque 'world-decor-dRouteSign' movido a src/
 
-  if (selected) {
-    px(x + 8, y + 6, 8, 3, '#FFE870');
-    px(x + w - 16, y + 6, 8, 3, '#FFE870');
-    px(x + 8, y + h - 9, 8, 3, '#FFE870');
-    px(x + w - 16, y + h - 9, 8, 3, '#FFE870');
-  }
+// [refactor-phase4b] bloque 'world-decor-dFallenPortrait' movido a src/
 
-  // Nombre centrado arriba
-  cx.textAlign = 'center';
-  cx.fillStyle = disabled ? '#666' : '#1A1A1A';
-  cx.font = mv.nm.length > 15 ? '6px "Press Start 2P"' : '7px "Press Start 2P"';
-  cx.fillText(mv.nm, x + w / 2, y + 19);
-  cx.textAlign = 'left';
+// [refactor-phase4b] bloque 'battle-backgrounds' movido a src/
 
-  // Cápsula de tipo abajo izquierda
-  const pillX = x + 13,
-    pillY = y + h - 18,
-    pillW = 62,
-    pillH = 12;
-  px(pillX + 3, pillY, pillW - 6, pillH, dark);
-  px(pillX, pillY + 3, pillW, pillH - 6, dark);
-  px(pillX + 4, pillY + 2, pillW - 8, pillH - 4, main);
-  cx.fillStyle = '#fff';
-  cx.font = '5px "Press Start 2P"';
-  cx.textAlign = 'center';
-  cx.fillText(tNam(mv.tp), pillX + pillW / 2, pillY + 8);
-  cx.textAlign = 'left';
-
-  // PP abajo derecha
-  cx.fillStyle = movePpColor(mv.pp, mv.mp);
-  cx.font = '6px "Press Start 2P"';
-  cx.textAlign = 'right';
-  cx.fillText(`PP ${mv.pp}/${mv.mp}`, x + w - 13, y + h - 9);
-  cx.textAlign = 'left';
-}
-
-// === FLECHA INDICADORA ANIMADA ===
-function dArrow(x, y, color = '#ffd700') {
-  cx.fillStyle = color;
-  cx.font = '10px "Press Start 2P"';
-  cx.fillText('▼', x, y + Math.sin(fr * 0.2) * 2);
-}
-
-// === SOMBRA PIXELADA (para sprites) ===
-function dShadow(x, y, w = 10, h = 3) {
-  cx.fillStyle = 'rgba(0,0,0,.25)';
-  pixelGlow(x, y, w, h);
-}
-
-
-function dRouteTree(x, y, f) {
-  // Árbol de bloqueo: hace que solo exista el camino central.
-  dShadow(x + 16, y + 29, 12, 4);
-  px(x + 13, y + 18, 7, 12, '#6A4828');
-  px(x + 11, y + 22, 11, 8, '#7A5630');
-  px(x + 6, y + 7, 20, 14, '#185C2A');
-  px(x + 3, y + 13, 26, 12, '#20743A');
-  px(x + 8, y + 3, 16, 10, '#2B8A45');
-  px(x + 10, y + 9, 8, 5, '#45A85A');
-  px(x + 22, y + 16, 4, 4, '#145020');
-}
-
-function dRouteProa(x, y, f) {
-  // Proa guardián en el único hueco del camino.
-  dShadow(x + 16, y + 31, 9, 3);
-  const by = y + Math.sin(f * 0.08) * 0.8;
-  px(x + 10, by + 26, 4, 4, '#4A3018');
-  px(x + 18, by + 26, 4, 4, '#4A3018');
-  px(x + 8, by + 18, 16, 9, '#2858A0');
-  // Uniforme del personal: polo negro con flecha amarilla pequeña
-  px(x + 6, by + 10, 20, 10, '#101010');
-  px(x + 8, by + 12, 16, 7, '#1A1A1A');
-  px(x + 13, by + 13, 6, 2, '#FFD830');
-  px(x + 17, by + 11, 3, 6, '#FFD830');
-  px(x + 4, by + 12, 4, 8, SK.a);
-  px(x + 24, by + 12, 4, 8, SK.a);
-  px(x + 13, by + 8, 6, 3, SK.a);
-  px(x + 9, by + 0, 14, 10, SK.a);
-  px(x + 10, by + 1, 12, 8, SK.d);
-  px(x + 7, by - 3, 18, 5, '#2A5830');
-  px(x + 5, by - 1, 22, 3, '#3A7A40');
-  px(x + 12, by + 4, 3, 3, '#111');
-  px(x + 18, by + 4, 3, 3, '#111');
-  px(x + 14, by + 8, 4, 1, '#C08868');
-  if (f % 40 < 20) {
-    cx.fillStyle = '#ffd700';
-    cx.font = '9px "Press Start 2P"';
-    cx.fillText('!', x + 26, by - 5);
-  }
-}
-
-
-function dRouteSign(x, y, f) {
-  dShadow(x + 16, y + 29, 8, 3);
-  px(x + 14, y + 15, 4, 16, '#6A4828');
-  px(x + 7, y + 6, 22, 12, '#8A5A28');
-  px(x + 9, y + 8, 18, 8, '#C09048');
-  px(x + 10, y + 9, 16, 1, '#E0B060');
-  px(x + 11, y + 12, 10, 2, '#5A3818');
-  px(x + 23, y + 11, 2, 3, '#5A3818');
-  if (f % 60 < 30) px(x + 24, y + 5, 2, 2, '#ffd700');
-}
-
-function dFallenPortrait(id, x, y, sc = 4) {
-  cx.save();
-  cx.translate(x, y);
-  cx.scale(sc, sc);
-  const R = (a, b, w, h, c) => px(a, b, w, h, c);
-  const SK1 = '#F0C8A0', SK2 = '#D9A77E', OUT = '#171717';
-  // marco interno de personaje 24x32
-  if (id === 'rafa') {
-    R(7, 27, 4, 4, '#506858'); R(14, 27, 4, 4, '#506858');
-    R(7, 20, 4, 8, '#607868'); R(14, 20, 4, 8, '#607868');
-    R(5, 12, 16, 9, '#D8C8A0'); R(7, 13, 12, 7, '#E8D8B8');
-    R(4, 13, 4, 8, SK1); R(18, 13, 4, 8, SK1);
-    R(9, 9, 6, 4, SK2); R(6, 2, 14, 9, SK1); R(7, 3, 12, 7, '#F5D2AA');
-    R(5, 0, 16, 5, '#2B2018'); R(6, -1, 14, 2, '#3A2A20');
-    R(6, 5, 5, 4, OUT); R(13, 5, 5, 4, OUT); R(7, 6, 3, 2, '#C8D8E8'); R(14, 6, 3, 2, '#C8D8E8'); R(11, 6, 2, 1, OUT);
-    R(10, 10, 5, 1, '#8A5040');
-  } else if (id === 'maria') {
-    R(8, 27, 4, 4, '#1A1A1A'); R(14, 27, 4, 4, '#1A1A1A');
-    R(6, 19, 16, 9, '#171717'); R(5, 12, 18, 8, '#F0F0F0'); R(7, 13, 14, 6, '#FFFFFF');
-    R(4, 13, 4, 8, SK1); R(20, 13, 4, 8, SK1);
-    R(9, 9, 6, 4, SK2); R(6, 2, 14, 9, SK1); R(7, 3, 12, 7, '#F5D2AA');
-    R(4, 0, 18, 6, '#111'); R(3, 3, 4, 18, '#111'); R(19, 3, 4, 18, '#111'); R(5, 16, 3, 8, '#080808'); R(20, 16, 3, 8, '#080808');
-    R(7, 5, 4, 3, '#fff'); R(15, 5, 4, 3, '#fff'); R(8, 6, 2, 2, OUT); R(16, 6, 2, 2, OUT);
-    R(7, 4, 5, 1, OUT); R(15, 4, 5, 1, OUT); R(11, 10, 5, 1, '#7A3030');
-  } else { // mancilla
-    R(7, 27, 4, 4, '#6E7788'); R(14, 27, 4, 4, '#6E7788');
-    R(7, 20, 4, 8, '#8790A0'); R(14, 20, 4, 8, '#8790A0');
-    R(4, 11, 18, 11, '#98A4B8'); R(6, 12, 14, 9, '#B8C4D8'); R(10, 14, 6, 5, '#E8C830');
-    R(3, 11, 4, 5, '#C8A830'); R(21, 11, 4, 5, '#C8A830');
-    R(9, 8, 6, 5, SK2); R(6, 1, 14, 10, SK1); R(7, 2, 12, 8, '#F5D2AA');
-    R(5, -1, 16, 5, '#7A5128'); R(4, 1, 4, 6, '#6A4120'); R(18, 1, 4, 6, '#6A4120');
-    R(8, 5, 3, 3, '#fff'); R(15, 5, 3, 3, '#fff'); R(9, 6, 2, 2, OUT); R(16, 6, 2, 2, OUT);
-    R(11, 9, 5, 4, '#5A321C'); // chivito, sin bigote
-    R(11, 9, 5, 1, '#8A5040');
-  }
-  cx.restore();
-}
-
-// === ASSETS DE FONDOS DE BATALLA ===
-const BATTLE_BG_ASSETS = {
-  forest: {
-    src: 'assets/battle/forest-encounter.png',
-    img: null,
-    ready: false,
-    failed: false,
-  },
-};
-
-function initBattleBackgroundAssets() {
-  if (typeof Image === 'undefined') return;
-  Object.values(BATTLE_BG_ASSETS).forEach((bg) => {
-    if (bg.img) return;
-    const img = new Image();
-    bg.img = img;
-    img.onload = () => {
-      bg.ready = true;
-      bg.failed = false;
-    };
-    img.onerror = () => {
-      bg.ready = false;
-      bg.failed = true;
-    };
-    img.src = bg.src;
-  });
-}
-
-function drawBattleBackgroundAsset(key) {
-  const bg = BATTLE_BG_ASSETS[key];
-  if (!bg || !bg.img || !bg.ready || bg.img.naturalWidth <= 0) return false;
-  try {
-    cx.imageSmoothingEnabled = false;
-    // Efecto cover: cubre todo el canvas manteniendo proporción.
-    const iw = bg.img.naturalWidth;
-    const ih = bg.img.naturalHeight;
-    const scale = Math.max(640 / iw, 480 / ih);
-    const dw = Math.ceil(iw * scale);
-    const dh = Math.ceil(ih * scale);
-    const dx = Math.floor((640 - dw) / 2);
-    const dy = Math.floor((480 - dh) / 2);
-    cx.drawImage(bg.img, dx, dy, dw, dh);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
-
-// === FONDO ESPECIAL PARA ENCUENTRO SALVAJE EN MAPA NORMAL ===
-function dWorldEncounterBG() {
-  // Si existe assets/battle/forest-encounter.png, usarlo. Si no, usar fallback por código.
-  if (drawBattleBackgroundAsset('forest')) return;
-
-  // Cielo pixel-art del bosque exterior
-  const gr = cx.createLinearGradient(0, 0, 0, 250);
-  gr.addColorStop(0, '#6FB8E8');
-  gr.addColorStop(0.55, '#B8E0F0');
-  gr.addColorStop(1, '#D8F0D0');
-  cx.fillStyle = gr;
-  cx.fillRect(0, 0, 640, 245);
-
-  // Nubes cuadradas suaves, sin curvas
-  for (let i = 0; i < 4; i++) {
-    const nx = (i * 190 - fr * 0.18) % 780 - 80;
-    const ny = 28 + (i % 2) * 34;
-    cx.fillStyle = 'rgba(120,160,190,.18)';
-    cx.fillRect(nx + 8, ny + 12, 92, 16);
-    cx.fillStyle = '#F8F8F0';
-    cx.fillRect(nx, ny + 10, 96, 14);
-    cx.fillRect(nx + 18, ny + 4, 28, 15);
-    cx.fillRect(nx + 48, ny, 34, 19);
-    cx.fillStyle = '#DCECF0';
-    cx.fillRect(nx + 4, ny + 22, 86, 3);
-  }
-
-  // Bosque profundo por capas
-  cx.fillStyle = '#184A2A';
-  cx.fillRect(0, 150, 640, 115);
-  for (let i = 0; i < 18; i++) {
-    const tx = i * 42 - ((fr * 0.05) % 42);
-    const h = 44 + (i % 4) * 10;
-    cx.fillStyle = i % 2 ? '#143A24' : '#1F5A32';
-    cx.fillRect(tx + 10, 150 - h, 18, h + 95);
-    cx.fillStyle = i % 2 ? '#20683A' : '#2A7A42';
-    cx.fillRect(tx, 122 - h * 0.25, 38, 16);
-    cx.fillRect(tx - 8, 135 - h * 0.25, 54, 18);
-    cx.fillRect(tx + 7, 108 - h * 0.25, 26, 18);
-  }
-  // Árboles frontales más definidos
-  for (let i = 0; i < 9; i++) {
-    const tx = i * 82 - 34;
-    cx.fillStyle = '#5A3818';
-    cx.fillRect(tx + 36, 142, 10, 105);
-    cx.fillStyle = '#6A4828';
-    cx.fillRect(tx + 37, 142, 3, 105);
-    cx.fillStyle = '#185C2A';
-    cx.fillRect(tx + 18, 104, 48, 26);
-    cx.fillStyle = '#20743A';
-    cx.fillRect(tx + 10, 124, 64, 28);
-    cx.fillStyle = '#2B8A45';
-    cx.fillRect(tx + 25, 86, 34, 25);
-    cx.fillStyle = '#45A85A';
-    cx.fillRect(tx + 31, 102, 16, 8);
-  }
-
-  // Suelo exterior con hierba alta de batalla
-  cx.fillStyle = '#2F7A30';
-  cx.fillRect(0, 245, 640, 235);
-  cx.fillStyle = '#3F8E3A';
-  cx.fillRect(0, 245, 640, 8);
-  for (let y = 260; y < 480; y += 18) {
-    cx.fillStyle = y % 36 === 0 ? '#2A6E2A' : '#347E34';
-    cx.fillRect(0, y, 640, 2);
-  }
-  // Parches de hierba alta frontales
-  const grassCols = ['#3A9C28', '#46B030', '#60C840'];
-  for (let i = 0; i < 90; i++) {
-    const gx = (i * 37 + (i % 5) * 9) % 640;
-    const gy = 255 + ((i * 23) % 190);
-    cx.fillStyle = grassCols[i % grassCols.length];
-    cx.fillRect(gx, gy, 3, 14 + (i % 4) * 4);
-    cx.fillStyle = '#8FE060';
-    if (i % 3 === 0) cx.fillRect(gx, gy, 3, 3);
-  }
-
-  // Plataformas estilo encuentro exterior: tierra y césped, no genéricas
-  cx.fillStyle = '#8A6A3A';
-  cx.fillRect(338, 177, 190, 16);
-  cx.fillStyle = '#A0804A';
-  cx.fillRect(346, 172, 174, 8);
-  cx.fillStyle = '#3A9C28';
-  cx.fillRect(342, 168, 182, 6);
-  cx.fillStyle = '#5FC848';
-  for (let i = 0; i < 18; i++) cx.fillRect(348 + i * 9, 164 + (i % 2) * 2, 4, 6);
-
-  cx.fillStyle = '#8A6A3A';
-  cx.fillRect(55, 307, 196, 16);
-  cx.fillStyle = '#A0804A';
-  cx.fillRect(64, 302, 178, 8);
-  cx.fillStyle = '#3A9C28';
-  cx.fillRect(60, 298, 186, 6);
-  cx.fillStyle = '#5FC848';
-  for (let i = 0; i < 19; i++) cx.fillRect(66 + i * 9, 294 + (i % 2) * 2, 4, 6);
-
-  // Brillos ambientales cuadrados tipo luciérnagas
-  for (let i = 0; i < 8; i++) {
-    const alpha = Math.sin(fr * 0.05 + i) * 0.25 + 0.35;
-    cx.globalAlpha = alpha;
-    cx.fillStyle = '#F8F8C0';
-    cx.fillRect((i * 79 + fr * 0.2) % 640, 180 + (i * 31) % 90, 2, 2);
-  }
-  cx.globalAlpha = 1;
-}
-
-// === GRADIENTE DE FONDO (para batalla) ===
-function dBattleBG() {
-  if (G.bs && !G.bs.isNPC && G.bs.bgMap === 'world' && !G.bs.isBoss) {
-    dWorldEncounterBG();
-    return;
-  }
-  const gr = cx.createLinearGradient(0, 0, 0, 240);
-  gr.addColorStop(0, '#1a0a3a');
-  gr.addColorStop(0.5, '#2a1a4a');
-  gr.addColorStop(1, '#3a2a5a');
-  cx.fillStyle = gr;
-  cx.fillRect(0, 0, 640, 240);
-
-  // Nubes lejanas
-  cx.fillStyle = 'rgba(255,255,255,.05)';
-  cx.fillRect(50 + Math.sin(fr * 0.01) * 20, 30, 80, 20);
-  cx.fillRect(350 + Math.sin(fr * 0.015) * 15, 50, 100, 25);
-  cx.fillRect(200 + Math.sin(fr * 0.008) * 25, 15, 70, 15);
-
-  // Suelo verde oscuro
-  cx.fillStyle = '#2a4a1a';
-  cx.fillRect(0, 240, 640, 240);
-  cx.fillStyle = '#3a5a2a';
-  for (let i = 0; i < 640; i += 10) cx.fillRect(i, 238, 5, 5);
-
-  // Plataformas para criaturas
-  cx.fillStyle = '#4a6a3a';
-  cx.fillRect(340, 178, 180, 14); // Enemigo
-  cx.fillRect(60, 308, 180, 14); // Jugador
-  cx.fillStyle = '#3a5a2a';
-  cx.fillRect(345, 192, 170, 4);
-  cx.fillRect(65, 322, 170, 4);
-}
-
-// === FONDO PARA INTRO DE BATALLA NPC ===
-function dBattleIntroBG() {
-  const gr = cx.createLinearGradient(0, 0, 0, 480);
-  gr.addColorStop(0, '#0a0a2e');
-  gr.addColorStop(0.5, '#1a1a4e');
-  gr.addColorStop(1, '#0a0a2e');
-  cx.fillStyle = gr;
-  cx.fillRect(0, 0, 640, 480);
-
-  // Líneas de velocidad doradas horizontales
-  for (let i = 0; i < 20; i++) {
-    cx.globalAlpha = Math.sin(fr * 0.1 + i) * 0.3 + 0.3;
-    cx.fillStyle = '#ffd700';
-    cx.fillRect(0, i * 24 + Math.sin(fr * 0.05) * 4, 640, 1);
-  }
-  cx.globalAlpha = 1;
-
-  // Estrellas centelleantes
-  for (let i = 0; i < 15; i++) {
-    cx.globalAlpha = Math.sin(fr * 0.08 + i * 0.5) * 0.5 + 0.5;
-    cx.fillStyle = '#fff';
-    cx.fillRect((i * 73 + fr * 0.5) % 640, (i * 97) % 480, 2, 2);
-  }
-  cx.globalAlpha = 1;
-}
-
-// === DIBUJAR NOTIFICACIONES ===
-function drawNotifications() {
-  G.nots.forEach((n, i) => {
-    const a = Math.min(1, n.l / 30);
-    const ny = 80 + i * 22;
-    cx.globalAlpha = a;
-    cx.fillStyle = 'rgba(0,0,0,.85)';
-    cx.fillRect(160, ny, 320, 18);
-    cx.strokeStyle = '#ffd700';
-    cx.lineWidth = 1;
-    cx.strokeRect(160, ny, 320, 18);
-    cx.fillStyle = '#ffd700';
-    cx.font = '7px "Press Start 2P"';
-    cx.textAlign = 'center';
-    cx.fillText(n.t, 320, ny + 13);
-  });
-  cx.globalAlpha = 1;
-  cx.textAlign = 'left';
-}
-
-// === DIBUJAR PARTÍCULAS ===
-function drawParticles() {
-  G.pts.forEach((p) => {
-    cx.globalAlpha = p.l / p.ml;
-    cx.fillStyle = p.c;
-    cx.fillRect(p.x, p.y, p.s, p.s);
-  });
-  cx.globalAlpha = 1;
-}
+// [refactor-phase4b] bloque 'notifications-draw' movido a src/
 // ============================================================
 // BLOQUE 3: SPRITE DEL JUGADOR
 // ============================================================
@@ -17370,7 +16732,7 @@ function dBatalladorSelect() {
 }
 
 function update() {
-  fr++;
+  tickFrame();
   if (kp('y') && !['battle', 'dialog', 'starter', 'intro', 'confirmReset', 'vision', 'batalladorSelect'].includes(G.scr)) {
     toggleSupervisorMode();
   }
