@@ -826,6 +826,48 @@ function dTileC(c, r, map) {
       cx.fillRect(x + 2, y + 4, T - 4, T - 4);
       cx.globalAlpha = 1;
       break;
+
+    case 34: {
+      // Puerta bloqueada del rey (con candado dorado). Sólida.
+      // Fondo de piedra oscura
+      cx.fillStyle = '#3A3040';
+      cx.fillRect(x, y, T, T);
+      // Marco de la puerta (madera oscura)
+      cx.fillStyle = '#4A3018';
+      cx.fillRect(x + 2, y, T - 4, T);
+      cx.fillStyle = '#6A4828';
+      cx.fillRect(x + 4, y + 2, T - 8, T - 2);
+      // Tablones verticales
+      cx.fillStyle = '#5A3818';
+      cx.fillRect(x + T / 2 - 1, y + 2, 2, T - 4);
+      // Bordes metálicos horizontales
+      cx.fillStyle = '#888';
+      cx.fillRect(x + 4, y + 6, T - 8, 2);
+      cx.fillRect(x + 4, y + T - 10, T - 8, 2);
+      // Remaches dorados
+      cx.fillStyle = '#C8A830';
+      cx.fillRect(x + 6, y + 6, 2, 2);
+      cx.fillRect(x + T - 8, y + 6, 2, 2);
+      cx.fillRect(x + 6, y + T - 10, 2, 2);
+      cx.fillRect(x + T - 8, y + T - 10, 2, 2);
+      // CANDADO GRANDE dorado en el centro (parpadea sutilmente)
+      const glow = Math.sin(fr * 0.08) * 0.3 + 0.7;
+      cx.globalAlpha = glow;
+      cx.fillStyle = '#000';
+      cx.fillRect(x + T / 2 - 5, y + T / 2 - 4, 10, 10);
+      cx.fillStyle = '#F8D030';
+      cx.fillRect(x + T / 2 - 4, y + T / 2 - 3, 8, 8);
+      // Arco del candado
+      cx.fillStyle = '#000';
+      cx.fillRect(x + T / 2 - 3, y + T / 2 - 7, 6, 2);
+      cx.fillRect(x + T / 2 - 3, y + T / 2 - 6, 2, 3);
+      cx.fillRect(x + T / 2 + 1, y + T / 2 - 6, 2, 3);
+      // Ojo de la cerradura (X negra)
+      cx.fillStyle = '#000';
+      cx.fillRect(x + T / 2 - 1, y + T / 2 - 1, 2, 3);
+      cx.globalAlpha = 1;
+      break;
+    }
   } // fin switch
 } // fin dTileC
 

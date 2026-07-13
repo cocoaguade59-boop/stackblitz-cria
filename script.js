@@ -1038,6 +1038,22 @@ function tryOloSecretEntrance() {
 }
 // === GENERACIÓN DEL CASTILLO ===
 function genCastle() {
+  // ==========================================================
+  // CASTILLO REAL — 30x25 tiles
+  //
+  // Diseño de sur (entrada) a norte (Rey Navarrete):
+  //
+  //  Fila 1-5   [SALA DEL TRONO CON REY] al FONDO (fila 3 = trono)
+  //  Fila 6     ═══ pared con puerta cerrada 34 en col 15 ═══
+  //             (Yam la Carcelera guarda esta puerta desde fila 7)
+  //  Fila 7-13  Pasillo central + antesala con salas laterales
+  //             Sala oeste (Andre/Ravell)   Sala este (guardias / decor)
+  //  Fila 21    Entrada sur, salida a mundo
+  //
+  // Con este layout NO se ve al Rey al entrar, hay pared solida entre.
+  // ==========================================================
+
+  // Piso inicial + murallas exteriores
   for (let r = 0; r < KR; r++) {
     castMap[r] = [];
     for (let c = 0; c < KC; c++) {
@@ -1046,61 +1062,62 @@ function genCastle() {
     }
   }
 
-  // Sala izquierda (Yam)
-  for (let r = 3; r <= 10; r++) {
-    castMap[r][2] = 31;
-    castMap[r][12] = 31;
+  // ------- SALA DEL TRONO (al norte, filas 1-5, ancha) -------
+  // Paredes laterales de la sala
+  for (let r = 1; r <= 5; r++) {
+    castMap[r][3] = 31;
+    castMap[r][26] = 31;
   }
-  for (let c = 2; c <= 12; c++) {
-    castMap[3][c] = 31;
-    castMap[10][c] = 31;
-  }
-  castMap[10][7] = 30; // Puerta
-  for (let r = 4; r < 10; r++) for (let c = 3; c < 12; c++) castMap[r][c] = 30;
+  // Suelo interno de la sala (piedra magenta/purpura tipo tile 32)
+  for (let r = 2; r <= 5; r++)
+    for (let c = 4; c <= 25; c++) castMap[r][c] = 32;
+  // Trono en el centro fondo (fila 2 = mas al norte)
+  castMap[2][14] = 31;
+  castMap[2][15] = 31;
+  castMap[2][16] = 31;
+  castMap[3][14] = 31;
+  castMap[3][16] = 31;
+  // El rey estará en (15, 4) por convención (justo delante del trono)
 
-  // Sala derecha (Ravell)
-  for (let r = 3; r <= 10; r++) {
-    castMap[r][17] = 31;
+  // ------- PARED DE SEPARACION con puerta cerrada -------
+  // Muro completo en fila 6, columnas 2-27
+  for (let c = 2; c <= 27; c++) castMap[6][c] = 31;
+  // Puerta cerrada en (15, 6) - tile 34 = puerta bloqueada
+  castMap[6][15] = 34;
+
+  // ------- SALA OESTE (Andre / Ravell) - filas 9-14, cols 2-11 -------
+  for (let r = 9; r <= 14; r++) {
+    castMap[r][2] = 31;
+    castMap[r][11] = 31;
+  }
+  for (let c = 2; c <= 11; c++) {
+    castMap[9][c] = 31;
+    castMap[14][c] = 31;
+  }
+  castMap[14][7] = 30; // Puerta abierta (salida al pasillo)
+  for (let r = 10; r < 14; r++) for (let c = 3; c < 11; c++) castMap[r][c] = 30;
+
+  // ------- SALA ESTE (Yam la Carcelera) - filas 9-14, cols 18-27 -------
+  for (let r = 9; r <= 14; r++) {
+    castMap[r][18] = 31;
     castMap[r][27] = 31;
   }
-  for (let c = 17; c <= 27; c++) {
-    castMap[3][c] = 31;
-    castMap[10][c] = 31;
-  }
-  castMap[10][22] = 30; // Puerta
-  for (let r = 4; r < 10; r++) for (let c = 18; c < 27; c++) castMap[r][c] = 30;
-
-  // Sala del trono (Rey Navarrete)
-  for (let r = 14; r <= 21; r++) {
-    castMap[r][5] = 31;
-    castMap[r][24] = 31;
-  }
-  for (let c = 5; c <= 24; c++) {
+  for (let c = 18; c <= 27; c++) {
+    castMap[9][c] = 31;
     castMap[14][c] = 31;
-    castMap[21][c] = 31;
   }
-  castMap[21][15] = 30; // Puerta
-  for (let r = 15; r < 21; r++) for (let c = 6; c < 24; c++) castMap[r][c] = 32;
+  castMap[14][22] = 30; // Puerta abierta (salida al pasillo)
+  for (let r = 10; r < 14; r++) for (let c = 19; c < 27; c++) castMap[r][c] = 30;
 
-  // Trono
-  castMap[15][14] = 31;
-  castMap[15][15] = 31;
-  castMap[15][16] = 31;
-  castMap[16][14] = 31;
-  castMap[16][16] = 31;
-
-  // Pasillos
-  for (let r = 10; r <= 22; r++)
+  // ------- Pasillos principales -------
+  // Vertical central sur → puerta bloqueada del trono
+  for (let r = 7; r <= 22; r++)
     for (let c = 14; c <= 16; c++) castMap[r][c] = 30;
-  for (let c = 7; c <= 22; c++) castMap[12][c] = 30;
+  // Horizontal a la altura de las puertas de las salas (fila 14)
+  for (let c = 7; c <= 22; c++) castMap[15][c] = 30;
 
-  // Alfombra roja (ya manejada en el tile 30)
-
-  // Salida
+  // ------- Salida al mundo (sur) -------
   castMap[KR - 2][15] = 33;
-
-  // Estandartes en paredes
-  // (manejados decorativamente en el tile 31)
 }
 
 // === COLISIONES ===
@@ -1124,9 +1141,10 @@ function solidW(c, r) {
 function solidC(c, r, map, cols, rows) {
   if (c < 0 || c >= cols || r < 0 || r >= rows) return true;
   const t = map[r][c];
-  // Solo paredes, agua subterránea y lava son sólidos
+  // Solo paredes, agua subterránea, lava y puerta bloqueada son sólidos
   // Tiles 27,28,33 NO son sólidos (salidas y cristales)
-  return t === 21 || t === 23 || t === 24 || t === 29 || t === 31;
+  // Tile 34 = puerta bloqueada del rey (sólida hasta derrotar a Yam)
+  return t === 21 || t === 23 || t === 24 || t === 29 || t === 31 || t === 34;
 }
 
 // === GENERACIÓN DE TORRE (mapa especial post-game) ===
@@ -2403,21 +2421,44 @@ const caveNpcs = [
 
 const castNpcs = [
   {
-    x: 7,
-    y: 6,
+    // Yam guarda la puerta cerrada del trono. Está en la sala este.
+    x: 22,
+    y: 11,
     tp: 'yam',
-    nm: 'Yam',
-    dlg: [['¡¡¡BIENVENIDO!!!', '¡¡¡Soy Yam!!!', '¿¡¡COMBATIMOS!!?']],
+    nm: 'Yam la Carcelera',
+    // Diálogo cuando NO derrotaste a André/Ravell: no pelea, te manda al otro
+    preReqDlg: [[
+      '¡¡¡HEY!!! ¿¡¡TÚ AQUÍ!!?',
+      '¡¡¡Primero derrota a mi HERMANO',
+      'en el ala OESTE!!!',
+      '¡¡¡Sin eso NO PIERDO MI TIEMPO!!!',
+    ]],
+    preReqFlags: ['metAndreCastle', 'metRavellCastle'],
+    dlg: [[
+      '¡¡¡ALTO AHÍ!!!',
+      '¡¡¡Soy Yam, la CARCELERA!!!',
+      '¡¡¡Tengo la LLAVE del Rey!!!',
+      '¿¡¡Crees poder QUITÁRMELA?!!',
+    ]],
     postDlg: ['¡¡¡MAGNÍFICO!!!', '¡¡¡OTRA VEZ!!!', '¡¡¡ME ENCANTA!!!'],
     battle: true,
-    battleIntro: ['¡¡¡BIENVENIDO!!!', '¡¡¡Soy Yam!!!', '¡¡¡PREPARATE!!!'],
-    team: [new Cre('flameye', 8), new Cre('pixie', 9)],
+    battleIntro: [
+      '¡¡¡NADIE PASA A VER AL REY!!!',
+      '¡¡¡SIN VENCERME PRIMERO!!!',
+    ],
+    // Guardiana del rey: criaturas evolucionadas al máximo
+    team: [
+      new Cre('inferpavo', 40),   // Flameye final form
+      new Cre('espinardoom', 40), // Thornbuck final form
+      new Cre('wyvernlord', 42),  // Wyvern final form
+    ],
     flag: 'metYamCastle',
   },
 
   {
-    x: 22,
-    y: 6,
+    // André en la sala oeste (primer combate obligatorio antes de Yam)
+    x: 7,
+    y: 11,
     tp: 'andre',
     nm: 'André',
     preOnly: true,
@@ -2426,18 +2467,29 @@ const castNpcs = [
         '...Esta máscara pesa.',
         'Pachi está afuera...',
         'y yo sigo aquí.',
-        'Algún día actuaré con él.',
+        'Vigilo la entrada al Rey.',
+        'Para pasarme necesitarás fuerza.',
       ],
     ],
     battle: true,
-    battleIntro: ['No puedo salir todavía...', 'pero sí puedo pelear.'],
-    team: [new Cre('serpentdrg', 8), new Cre('gorilan', 9)],
+    battleIntro: [
+      'No puedo salir todavía...',
+      'pero sí puedo pelear.',
+      '¡Prepárate para el silencio!',
+    ],
+    // Primer filtro serio antes de Yam
+    team: [
+      new Cre('serpentboss', 35),
+      new Cre('gorilegend', 35),
+      new Cre('ornisagent', 38),
+    ],
     flag: 'metAndreCastle',
   },
 
   {
-    x: 22,
-    y: 6,
+    // Ravell reemplaza a André en post-game, misma posición
+    x: 7,
+    y: 11,
     tp: 'ravell',
     nm: 'Ravell',
     postOnly: true,
@@ -2458,13 +2510,19 @@ const castNpcs = [
     ],
     battle: true,
     battleIntro: ['Un bufón también puede', 'dar un buen espectáculo.'],
-    team: [new Cre('sidhe', 18), new Cre('axolotl', 18)],
+    // Post-game: aún más fuerte que André
+    team: [
+      new Cre('sidhearia', 42),
+      new Cre('glaciolote', 42),
+      new Cre('lucistrella', 44),
+    ],
     flag: 'metRavellCastle',
   },
 
   {
+    // Rey al fondo de la sala del trono (norte del castillo)
     x: 15,
-    y: 17,
+    y: 4,
     tp: 'boss',
     nm: 'Rey Navarrete',
     dlg: [['...Ah. Otro retador.', '*bostezo*', 'Supongo que sí.']],
@@ -2772,15 +2830,22 @@ function canRebattle(npc) {
 }
 
 function markNPCDefeated(npc) {
-  if (npc?.flag) npcDefeats[npc.flag] = true;
+  if (npc?.flag) {
+    npcDefeats[npc.flag] = true;
+    // Si derrotaste a Yam, se abre la puerta del trono (34 → 30)
+    if (npc.flag === 'metYamCastle') {
+      if (castMap[6] && castMap[6][15] === 34) {
+        castMap[6][15] = 30;
+        aN('¡Obtuviste la llave! La puerta del Rey se ha abierto.');
+      }
+    }
+  }
 }
 
 // ¿Se puede entrar a la sala del trono del Rey Navarrete?
-// Requisito: derrotar a Yam Y (André o Ravell, según pre/post-game).
+// Requisito: derrotar a Yam (que a su vez requiere haber derrotado a André/Ravell).
 function canEnterThroneRoom() {
-  const yamOk = !!npcDefeats.metYamCastle;
-  const guardianOk = !!npcDefeats.metAndreCastle || !!npcDefeats.metRavellCastle;
-  return yamOk && guardianOk;
+  return !!npcDefeats.metYamCastle;
 }
 
 // Reinicia re-batallas tras vencer a Olo-Man
@@ -4148,33 +4213,29 @@ updateCamera(CC, CR);
 
 // === CASTILLO ===
 function uCastle() {
-  // === Bloqueo de la sala del trono ===
-  // Si el jugador está justo abajo de la puerta del trono (15, 21) y
-  // trata de subir sin haber derrotado a Yam Y a André (o Ravell post-game),
-  // mostramos un mensaje y bloqueamos el paso.
-  // Sin supervisor/batallador, claro (esos modos ignoran el bloqueo).
+  // La puerta del rey es un tile sólido (34). Si el jugador choca contra ella,
+  // le mostramos una pista de cómo abrirla. En supervisor/batallador se ignora
+  // y el tile 34 pasa a comportarse como pared normal sin mensaje extra.
   const px = Math.round(G.pl.x);
   const py = Math.round(G.pl.y);
   if (
     !G.supervisor && !G.batallador &&
     !canEnterThroneRoom() &&
-    px === 15 && py === 22 && kh('ArrowUp') && !G.pl.stepTarget
+    px === 15 && py === 7 && kh('ArrowUp') && !G.pl.stepTarget
   ) {
     if (!G._throneBlockedShown || fr - G._throneBlockedShown > 120) {
-      const missingText = !npcDefeats.metYamCastle
-        ? '¡Derrota primero a Yam en el ala oeste!'
-        : '¡Derrota al centinela del ala este antes de pasar!';
-      aN(missingText);
+      let hint;
+      if (!npcDefeats.metAndreCastle && !npcDefeats.metRavellCastle) {
+        hint = 'Puerta cerrada. Derrota al centinela del ala oeste.';
+      } else if (!npcDefeats.metYamCastle) {
+        hint = 'Puerta cerrada. Yam la Carcelera tiene la llave (ala este).';
+      } else {
+        hint = 'Puerta cerrada... algo no funcionó al abrirla.';
+      }
+      aN(hint);
       sfx.nef();
       G._throneBlockedShown = fr;
     }
-    // Cortar el movimiento: no dejamos que moveEntity siquiera arranque el step
-    G.pl.d = 3;         // seguimos mirando hacia arriba (visual)
-    G.pl.moving = false;
-    updateCamera(KC, KR);
-    // Aún permitimos otras teclas (menú, batallador, etc.) por fuera
-    if (kp('x') || kp('Escape')) { sfx.sel(); G.scr = 'menu'; G.ms = { s: 0 }; }
-    return;
   }
 
   const mv = moveEntity(solidC, KC, KR, castMap);
@@ -4512,6 +4573,20 @@ function checkNPC(list) {
   for (const n of list) {
     if (!npcVisible(n)) continue;
     if (!nearNPC(n)) continue;
+
+    // preReqDlg: si el NPC requiere haber derrotado a OTRO NPC primero
+    // y no cumples, se muestra un diálogo alternativo (sin pelea, sin flag).
+    // preReqFlags puede ser un string o un array (con OR: cualquiera basta).
+    if (n.preReqDlg && n.preReqFlags && n.battle) {
+      const flags = Array.isArray(n.preReqFlags) ? n.preReqFlags : [n.preReqFlags];
+      const meetsPreReq = flags.some((f) => !!npcDefeats[f]);
+      if (!meetsPreReq) {
+        G.scr = 'dialog';
+        G.ds = { npc: n, dlgArr: n.preReqDlg[0], li: 0, ci: 0, tm: 0, full: false };
+        sfx.sel();
+        return;
+      }
+    }
 
     // Marcar como hablado
     if (n.flag) G.talkedTo[n.flag] = true;
@@ -8613,25 +8688,6 @@ function drawMap() {
         }
       }
     });
-
-    // Guardia bloqueando la sala del trono si aún no cumples requisitos
-    if (!canEnterThroneRoom() && !G.supervisor && !G.batallador) {
-      const gx = 15 * T - cam.x;
-      const gy = 21 * T - cam.y;
-      if (gx > -40 && gx < 680 && gy > -40 && gy < 520) {
-        // Sprite de guardia con lanza
-        dNPC(gx, gy - 8, 'luis', fr); // reutilizamos sprite de Luis (bastón/lanza)
-        // Emoji ⚔ arriba flotando para indicar bloqueo
-        cx.fillStyle = '#ff4040';
-        cx.font = '10px "Press Start 2P"';
-        cx.textAlign = 'center';
-        cx.fillText('⚔', gx + 16, gy - 18 + Math.sin(fr * 0.15) * 2);
-        cx.fillStyle = '#ffd700';
-        cx.font = '6px "Press Start 2P"';
-        cx.fillText('Guardia', gx + 16, gy - 28);
-        cx.textAlign = 'left';
-      }
-    }
 
     dBox(250, 4, 140, 18);
     cx.fillStyle = '#ffd700';
