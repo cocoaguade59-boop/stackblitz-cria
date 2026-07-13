@@ -99,11 +99,6 @@ document.addEventListener('keydown', (e) => {
 
   const key = normKey(e.key);
 
-  // DEBUG temporal: log de teclas P e Y para diagnosticar
-  if (key === 'p' || key === 'y') {
-    console.log(`[TECLA] "${key}" recibida | G.scr=${G.scr} | ctrl=${e.ctrlKey} meta=${e.metaKey}`);
-  }
-
   G.keys[key] = true;
 
   if (!G.held[key]) {
@@ -17247,14 +17242,12 @@ function exitBatalladorMode() {
 }
 
 function toggleBatalladorMode() {
-  console.log(`[BATALLADOR] toggle llamado. estado actual: G.batallador=${G.batallador}`);
   if (G.batallador) {
     exitBatalladorMode();
     return;
   }
   // Abrir pantalla de selección de 6 criaturas
   const candidates = getBatalladorCandidates();
-  console.log(`[BATALLADOR] abriendo pantalla de seleccion con ${candidates.length} candidatos`);
   G.batalladorSel = {
     candidates,        // IDs disponibles
     selected: [],      // IDs elegidos (hasta 6)
