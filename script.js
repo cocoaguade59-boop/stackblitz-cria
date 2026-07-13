@@ -81,7 +81,7 @@ import { dBattleHud } from './src/render/battle-hud.js';
 import { kp, kh, normKey } from './src/core/input.js';
 import { updateCamera } from './src/core/camera.js';
 import { DEX_ORDER, dexIds } from './src/data/dex-order.js';
-import { playTitleHorn, startNewGameFlow, uTitle, dTitle, setTitleCallbacks } from './src/screens/title.js';
+import { playTitleHorn, startNewGameFlow, uTitle, dTitle } from './src/screens/title.js';
 import { INTRO_LINES, uIntro, dIntro } from './src/screens/intro.js';
 import { uStarter, dStarter } from './src/screens/starter.js';
 
@@ -7897,8 +7897,8 @@ function init() {
   G.titleSel = 0;
 
   // [refactor-phase5c] conectar callback de batalla de la tienda
-  // Conectar callbacks para modulos que necesitan funciones de script.js
-  setTitleCallbacks({ loadGame });
+  // Exponer funciones que modulos necesitan via window (sin orden de carga)
+  window.__gameLoadGame = loadGame;
   setShopBattleStarter(startNPCBattle);
 
   // Iniciar loop

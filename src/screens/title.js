@@ -17,9 +17,7 @@ import { dBoxMenu } from '../render/ui-boxes.js';
 import { px, pixelGlow } from '../render/render-utils.js';
 import { aN } from '../utils/particles.js';
 
-// loadGame se inyecta desde script.js (función gigante que usa muchas globales)
-let _loadGame = null;
-export function setTitleCallbacks(cbs) { _loadGame = cbs.loadGame; }
+// loadGame se toma de window (script.js lo asigna en init() antes del loop)
 
 // === PANTALLA DE TÍTULO ===
 function playTitleHorn() {
@@ -64,7 +62,7 @@ function uTitle() {
   if (kp(' ') || kp('Enter')) {
     sfx.sel();
     if (G.hasSave && G.titleSel === 0) {
-      if (_loadGame && _loadGame()) {
+      if (window.__gameLoadGame && window.__gameLoadGame()) {
         G.scr = 'world';
         aN('¡Partida cargada!');
       } else {
