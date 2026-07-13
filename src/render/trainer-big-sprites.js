@@ -9,6 +9,7 @@
 import { cx } from '../core/canvas.js';
 import { px } from './render-utils.js';
 import { SK } from './skin-colors.js';
+import { SPRITE_LOADER } from '../core/sprite-loader.js';
 
 function dTrainerBig(x, y, id, f) {
   const bob = Math.sin(f * 0.08) * 2,
@@ -617,38 +618,54 @@ function dTrainerBig(x, y, id, f) {
       px(x + 16, by - 6, 32, 4, '#1A1A1A');
       break;
 
-    case 'alejandro': // Pelo largo negro único, bandana roja, arriba negro abajo azul gris
-      px(x + 20, by + 60, 10, 8, '#5A3A18');
-      px(x + 34, by + 60, 10, 8, '#5A3A18');
-      px(x + 18, by + 44, 14, 18, '#708898');
-      px(x + 32, by + 44, 14, 18, '#708898');
-      px(x + 10, by + 20, 44, 24, '#1A1A1A');
-      px(x + 14, by + 22, 36, 20, '#282828');
-      px(x + 20, by + 24, 24, 16, '#383838'); // Interior chaleco
-      px(x + 12, by + 40, 40, 4, '#4A2A10');
-      px(x + 6, by + 24, 8, 16, SK.b);
-      px(x + 50, by + 24, 8, 16, SK.b);
-      px(x + 24, by + 14, 16, 8, SK.b);
-      px(x + 18, by - 2, 28, 18, SK.b);
-      px(x + 20, by + 0, 24, 14, SK.a);
-      // Pelo LARGO negro (único hombre)
-      px(x + 14, by - 8, 36, 10, '#1A1A1A');
-      px(x + 12, by - 2, 8, 32, '#1A1A1A');
-      px(x + 44, by - 2, 8, 32, '#1A1A1A');
-      px(x + 10, by + 18, 6, 16, '#101010');
-      px(x + 48, by + 18, 6, 16, '#101010');
-      // Bandana roja
-      px(x + 14, by - 4, 36, 6, '#C83030');
-      px(x + 10, by - 2, 6, 4, '#C83030');
-      px(x + 48, by - 2, 6, 4, '#C83030');
-      px(x + 8, by + 0, 6, 10, '#C83030'); // Cola bandana
-      px(x + 22, by + 6, 6, 5, '#fff');
-      px(x + 36, by + 6, 6, 5, '#fff');
-      px(x + 25, by + 8, 3, 3, '#181818');
-      px(x + 39, by + 8, 3, 3, '#181818');
-      px(x + 25, by + 8, 2, 1, '#fff');
-      px(x + 39, by + 8, 2, 1, '#fff');
-      px(x + 28, by + 14, 8, 2, '#C08868');
+    case 'alejandro': // Si hay sprite PNG lo usa, si no dibuja pixel-art viejo
+      if (SPRITE_LOADER.has('npcs/alejandro')) {
+        const prevSmoothing = cx.imageSmoothingEnabled;
+        cx.imageSmoothingEnabled = false;
+        const img = SPRITE_LOADER.get('npcs/alejandro');
+        // Sprite grande para intro de batalla: ~200 px de alto
+        const targetH = 220;
+        const ratio = img.naturalWidth / img.naturalHeight;
+        const targetW = targetH * ratio; // ~112 con ratio 0.51
+        // Centrar horizontalmente sobre (x + 32) que es el centro típico del entrenador
+        const drawX = x + 32 - targetW / 2;
+        const drawY = by - 80;
+        cx.drawImage(img, drawX, drawY, targetW, targetH);
+        cx.imageSmoothingEnabled = prevSmoothing;
+      } else {
+        // Fallback pixel-art (mientras el PNG no está o carga)
+        px(x + 20, by + 60, 10, 8, '#5A3A18');
+        px(x + 34, by + 60, 10, 8, '#5A3A18');
+        px(x + 18, by + 44, 14, 18, '#708898');
+        px(x + 32, by + 44, 14, 18, '#708898');
+        px(x + 10, by + 20, 44, 24, '#1A1A1A');
+        px(x + 14, by + 22, 36, 20, '#282828');
+        px(x + 20, by + 24, 24, 16, '#383838'); // Interior chaleco
+        px(x + 12, by + 40, 40, 4, '#4A2A10');
+        px(x + 6, by + 24, 8, 16, SK.b);
+        px(x + 50, by + 24, 8, 16, SK.b);
+        px(x + 24, by + 14, 16, 8, SK.b);
+        px(x + 18, by - 2, 28, 18, SK.b);
+        px(x + 20, by + 0, 24, 14, SK.a);
+        // Pelo LARGO negro (único hombre)
+        px(x + 14, by - 8, 36, 10, '#1A1A1A');
+        px(x + 12, by - 2, 8, 32, '#1A1A1A');
+        px(x + 44, by - 2, 8, 32, '#1A1A1A');
+        px(x + 10, by + 18, 6, 16, '#101010');
+        px(x + 48, by + 18, 6, 16, '#101010');
+        // Bandana roja
+        px(x + 14, by - 4, 36, 6, '#C83030');
+        px(x + 10, by - 2, 6, 4, '#C83030');
+        px(x + 48, by - 2, 6, 4, '#C83030');
+        px(x + 8, by + 0, 6, 10, '#C83030'); // Cola bandana
+        px(x + 22, by + 6, 6, 5, '#fff');
+        px(x + 36, by + 6, 6, 5, '#fff');
+        px(x + 25, by + 8, 3, 3, '#181818');
+        px(x + 39, by + 8, 3, 3, '#181818');
+        px(x + 25, by + 8, 2, 1, '#fff');
+        px(x + 39, by + 8, 2, 1, '#fff');
+        px(x + 28, by + 14, 8, 2, '#C08868');
+      }
       break;
 
     case 'ximena': // Sombrero catrina con flores, escote, color vino y negro, pelo ondulado

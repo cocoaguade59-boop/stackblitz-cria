@@ -9,6 +9,7 @@ import { cx } from '../core/canvas.js';
 import { px } from './render-utils.js';
 import { SK } from './skin-colors.js';
 import { dShadow } from './world-decor.js';
+import { SPRITE_LOADER } from '../core/sprite-loader.js';
 
 function dNPC(x, y, id, f) {
   const bob = Math.sin(f * 0.1) * 1,
@@ -722,37 +723,56 @@ function dNPC(x, y, id, f) {
     // NPCs EXTERIORES
     // ==========================================
 
-    case 'alejandro': // ÚNICO pelo largo negro, arriba negro abajo azul grisáceo, bandana roja
-      px(x + 8, by + 24, 6, 6, '#5A3A18');
-      px(x + 18, by + 24, 6, 6, '#5A3A18');
-      px(x + 9, by + 20, 5, 5, '#708898');
-      px(x + 18, by + 20, 5, 5, '#708898');
-      px(x + 6, by + 11, 20, 10, '#1A1A1A');
-      px(x + 8, by + 12, 16, 8, '#282828');
-      px(x + 10, by + 12, 12, 8, '#383838'); // Interior chaleco
-      px(x + 4, by + 12, 4, 8, SK.b);
-      px(x + 24, by + 12, 4, 8, SK.b);
-      px(x + 13, by + 9, 6, 3, SK.b);
-      px(x + 9, by + 0, 14, 10, SK.b);
-      px(x + 10, by + 1, 12, 8, SK.a);
-      // Pelo NEGRO LARGO (único hombre)
-      px(x + 7, by - 2, 18, 4, '#1A1A1A');
-      px(x + 6, by + 0, 4, 16, '#1A1A1A');
-      px(x + 22, by + 0, 4, 16, '#1A1A1A');
-      px(x + 5, by + 10, 3, 8, '#101010');
-      px(x + 24, by + 10, 3, 8, '#101010');
-      // Bandana roja
-      px(x + 7, by - 1, 18, 3, '#C83030');
-      px(x + 5, by + 0, 3, 2, '#C83030');
-      px(x + 24, by + 0, 3, 2, '#C83030');
-      px(x + 4, by + 1, 3, 5, '#C83030'); // Cola bandana
-      px(x + 12, by + 3, 3, 3, '#fff');
-      px(x + 18, by + 3, 3, 3, '#fff');
-      px(x + 13, by + 4, 2, 2, '#181818');
-      px(x + 19, by + 4, 2, 2, '#181818');
-      px(x + 13, by + 4, 1, 1, '#fff');
-      px(x + 19, by + 4, 1, 1, '#fff');
-      px(x + 14, by + 8, 4, 1, '#C08868');
+    case 'alejandro': // Si hay sprite PNG lo usa, si no dibuja pixel-art viejo
+      if (SPRITE_LOADER.has('npcs/alejandro')) {
+        // Escalado nítido pixel-art
+        const prevSmoothing = cx.imageSmoothingEnabled;
+        cx.imageSmoothingEnabled = false;
+        const img = SPRITE_LOADER.get('npcs/alejandro');
+        // El sprite mide ~104x205. Lo dibujamos a ~32x40 (tamaño NPC del mapa)
+        // manteniendo aspect ratio (más alto que ancho).
+        const targetH = 40;
+        const ratio = img.naturalWidth / img.naturalHeight; // ~0.51
+        const targetW = targetH * ratio;                     // ~20
+        // Centrar horizontalmente sobre la casilla estándar (32 px de ancho)
+        // y anclar los pies al piso del tile (y+30 aprox)
+        const drawX = x + 16 - targetW / 2;
+        const drawY = by - 6;
+        cx.drawImage(img, drawX, drawY, targetW, targetH);
+        cx.imageSmoothingEnabled = prevSmoothing;
+      } else {
+        // Fallback pixel-art (mientras el PNG no está o carga)
+        px(x + 8, by + 24, 6, 6, '#5A3A18');
+        px(x + 18, by + 24, 6, 6, '#5A3A18');
+        px(x + 9, by + 20, 5, 5, '#708898');
+        px(x + 18, by + 20, 5, 5, '#708898');
+        px(x + 6, by + 11, 20, 10, '#1A1A1A');
+        px(x + 8, by + 12, 16, 8, '#282828');
+        px(x + 10, by + 12, 12, 8, '#383838'); // Interior chaleco
+        px(x + 4, by + 12, 4, 8, SK.b);
+        px(x + 24, by + 12, 4, 8, SK.b);
+        px(x + 13, by + 9, 6, 3, SK.b);
+        px(x + 9, by + 0, 14, 10, SK.b);
+        px(x + 10, by + 1, 12, 8, SK.a);
+        // Pelo NEGRO LARGO (único hombre)
+        px(x + 7, by - 2, 18, 4, '#1A1A1A');
+        px(x + 6, by + 0, 4, 16, '#1A1A1A');
+        px(x + 22, by + 0, 4, 16, '#1A1A1A');
+        px(x + 5, by + 10, 3, 8, '#101010');
+        px(x + 24, by + 10, 3, 8, '#101010');
+        // Bandana roja
+        px(x + 7, by - 1, 18, 3, '#C83030');
+        px(x + 5, by + 0, 3, 2, '#C83030');
+        px(x + 24, by + 0, 3, 2, '#C83030');
+        px(x + 4, by + 1, 3, 5, '#C83030'); // Cola bandana
+        px(x + 12, by + 3, 3, 3, '#fff');
+        px(x + 18, by + 3, 3, 3, '#fff');
+        px(x + 13, by + 4, 2, 2, '#181818');
+        px(x + 19, by + 4, 2, 2, '#181818');
+        px(x + 13, by + 4, 1, 1, '#fff');
+        px(x + 19, by + 4, 1, 1, '#fff');
+        px(x + 14, by + 8, 4, 1, '#C08868');
+      }
       break;
 
     case 'luis': // Arriba gris/azul, abajo negro, bastón

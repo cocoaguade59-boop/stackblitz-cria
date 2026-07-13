@@ -1,26 +1,54 @@
-# Sprites de Criaturas
+# Sprites del juego
 
-Esta carpeta contiene los sprites de las criaturas del juego.
+Esta carpeta contiene los sprites PNG usados por el juego. Se cargan
+automáticamente al iniciar mediante `SPRITE_LOADER` (ver
+`src/core/sprite-loader.js`).
 
-## Formato requerido
+## Estructura
 
-- **Formato:** PNG (con fondo transparente idealmente)
-- **Nombre exacto:** debe coincidir con el `id` interno de la criatura en `script.js` (dentro del objeto `CDB`).
-- **Tamaño recomendado:** ~64×64 px o proporcional (el juego escala el sprite al área del canvas).
+```
+assets/sprites/
+├── README.md
+├── <criatura>.png      ← Sprites de criaturas (ej: hydrapom.png para Knightapple)
+└── npcs/
+    └── <npc>.png       ← Sprites de NPCs (ej: alejandro.png)
+```
 
-## Sprites esperados
+## Reglas
 
-| ID interno | Nombre visible | Archivo esperado | Estado |
-|------------|---------------|-------------------|--------|
-| `hydrapom` | Knightapple   | `hydrapom.png`    | ⏳ Pendiente de subir |
+- **Formato:** PNG con fondo transparente idealmente
+- **Nombre exacto:** debe coincidir con el `id` interno del NPC o criatura
+- **Tamaño recomendado:**
+  - Criaturas: cualquiera (el juego lo escala según nivel)
+  - NPCs: **más alto que ancho** funciona mejor (ej: 104×205 px)
 
-## Cómo agregar el sprite de Knightapple
+## Sprites disponibles
 
-1. Guarda tu dibujo como PNG.
-2. Renómbralo a `hydrapom.png` (así se llama la criatura internamente en el código).
-3. Súbelo a esta carpeta: `assets/sprites/hydrapom.png`.
-4. Recarga el juego — el sprite se cargará automáticamente y reemplazará al dibujo pixel-art anterior.
+| Ruta | ID interno | Personaje | Estado |
+|------|-----------|-----------|--------|
+| `hydrapom.png` | `hydrapom` | Knightapple (criatura) | ✅ Presente |
+| `npcs/alejandro.png` | `alejandro` | Alejandro (NPC) | ⏳ Sube tu PNG aquí |
 
-## Cómo funciona
+## Cómo agregar un sprite nuevo
 
-El juego tiene un pequeño loader (`SPRITE_LOADER` en `script.js`) que precarga las imágenes desde esta carpeta al iniciar. Cuando una criatura tiene su sprite cargado, se usa `drawImage()` en vez del dibujo pixel a pixel. Si la imagen no existe o aún no cargó, se dibuja un placeholder.
+### Para una criatura:
+1. Renombra tu PNG con el ID interno de la criatura (ej: `flameye.png`)
+2. Colócalo en `assets/sprites/` directamente
+3. Agrega `SPRITE_LOADER.load('flameye');` en `src/core/sprite-loader.js`
+4. Modifica el `case 'flameye'` en `src/render/creature-sprites.js` (Fase 4F pendiente)
+
+### Para un NPC:
+1. Renombra tu PNG con el ID interno del NPC (ej: `alejandro.png`)
+2. Colócalo en `assets/sprites/npcs/`
+3. Agrega `SPRITE_LOADER.load('npcs/alejandro');` en `src/core/sprite-loader.js`
+4. Modifica el `case 'alejandro'` en:
+   - `src/render/npc-sprites.js` (para el mapa)
+   - `src/render/trainer-big-sprites.js` (para intro de batalla)
+
+En ambos casos, agrega el condicional `if (SPRITE_LOADER.has('...')) { drawImage } else { pixel-art fallback }`.
+
+## Cómo funciona el fallback
+
+Si el PNG no existe o falla al cargar, el juego dibuja automáticamente el
+pixel-art antiguo (el que se dibuja con `px(...)` a mano). Esto significa
+que puedes agregar sprites gradualmente sin romper nada.
