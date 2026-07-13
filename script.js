@@ -1041,16 +1041,22 @@ function genCastle() {
   // ==========================================================
   // CASTILLO REAL — 30x25 tiles
   //
-  // Diseño de sur (entrada) a norte (Rey Navarrete):
+  // Layout de NORTE (fila 0) a SUR (fila 24):
   //
-  //  Fila 1-5   [SALA DEL TRONO CON REY] al FONDO (fila 3 = trono)
-  //  Fila 6     ═══ pared con puerta cerrada 34 en col 15 ═══
-  //             (Yam la Carcelera guarda esta puerta desde fila 7)
-  //  Fila 7-13  Pasillo central + antesala con salas laterales
-  //             Sala oeste (Andre/Ravell)   Sala este (guardias / decor)
-  //  Fila 21    Entrada sur, salida a mundo
+  //  Fila 1       ═══ pared norte del castillo ═══
+  //  Fila 2-3     Estandartes decorativos y respaldo del trono
+  //  Fila 4       [REY NAVARRETE al fondo, mirando al sur]
+  //  Fila 5-11    ┃ Sala del trono LARGA (alfombra roja + antorchas) ┃
+  //  Fila 12      ═══ pared + PUERTA CON CANDADO en col 15 ═══
+  //  Fila 13-19   Pasillo central + salas laterales:
+  //                  Sala oeste (Andre/Ravell)  |  Sala este (Yam Carcelera)
+  //  Fila 20-22   Vestíbulo con alfombra hacia la salida
+  //  Fila 23      [ENTRADA/SALIDA sur al mundo]
   //
-  // Con este layout NO se ve al Rey al entrar, hay pared solida entre.
+  // Al entrar por el sur, el jugador NO ve al Rey (ha muchas filas de
+  // distancia + pared con puerta). Al cruzar la puerta y avanzar por la
+  // sala del trono, cada paso se siente ceremonial. El Rey queda LEJOS
+  // al fondo — es literalmente la prueba final.
   // ==========================================================
 
   // Piso inicial + murallas exteriores
@@ -1062,59 +1068,72 @@ function genCastle() {
     }
   }
 
-  // ------- SALA DEL TRONO (al norte, filas 1-5, ancha) -------
-  // Paredes laterales de la sala
-  for (let r = 1; r <= 5; r++) {
+  // ------- SALA DEL TRONO (al norte, filas 1-11, LARGA y ancha) -------
+  // Paredes laterales que delimitan la sala completa
+  for (let r = 1; r <= 11; r++) {
     castMap[r][3] = 31;
     castMap[r][26] = 31;
   }
-  // Suelo interno de la sala (piedra magenta/purpura tipo tile 32)
-  for (let r = 2; r <= 5; r++)
+  // Suelo interno de la sala (piedra tile 32 = piso de sala del trono)
+  for (let r = 2; r <= 11; r++)
     for (let c = 4; c <= 25; c++) castMap[r][c] = 32;
-  // Trono en el centro fondo (fila 2 = mas al norte)
+
+  // Respaldo del trono al fondo (fila 2, columnas centrales)
   castMap[2][14] = 31;
   castMap[2][15] = 31;
   castMap[2][16] = 31;
+  // Detalles del trono flanqueando al rey
   castMap[3][14] = 31;
   castMap[3][16] = 31;
-  // El rey estará en (15, 4) por convención (justo delante del trono)
+  // El REY va colocado en (15, 4) — mirando hacia el sur
 
-  // ------- PARED DE SEPARACION con puerta cerrada -------
-  // Muro completo en fila 6, columnas 2-27
-  for (let c = 2; c <= 27; c++) castMap[6][c] = 31;
-  // Puerta cerrada en (15, 6) - tile 34 = puerta bloqueada
-  castMap[6][15] = 34;
+  // Alfombra roja central desde el trono hasta la puerta cerrada
+  // (el tile 30 dibuja alfombra en col 14-16, así que ya está por encima
+  // del piso de sala; sobrescribimos para asegurar el efecto visual)
+  for (let r = 4; r <= 11; r++) {
+    castMap[r][14] = 30;
+    castMap[r][15] = 30;
+    castMap[r][16] = 30;
+  }
 
-  // ------- SALA OESTE (Andre / Ravell) - filas 9-14, cols 2-11 -------
-  for (let r = 9; r <= 14; r++) {
+  // ------- PARED DE SEPARACION con puerta bloqueada -------
+  // Muro completo en fila 12, atraviesa todo el castillo
+  for (let c = 2; c <= 27; c++) castMap[12][c] = 31;
+  // Puerta cerrada en (15, 12) - tile 34 = puerta con candado dorado
+  castMap[12][15] = 34;
+
+  // ------- SALAS LATERALES (filas 14-19) -------
+
+  // Sala oeste (André / Ravell) - cols 2-11
+  for (let r = 14; r <= 19; r++) {
     castMap[r][2] = 31;
     castMap[r][11] = 31;
   }
   for (let c = 2; c <= 11; c++) {
-    castMap[9][c] = 31;
     castMap[14][c] = 31;
+    castMap[19][c] = 31;
   }
-  castMap[14][7] = 30; // Puerta abierta (salida al pasillo)
-  for (let r = 10; r < 14; r++) for (let c = 3; c < 11; c++) castMap[r][c] = 30;
+  castMap[19][7] = 30; // Puerta abierta al pasillo
+  for (let r = 15; r < 19; r++) for (let c = 3; c < 11; c++) castMap[r][c] = 30;
 
-  // ------- SALA ESTE (Yam la Carcelera) - filas 9-14, cols 18-27 -------
-  for (let r = 9; r <= 14; r++) {
+  // Sala este (Yam la Carcelera) - cols 18-27
+  for (let r = 14; r <= 19; r++) {
     castMap[r][18] = 31;
     castMap[r][27] = 31;
   }
   for (let c = 18; c <= 27; c++) {
-    castMap[9][c] = 31;
     castMap[14][c] = 31;
+    castMap[19][c] = 31;
   }
-  castMap[14][22] = 30; // Puerta abierta (salida al pasillo)
-  for (let r = 10; r < 14; r++) for (let c = 19; c < 27; c++) castMap[r][c] = 30;
+  castMap[19][22] = 30; // Puerta abierta al pasillo
+  for (let r = 15; r < 19; r++) for (let c = 19; c < 27; c++) castMap[r][c] = 30;
 
   // ------- Pasillos principales -------
-  // Vertical central sur → puerta bloqueada del trono
-  for (let r = 7; r <= 22; r++)
+  // Vertical central desde el sur (entrada) hasta la puerta bloqueada
+  for (let r = 13; r <= 22; r++)
     for (let c = 14; c <= 16; c++) castMap[r][c] = 30;
-  // Horizontal a la altura de las puertas de las salas (fila 14)
-  for (let c = 7; c <= 22; c++) castMap[15][c] = 30;
+  // Horizontal a la altura de las puertas de las salas laterales (fila 20)
+  for (let c = 7; c <= 22; c++) castMap[20][c] = 30;
 
   // ------- Salida al mundo (sur) -------
   castMap[KR - 2][15] = 33;
@@ -2423,7 +2442,7 @@ const castNpcs = [
   {
     // Yam guarda la puerta cerrada del trono. Está en la sala este.
     x: 22,
-    y: 11,
+    y: 16,
     tp: 'yam',
     nm: 'Yam la Carcelera',
     // Diálogo cuando NO derrotaste a André/Ravell: no pelea, te manda al otro
@@ -2458,7 +2477,7 @@ const castNpcs = [
   {
     // André en la sala oeste (primer combate obligatorio antes de Yam)
     x: 7,
-    y: 11,
+    y: 16,
     tp: 'andre',
     nm: 'André',
     preOnly: true,
@@ -2489,7 +2508,7 @@ const castNpcs = [
   {
     // Ravell reemplaza a André en post-game, misma posición
     x: 7,
-    y: 11,
+    y: 16,
     tp: 'ravell',
     nm: 'Ravell',
     postOnly: true,
@@ -2834,8 +2853,8 @@ function markNPCDefeated(npc) {
     npcDefeats[npc.flag] = true;
     // Si derrotaste a Yam, se abre la puerta del trono (34 → 30)
     if (npc.flag === 'metYamCastle') {
-      if (castMap[6] && castMap[6][15] === 34) {
-        castMap[6][15] = 30;
+      if (castMap[12] && castMap[12][15] === 34) {
+        castMap[12][15] = 30;
         aN('¡Obtuviste la llave! La puerta del Rey se ha abierto.');
       }
     }
@@ -4221,7 +4240,7 @@ function uCastle() {
   if (
     !G.supervisor && !G.batallador &&
     !canEnterThroneRoom() &&
-    px === 15 && py === 7 && kh('ArrowUp') && !G.pl.stepTarget
+    px === 15 && py === 13 && kh('ArrowUp') && !G.pl.stepTarget
   ) {
     if (!G._throneBlockedShown || fr - G._throneBlockedShown > 120) {
       let hint;
