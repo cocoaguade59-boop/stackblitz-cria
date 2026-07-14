@@ -23,7 +23,20 @@ function dNPC(x, y, id, f) {
     // VILLA GUIÓN
     // ==========================================
 
-    case 'alessandro': // Armadura parcial, arriba rojo abajo azul, pelo castaño
+    case 'alessandro': // PNG sprite de mapa si existe, si no pixel-art
+      if (SPRITE_LOADER.has('npcs/alessandro')) {
+        const prevSmoothing = cx.imageSmoothingEnabled;
+        cx.imageSmoothingEnabled = false;
+        const img = SPRITE_LOADER.get('npcs/alessandro');
+        const targetH = 40;
+        const ratio = img.naturalWidth / img.naturalHeight;
+        const targetW = targetH * ratio;
+        const ox = x + (32 - targetW) / 2;
+        cx.drawImage(img, ox, by + 30 - targetH, targetW, targetH);
+        cx.imageSmoothingEnabled = prevSmoothing;
+        break;
+      }
+      // Pixel-art fallback: Armadura parcial, arriba rojo abajo azul, pelo castaño
       px(x + 9, by + 26, 5, 4, '#5A3818');
       px(x + 18, by + 26, 5, 4, '#5A3818');
       // Piernas azules

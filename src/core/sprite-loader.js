@@ -28,10 +28,10 @@ SPRITE_LOADER.load('hydrapom');
 
 // NPCs del mapa van en assets/sprites/npcs/<id>.png
 SPRITE_LOADER.load('npcs/alejandro');
+SPRITE_LOADER.load('npcs/alessandro');
 
 // Entrenadores de batalla van en assets/sprites/trainers/<id>.png
-// (cuando subas los PNG, agrega las líneas aquí, ej:)
+SPRITE_LOADER.load('trainers/alessandro');
 // SPRITE_LOADER.load('trainers/alejandro');
-// SPRITE_LOADER.load('trainers/alessandro');
 
 export { SPRITE_LOADER };

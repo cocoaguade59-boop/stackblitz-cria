@@ -2731,7 +2731,7 @@ function uCave() {
           G.pl.x = 15;
           G.pl.y = 106;
         } else {
-          G.pl.x = 65;
+          G.pl.x = 72;
           G.pl.y = 39;
         }
         G.pl.d = 0;
