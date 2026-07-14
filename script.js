@@ -6648,11 +6648,20 @@ function uBatalladorSelect() {
   if (s.phase === 'creatures') {
     const cols = s.columns;
     const total = s.candidates.length;
+    const rows = Math.ceil(total / cols);
+    const visRows = 8; // filas visibles en pantalla
+    if (s.scrollRow === undefined) s.scrollRow = 0;
+    const maxScroll = Math.max(0, rows - visRows);
 
     if (kp('ArrowRight')) { s.cursor = (s.cursor + 1) % total; sfx.walk(); }
     if (kp('ArrowLeft'))  { s.cursor = (s.cursor - 1 + total) % total; sfx.walk(); }
     if (kp('ArrowDown'))  { s.cursor = Math.min(total - 1, s.cursor + cols); sfx.walk(); }
     if (kp('ArrowUp'))    { s.cursor = Math.max(0, s.cursor - cols); sfx.walk(); }
+
+    // Auto-scroll para mantener cursor en pantalla
+    const cursorRow = Math.floor(s.cursor / cols);
+    if (cursorRow < s.scrollRow) s.scrollRow = cursorRow;
+    if (cursorRow >= s.scrollRow + visRows) s.scrollRow = cursorRow - visRows + 1;
 
     if (kp(' ') || kp('Enter')) {
       const id = s.candidates[s.cursor];
@@ -6663,15 +6672,24 @@ function uBatalladorSelect() {
       } else if (s.selected.length < 6) {
         s.selected.push(id);
         sfx.sel();
-        if (s.selected.length === 6) {
-          // Pasar a fase 2: elegir oponente
-          s.phase = 'opponent';
-          s.opponents = buildBatalladorOpponentList();
-          s.opponentCursor = 0;
-          sfx.sel();
-          return;
-        }
+        // Ya no auto-avanza: el jugador decide cuándo pasar con 'O'
       }
+    }
+    // 'O' = elegir oponente (solo si hay al menos 1 criatura seleccionada)
+    if (kp('o') && s.selected.length > 0) {
+      s.phase = 'opponent';
+      s.opponents = buildBatalladorOpponentList();
+      s.opponentCursor = 0;
+      s.opponentScroll = 0;
+      sfx.sel();
+      return;
+    }
+    // Enter sin 'o': entrar al mundo sin pelear
+    if (kp('Enter') && s.selected.length >= 6) {
+      const ids = s.selected.slice();
+      G.batalladorSel = null;
+      enterBatalladorMode(ids, null);
+      return;
     }
   }
   // Fase 2: elegir oponente
@@ -6737,28 +6755,35 @@ function dBatalladorSelect() {
     cx.fillStyle = '#D8D8E8';
     cx.font = '9px "Press Start 2P"';
     cx.textAlign = 'center';
-    cx.fillText(`Elige 6 criaturas nivel 20 (${s.selected.length}/6)`, 320, 46);
+    cx.fillText(`Elige criaturas nivel 20 (${s.selected.length}/6)`, 320, 46);
     cx.textAlign = 'left';
 
     const cols = s.columns;
+    const total = s.candidates.length;
+    const rows = Math.ceil(total / cols);
+    const visRows = 8;
+    if (s.scrollRow === undefined) s.scrollRow = 0;
     const cellW = 96, cellH = 44;
     const startX = 32, startY = 62;
-    s.candidates.forEach((id, i) => {
-      const r = Math.floor(i / cols);
-      const c = i % cols;
+    const startIdx = s.scrollRow * cols;
+    const endIdx = Math.min(total, startIdx + visRows * cols);
+
+    for (let i = startIdx; i < endIdx; i++) {
+      const id = s.candidates[i];
+      const relIdx = i - startIdx;
+      const r = Math.floor(relIdx / cols);
+      const c = relIdx % cols;
       const x = startX + c * cellW;
       const y = startY + r * cellH;
-      if (y > 420) return;
+      if (y > 410) continue;
 
       const isCursor = i === s.cursor;
       const isSelected = s.selected.includes(id);
-
       cx.fillStyle = isSelected ? '#2a5a2a' : (isCursor ? '#3a3a5e' : '#1a1a2e');
       cx.fillRect(x, y, cellW - 4, cellH - 4);
       cx.strokeStyle = isCursor ? '#ffd700' : (isSelected ? '#68d858' : '#484858');
       cx.lineWidth = isCursor ? 2 : 1;
       cx.strokeRect(x + 0.5, y + 0.5, cellW - 5, cellH - 5);
-
       const data = CDB[id];
       if (data) {
         cx.fillStyle = tCol(data.tp);
@@ -6773,7 +6798,14 @@ function dBatalladorSelect() {
           cx.fillText(`#${s.selected.indexOf(id) + 1}`, x + cellW - 22, y + 12);
         }
       }
-    });
+    }
+    if (rows > visRows) {
+      cx.fillStyle = '#606878';
+      cx.font = '5px "Press Start 2P"';
+      cx.textAlign = 'center';
+      cx.fillText(`↑ ${s.scrollRow + 1}-${Math.min(s.scrollRow + visRows, rows)} de ${rows} filas ↓`, 320, startY + visRows * cellH + 8);
+      cx.textAlign = 'left';
+    }
 
     cx.fillStyle = '#0a0a2e';
     cx.fillRect(0, 440, 640, 40);
@@ -6782,8 +6814,8 @@ function dBatalladorSelect() {
     cx.fillStyle = '#D8D8E8';
     cx.font = '6px "Press Start 2P"';
     cx.textAlign = 'center';
-    cx.fillText('Flechas: mover  |  SPACE: agregar/quitar  |  X: cancelar', 320, 456);
-    cx.fillText('Al llegar a 6 pasas a elegir oponente', 320, 470);
+    cx.fillText('Flechas: mover  |  SPACE: agregar/quitar  |  O: elegir oponente', 320, 456);
+    cx.fillText('X: cancelar  |  ENTER (6 criaturas): ir al mundo sin pelear', 320, 470);
     cx.textAlign = 'left';
   }
   // === FASE 2: SELECCIÓN DE OPONENTE ===
