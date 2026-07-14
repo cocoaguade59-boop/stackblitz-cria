@@ -5936,7 +5936,7 @@ function dBattle() {
 
     // Sprite grande del entrenador
     if (b.npcSprite) {
-      dTrainerBig(288, 120, b.npcSprite, f);
+      dTrainerBig(320, 130, b.npcSprite, f);
     }
 
     // Nombre
