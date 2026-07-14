@@ -3512,6 +3512,34 @@ function startNPCBattle(npc) {
   sfx.bat();
 }
 
+// Inicia batalla contra oponente del modo batallador (equipo real, nivel forzado a 20)
+function startBatalladorNPCBattle(opponent) {
+  G.party.forEach((c) => (c.fought = false));
+  let team;
+  if (opponent.fixedTeam) {
+    team = opponent.fixedTeam.map((c) => new Cre(c.id, 20));
+  } else if (opponent.team) {
+    team = opponent.team.map((c) => new Cre(c.id || c, 20));
+  } else if (opponent.isPair) {
+    team = opponent.team.map((c) => new Cre(c.id, 20));
+  } else {
+    const pool = ['flameye', 'axolotl', 'gorilan', 'wyvern', 'pixie', 'eastern'];
+    team = [new Cre(pool[0], 20), new Cre(pool[1], 20)];
+  }
+  const introLines = [`¡${opponent.nm} te desafía en modo batallador!`];
+  G.bs = {
+    pi: 0, en: team[0], ph: 'npcIntro', ms: 0, mvs: 0, ss: 0,
+    msg: `¡${opponent.nm} te desafía!`, mq: [], tm: 0, af: 0, ps: 0, es: 0,
+    noExp: true, isMerch: false, isBoss: false,
+    npcTeam: team, npcIdx: 0, npcName: opponent.nm,
+    isNPC: true, npcSprite: opponent.tp || null,
+    npcIntro: introLines, introPhase: 0, introLine: 0, introCi: 0, introFull: false, introTm: 0,
+    fought: [0], expMult: 0, isAngelly: false, isPunk: false, isPair: !!opponent.isPair,
+  };
+  G.scr = 'battle';
+  sfx.bat();
+}
+
 // === INICIO BATALLA BOSS ===
 function startBoss() {
   const bossLv = Math.max(40, secondStrongestLv());
@@ -5927,14 +5955,17 @@ function dBattle() {
     isPlayer: false,
     status: battleState.enemyStatus,
   });
-  // Indicador de criatura ya capturada
+  // Cristal púrpura de captura junto al nombre del enemigo
   if (
     G.party.some((c) => c.id === b.en.id) ||
     proa.some((c) => c.id === b.en.id)
   ) {
-    cx.fillStyle = '#30D848';
-    cx.font = '7px "Press Start 2P"';
-    cx.fillText('💎', 240, 54);
+    const cx2 = 200, cy2 = 18;
+    // Cristal púrpura pixel-art (como los del mapa, tile 28)
+    px(cx2 - 3, cy2 - 6, 6, 12, '#6020B0');
+    px(cx2 - 2, cy2 - 5, 4, 10, '#8838E0');
+    px(cx2 - 1, cy2 - 3, 2, 6, '#B868F8');
+    px(cx2, cy2 - 1, 1, 2, '#F8E8FF');
   }
 
   // Panel jugador — nuevo HUD estilo NDS pixel-art
@@ -6512,7 +6543,7 @@ function createBatalladorCre(id) {
   return cre;
 }
 
-function enterBatalladorMode(selectedIds) {
+function enterBatalladorMode(selectedIds, opponent) {
   // Guardar snapshot del estado original
   batalladorSnapshot = {
     party: G.party.map((c) => c.toJSON()),
@@ -6536,7 +6567,13 @@ function enterBatalladorMode(selectedIds) {
   G.scr = 'world';
   aN('MODO BATALLADOR: equipo test cargado');
   aN('No ganarás EXP. Sin efectos sobre misiones.');
-  sfx.win();
+
+  // Si hay oponente definido, iniciar batalla inmediatamente
+  if (opponent) {
+    startBatalladorNPCBattle(opponent);
+  } else {
+    sfx.win();
+  }
 }
 
 function exitBatalladorMode() {
@@ -6565,51 +6602,98 @@ function toggleBatalladorMode() {
     exitBatalladorMode();
     return;
   }
-  // Abrir pantalla de selección de 6 criaturas
+  // Abrir pantalla de selección de 6 criaturas (fase 1)
   const candidates = getBatalladorCandidates();
   G.batalladorSel = {
-    candidates,        // IDs disponibles
-    selected: [],      // IDs elegidos (hasta 6)
-    cursor: 0,         // posición en la grilla
-    columns: 6,        // grid 6 columnas
+    phase: 'creatures',  // 'creatures' o 'opponent'
+    candidates,           // IDs disponibles
+    selected: [],         // IDs elegidos (hasta 6)
+    cursor: 0,            // posición en la grilla
+    columns: 6,           // grid 6 columnas
+    opponentCursor: 0,    // cursor de selección de oponente
   };
   G.scr = 'batalladorSelect';
   sfx.sel();
 }
 
-// -------- Pantalla de selección de criaturas del modo batallador --------
+// -------- Pantalla de selección del modo batallador (2 fases) --------
+// Lista de oponentes del modo batallador (NPCs con batalla en el juego)
+function buildBatalladorOpponentList() {
+  const list = [];
+  // Recorrer npcs, castNpcs, caveNpcs buscando los que tienen battle
+  const all = [...npcs, ...castNpcs, ...caveNpcs];
+  all.forEach((n) => {
+    if (n.battle && n.nm && !n.boss && !list.some((o) => o.nm === n.nm)) {
+      list.push({ nm: n.nm, tp: n.tp, team: n.team, fixedTeam: n.fixedTeam, isAngelly: n.isAngelly, isPunk: n.isPunk });
+    }
+  });
+  // Agregar Edison y jefes especiales
+  if (edisonNPC && edisonNPC.battle) {
+    list.push({ nm: edisonNPC.nm, tp: edisonNPC.tp, fixedTeam: edisonNPC.fixedTeam, isMerch: false });
+  }
+  // Agregar combates en pareja
+  pairBattleData.forEach((pair) => {
+    list.push({ nm: pair.nm, isPair: true, team: [...pair.t1.map((c) => ({ id: c.id, lv: 20 })), ...pair.t2.map((c) => ({ id: c.id, lv: 20 }))] });
+  });
+  return list;
+}
+
 function uBatalladorSelect() {
   const s = G.batalladorSel;
   if (!s) { G.scr = 'world'; return; }
 
-  const cols = s.columns;
-  const total = s.candidates.length;
+  // Fase 1: elegir criaturas
+  if (s.phase === 'creatures') {
+    const cols = s.columns;
+    const total = s.candidates.length;
 
-  if (kp('ArrowRight')) { s.cursor = (s.cursor + 1) % total; sfx.walk(); }
-  if (kp('ArrowLeft'))  { s.cursor = (s.cursor - 1 + total) % total; sfx.walk(); }
-  if (kp('ArrowDown'))  { s.cursor = Math.min(total - 1, s.cursor + cols); sfx.walk(); }
-  if (kp('ArrowUp'))    { s.cursor = Math.max(0, s.cursor - cols); sfx.walk(); }
+    if (kp('ArrowRight')) { s.cursor = (s.cursor + 1) % total; sfx.walk(); }
+    if (kp('ArrowLeft'))  { s.cursor = (s.cursor - 1 + total) % total; sfx.walk(); }
+    if (kp('ArrowDown'))  { s.cursor = Math.min(total - 1, s.cursor + cols); sfx.walk(); }
+    if (kp('ArrowUp'))    { s.cursor = Math.max(0, s.cursor - cols); sfx.walk(); }
 
-  if (kp(' ') || kp('Enter')) {
-    const id = s.candidates[s.cursor];
-    const idx = s.selected.indexOf(id);
-    if (idx >= 0) {
-      s.selected.splice(idx, 1);   // deseleccionar
-      sfx.walk();
-    } else if (s.selected.length < 6) {
-      s.selected.push(id);         // seleccionar
-      sfx.sel();
-      if (s.selected.length === 6) {
-        // Auto-confirmar cuando se llegan a 6
-        const ids = s.selected.slice();
-        G.batalladorSel = null;
-        enterBatalladorMode(ids);
-        return;
+    if (kp(' ') || kp('Enter')) {
+      const id = s.candidates[s.cursor];
+      const idx = s.selected.indexOf(id);
+      if (idx >= 0) {
+        s.selected.splice(idx, 1);
+        sfx.walk();
+      } else if (s.selected.length < 6) {
+        s.selected.push(id);
+        sfx.sel();
+        if (s.selected.length === 6) {
+          // Pasar a fase 2: elegir oponente
+          s.phase = 'opponent';
+          s.opponents = buildBatalladorOpponentList();
+          s.opponentCursor = 0;
+          sfx.sel();
+          return;
+        }
       }
     }
   }
+  // Fase 2: elegir oponente
+  else if (s.phase === 'opponent') {
+    const opps = s.opponents || [];
+    if (kp('ArrowUp'))    { s.opponentCursor = (s.opponentCursor + opps.length - 1) % opps.length; sfx.walk(); }
+    if (kp('ArrowDown'))  { s.opponentCursor = (s.opponentCursor + 1) % opps.length; sfx.walk(); }
+    if (kp('x') || kp('Escape')) {
+      // Volver a fase 1
+      s.phase = 'creatures';
+      s.opponents = null;
+      s.opponentCursor = 0;
+      sfx.sel();
+    }
+    if (kp(' ') || kp('Enter')) {
+      const opp = opps[s.opponentCursor];
+      const ids = s.selected.slice();
+      G.batalladorSel = null;
+      enterBatalladorMode(ids, opp);
+      return;
+    }
+  }
 
-  if (kp('x') || kp('Escape')) {
+  if (s.phase === 'creatures' && (kp('x') || kp('Escape'))) {
     G.batalladorSel = null;
     G.scr = 'world';
     sfx.sel();
@@ -6624,68 +6708,120 @@ function dBatalladorSelect() {
   cx.fillStyle = '#0a0a1e';
   cx.fillRect(0, 0, 640, 480);
 
-  // Título
+  // Título común
   cx.fillStyle = '#ffd700';
   cx.font = '14px "Press Start 2P"';
   cx.textAlign = 'center';
   cx.fillText('MODO BATALLADOR', 320, 26);
-  cx.font = '9px "Press Start 2P"';
-  cx.fillStyle = '#D8D8E8';
-  cx.fillText(`Elige 6 criaturas nivel 20 (${s.selected.length}/6)`, 320, 46);
   cx.textAlign = 'left';
 
-  // Grid de candidatos
-  const cols = s.columns;
-  const cellW = 96, cellH = 44;
-  const startX = 32, startY = 62;
-  s.candidates.forEach((id, i) => {
-    const r = Math.floor(i / cols);
-    const c = i % cols;
-    const x = startX + c * cellW;
-    const y = startY + r * cellH;
-    if (y > 420) return; // fuera del canvas visible
+  // === FASE 1: SELECCIÓN DE CRIATURAS ===
+  if (s.phase === 'creatures') {
+    cx.fillStyle = '#D8D8E8';
+    cx.font = '9px "Press Start 2P"';
+    cx.textAlign = 'center';
+    cx.fillText(`Elige 6 criaturas nivel 20 (${s.selected.length}/6)`, 320, 46);
+    cx.textAlign = 'left';
 
-    const isCursor = i === s.cursor;
-    const isSelected = s.selected.includes(id);
+    const cols = s.columns;
+    const cellW = 96, cellH = 44;
+    const startX = 32, startY = 62;
+    s.candidates.forEach((id, i) => {
+      const r = Math.floor(i / cols);
+      const c = i % cols;
+      const x = startX + c * cellW;
+      const y = startY + r * cellH;
+      if (y > 420) return;
 
-    // Fondo celda
-    cx.fillStyle = isSelected ? '#2a5a2a' : (isCursor ? '#3a3a5e' : '#1a1a2e');
-    cx.fillRect(x, y, cellW - 4, cellH - 4);
-    // Borde
-    cx.strokeStyle = isCursor ? '#ffd700' : (isSelected ? '#68d858' : '#484858');
-    cx.lineWidth = isCursor ? 2 : 1;
-    cx.strokeRect(x + 0.5, y + 0.5, cellW - 5, cellH - 5);
+      const isCursor = i === s.cursor;
+      const isSelected = s.selected.includes(id);
 
-    const data = CDB[id];
-    if (data) {
-      // Emoji tipo + nombre
-      cx.fillStyle = tCol(data.tp);
-      cx.font = '7px "Press Start 2P"';
-      cx.fillText(`${tEmo(data.tp)}${data.nm.slice(0, 10)}`, x + 4, y + 12);
-      // Stats mini
-      cx.fillStyle = '#B8B8C8';
-      cx.font = '5px "Press Start 2P"';
-      cx.fillText(`HP${data.hp} AK${data.ak} DF${data.df} SP${data.sp}`, x + 4, y + 26);
-      // Marcado si ya está seleccionado (numerito)
-      if (isSelected) {
-        cx.fillStyle = '#ffd700';
-        cx.font = '8px "Press Start 2P"';
-        cx.fillText(`#${s.selected.indexOf(id) + 1}`, x + cellW - 22, y + 12);
+      cx.fillStyle = isSelected ? '#2a5a2a' : (isCursor ? '#3a3a5e' : '#1a1a2e');
+      cx.fillRect(x, y, cellW - 4, cellH - 4);
+      cx.strokeStyle = isCursor ? '#ffd700' : (isSelected ? '#68d858' : '#484858');
+      cx.lineWidth = isCursor ? 2 : 1;
+      cx.strokeRect(x + 0.5, y + 0.5, cellW - 5, cellH - 5);
+
+      const data = CDB[id];
+      if (data) {
+        cx.fillStyle = tCol(data.tp);
+        cx.font = '7px "Press Start 2P"';
+        cx.fillText(`${tEmo(data.tp)}${data.nm.slice(0, 10)}`, x + 4, y + 12);
+        cx.fillStyle = '#B8B8C8';
+        cx.font = '5px "Press Start 2P"';
+        cx.fillText(`HP${data.hp} AK${data.ak} DF${data.df} SP${data.sp}`, x + 4, y + 26);
+        if (isSelected) {
+          cx.fillStyle = '#ffd700';
+          cx.font = '8px "Press Start 2P"';
+          cx.fillText(`#${s.selected.indexOf(id) + 1}`, x + cellW - 22, y + 12);
+        }
       }
-    }
-  });
+    });
 
-  // Footer con controles
-  cx.fillStyle = '#0a0a2e';
-  cx.fillRect(0, 440, 640, 40);
-  cx.strokeStyle = '#ffd700';
-  cx.strokeRect(0.5, 440.5, 639, 39);
-  cx.fillStyle = '#D8D8E8';
-  cx.font = '6px "Press Start 2P"';
-  cx.textAlign = 'center';
-  cx.fillText('Flechas: mover  |  SPACE: agregar/quitar  |  X: cancelar', 320, 456);
-  cx.fillText('Al llegar a 6 se activa automáticamente', 320, 470);
-  cx.textAlign = 'left';
+    cx.fillStyle = '#0a0a2e';
+    cx.fillRect(0, 440, 640, 40);
+    cx.strokeStyle = '#ffd700';
+    cx.strokeRect(0.5, 440.5, 639, 39);
+    cx.fillStyle = '#D8D8E8';
+    cx.font = '6px "Press Start 2P"';
+    cx.textAlign = 'center';
+    cx.fillText('Flechas: mover  |  SPACE: agregar/quitar  |  X: cancelar', 320, 456);
+    cx.fillText('Al llegar a 6 pasas a elegir oponente', 320, 470);
+    cx.textAlign = 'left';
+  }
+  // === FASE 2: SELECCIÓN DE OPONENTE ===
+  else if (s.phase === 'opponent') {
+    const opps = s.opponents || [];
+    cx.fillStyle = '#D8D8E8';
+    cx.font = '9px "Press Start 2P"';
+    cx.textAlign = 'center';
+    cx.fillText(`Elige tu oponente (nivel 20)`, 320, 46);
+    cx.textAlign = 'left';
+
+    // Mostrar equipo seleccionado en mini
+    cx.fillStyle = '#68d858';
+    cx.font = '6px "Press Start 2P"';
+    cx.fillText('Tu equipo: ' + s.selected.map((id) => CDB[id]?.nm || id).slice(0, 6).join(', '), 20, 60);
+
+    const startY = 78;
+    opps.forEach((opp, i) => {
+      const py = startY + i * 26;
+      if (py > 430) return;
+      const sel = s.opponentCursor === i;
+      if (sel) {
+        cx.fillStyle = 'rgba(255,215,0,.12)';
+        cx.fillRect(18, py - 4, 604, 22);
+      }
+      cx.fillStyle = sel ? '#ffd700' : '#fff';
+      cx.font = '7px "Press Start 2P"';
+      cx.fillText(`${sel ? '▶ ' : '  '}${opp.nm}`, 30, py + 10);
+      // Mostrar criaturas del oponente
+      let teamPreview = '';
+      if (opp.fixedTeam) {
+        teamPreview = opp.fixedTeam.map((c) => CDB[c.id]?.nm || c.id).join(', ');
+      } else if (opp.team) {
+        teamPreview = opp.team.map((c) => CDB[c.id]?.nm || c.id).join(', ');
+      } else if (opp.isPair) {
+        teamPreview = '(combate en pareja)';
+      } else {
+        teamPreview = '(equipo aleatorio)';
+      }
+      cx.fillStyle = '#888';
+      cx.font = '5px "Press Start 2P"';
+      cx.fillText(teamPreview, 36, py + 20);
+    });
+
+    cx.fillStyle = '#0a0a2e';
+    cx.fillRect(0, 440, 640, 40);
+    cx.strokeStyle = '#ffd700';
+    cx.strokeRect(0.5, 440.5, 639, 39);
+    cx.fillStyle = '#D8D8E8';
+    cx.font = '6px "Press Start 2P"';
+    cx.textAlign = 'center';
+    cx.fillText('Flechas: elegir  |  SPACE: confirmar  |  X: volver', 320, 456);
+    cx.fillText('El oponente usará su equipo real a nivel 20', 320, 470);
+    cx.textAlign = 'left';
+  }
 }
 
 // ============================================================
