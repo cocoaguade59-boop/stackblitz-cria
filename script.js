@@ -6635,6 +6635,8 @@ function buildBatalladorOpponentList() {
   pairBattleData.forEach((pair) => {
     list.push({ nm: pair.nm, isPair: true, team: [...pair.t1.map((c) => ({ id: c.id, lv: 20 })), ...pair.t2.map((c) => ({ id: c.id, lv: 20 }))] });
   });
+  // NPCs sin battle flag pero con fixedTeam (tutoriales)
+  list.push({ nm: 'Alessandro', tp: 'alessandro', fixedTeam: [{ id: 'ivygoat' }, { id: 'pinzardo' }], battleIntro: ['¡Velocidad es poder!', '¡A pelear!'] });
   // Opción sin oponente: explorar el mundo
   list.push({ nm: 'Sin oponente (explorar el mundo)', _skip: true });
   return list;
@@ -6663,7 +6665,7 @@ function uBatalladorSelect() {
     if (cursorRow < s.scrollRow) s.scrollRow = cursorRow;
     if (cursorRow >= s.scrollRow + visRows) s.scrollRow = cursorRow - visRows + 1;
 
-    if (kp(' ') || kp('Enter')) {
+    if (kp(' ')) {
       const id = s.candidates[s.cursor];
       const idx = s.selected.indexOf(id);
       if (idx >= 0) {
@@ -6672,7 +6674,6 @@ function uBatalladorSelect() {
       } else if (s.selected.length < 6) {
         s.selected.push(id);
         sfx.sel();
-        // Ya no auto-avanza: el jugador decide cuándo pasar con 'O'
       }
     }
     // 'O' = elegir oponente (solo si hay al menos 1 criatura seleccionada)
