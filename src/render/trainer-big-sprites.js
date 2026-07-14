@@ -37,10 +37,18 @@ function dTrainerBig(x, y, id, f) {
     const img = SPRITE_LOADER.get(trainerKey);
     const prevSmoothing = cx.imageSmoothingEnabled;
     cx.imageSmoothingEnabled = false;
-    const targetH = 100;
+    // Marco interior: 78x106 (82-4 x 110-4)
+    const maxW = 70, maxH = 98;
     const ratio = img.naturalWidth / img.naturalHeight;
-    const targetW = targetH * ratio;
-    cx.drawImage(img, x - targetW / 2, y + by + 50 - targetH, targetW, targetH);
+    let targetW = maxH * ratio, targetH = maxH;
+    // Si es más ancho que el marco, limitar por ancho
+    if (targetW > maxW) { targetW = maxW; targetH = maxW / ratio; }
+    // Posición: centrado horizontal, anclado abajo dentro del marco
+    const fx = x - 41; // x - fw/2 (fw=82)
+    const fy = by + 50 - 110; // by + 50 - fh (fh=110)
+    const drawX = fx + 41 - targetW / 2; // centro del marco
+    const drawY = fy + 108 - targetH; // 2px desde el borde inferior del interior
+    cx.drawImage(img, drawX, drawY, targetW, targetH);
     cx.imageSmoothingEnabled = prevSmoothing;
     return;
   }
