@@ -3257,6 +3257,11 @@ function checkNPC(list) {
       if (checkForeignKey(n)) return;
     }
 
+    // Oscar: Registro del Cronista
+    if (n.flag === 'metOscar') {
+      showOscarRegister(n);
+      return;
+    }
     // Obtener diálogo correcto
     // Deyna: mostrar checklist de personas habladas
     if (n.hasChecklist) {
@@ -3746,6 +3751,59 @@ function dVision() {
     cx.font = '10px "Press Start 2P"';
     cx.fillText('▼', 590, 456 + Math.sin(fr * 0.2) * 2);
   }
+}
+
+
+// === REGISTRO DEL CRONISTA (Oscar) ===
+function showOscarRegister(npc) {
+  G.scr = 'oscarRegister';
+  G.oscarReg = {
+    npc, idx: 0, ci: 0, tm: 0, full: false,
+    pages: [
+      { title: 'LAS TRES ÓRDENES', lines: ['En este reino, las personas','se agrupan en tres órdenes','principales. No son reglas','rígidas... pero ayudan a','entender quién es quién.'] },
+      { title: 'LOS MATERIALIZADORES', lines: ['Crean con sus manos e ideas.','Alessandro, Luis, Fabiana,','Nicole, Deyna, Dayana, Dante,','Alexandro, Hernán, Chrys,','Claudia, Gabriela, David,','Alejandro, Nahuel, André,','Ravell, Yam, Pachi, Paulo,','Edison, SaloGon, los Juglares.'] },
+      { title: 'LOS CRONISTAS', lines: ['Somos los que registramos','todos los acontecimientos.','Yo (Oscar), Mr. Olo-Man,','Piero, Manuel (caído) y','Jairo. Buenos amigos de','las Monas también.'] },
+      { title: 'LOS PREGONEROS', lines: ['Transmiten la información','del Rey a los pobladores.','Brisa, Roberto y Gonchi.','Sin ellos, las noticias','no llegarían a nadie.'] },
+      { title: 'SUBGRUPOS: LOS CTM', lines: ['Más experiencia que el','promedio. Hernán, Pachi,','Alejandro, Ravell, Chrys,','Nahuel, André, Yam, y su','miembro más joven: Dante.'] },
+      { title: 'SUBGRUPOS: LAS MONAS', lines: ['Amigas inseparables de','alta fidelidad entre ellas.','Dayana, Deyna y Nicole.','Un grupo muy misterioso,','de alto enigma y peligro.'] },
+      { title: 'SUBGRUPOS: BRANDCUT', lines: ['Algo inexpertos, pero son','la siguiente generación.','Alessandro, Luis, Alexandro,','Gabriela, Claudia, Edison,','David y Fabiana.'] },
+      { title: 'SUBGRUPOS: LOS REBATA', lines: ['Extremadamente ruidosos...','definitivamente la pasan','bien juntos. Dayana, Deyna,','Oscar, Piero, Jairo,','Manuel y Nicole.'] },
+      { title: 'LOS PROAS (Jefes)', lines: ['Parecen malhumorados, pero','son muy sabios a su manera.','Controlan el orden y enseñan','a los habitantes de sus','pueblos. Tamara, Luchito,','Andrea y Dan.'] },
+      { title: 'LOS OUTSAIDERS', lines: ['Muy misteriosos. Sin','conexión con alguien más','que no sean entre ellos.','Luas, Angelly y Ximena.','Nadie sabe de dónde vienen.'] },
+      { title: 'NOTA FINAL', lines: ['El mundo no se divide solo','en 3 órdenes. Las personas','son más complejas que eso.','Hay subgrupos, amistades,','rivalidades... cada quien','tiene su propia historia.','— Registro de Oscar, Cronista.'] },
+    ],
+  };
+  sfx.sel();
+}
+function uOscarRegister() {
+  const v = G.oscarReg; if (!v) { G.scr = 'world'; return; }
+  v.tm++;
+  const text = v.pages[v.idx].lines.join(' ');
+  if (!v.full && v.tm % 2 === 0) { v.ci++; if (v.ci >= text.length) v.full = true; }
+  if (kp(' ') || kp('Enter')) {
+    if (!v.full) { v.ci = text.length; v.full = true; }
+    else { v.idx++; if (v.idx >= v.pages.length) { G.scr = 'world'; G.oscarReg = null; } else { v.ci = 0; v.tm = 0; v.full = false; sfx.sel(); } }
+  }
+  if (kp('x') || kp('Escape')) { G.scr = 'world'; G.oscarReg = null; }
+}
+function dOscarRegister() {
+  drawMap();
+  const v = G.oscarReg; if (!v) return;
+  const page = v.pages[v.idx];
+  cx.fillStyle = '#2A2218'; cx.fillRect(40, 20, 560, 390);
+  px(36, 16, 568, 398, '#5A4A30'); px(38, 18, 564, 394, '#3A2A18'); px(40, 20, 560, 390, '#2A2218');
+  px(36, 16, 12, 12, '#C8A830'); px(588, 16, 12, 12, '#C8A830');
+  px(36, 406, 12, 12, '#C8A830'); px(588, 406, 12, 12, '#C8A830');
+  cx.fillStyle = '#C8A830'; cx.font = '10px "Press Start 2P"'; cx.textAlign = 'center';
+  cx.fillText(page.title, 320, 48); cx.textAlign = 'left';
+  cx.fillStyle = '#5A4A30'; cx.fillRect(60, 56, 520, 1);
+  cx.fillStyle = '#D8C8A0'; cx.font = '7px "Press Start 2P"';
+  const allText = page.lines.join(' '); const shown = allText.substring(0, v.ci);
+  const lines = wrapText(shown, 52);
+  lines.slice(0, 9).forEach((ln, i) => cx.fillText(ln, 60, 80 + i * 16));
+  cx.fillStyle = '#8A7A50'; cx.font = '6px "Press Start 2P"';
+  cx.fillText(`${v.idx + 1}/${v.pages.length}`, 560, 426);
+  if (v.full) { cx.fillStyle = '#C8A830'; cx.font = '10px "Press Start 2P"'; cx.textAlign = 'center'; cx.fillText('▼', 600, 430 + Math.sin(fr * 0.2) * 2); cx.textAlign = 'left'; }
 }
 
 // === MOSTRAR OPCIONES DE EDISON ===
@@ -7158,6 +7216,9 @@ function update() {
     case 'vision':
       uVision();
       break;
+    case 'oscarRegister':
+      uOscarRegister();
+      break;
     case 'batalladorSelect':
       uBatalladorSelect();
       break;
@@ -7220,6 +7281,9 @@ function draw() {
       break;
     case 'vision':
       dVision();
+      break;
+    case 'oscarRegister':
+      dOscarRegister();
       break;
     case 'batalladorSelect':
       dBatalladorSelect();
