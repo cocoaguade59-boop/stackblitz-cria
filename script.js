@@ -245,6 +245,37 @@ function tryOloSecretEntrance() {
   return false;
 }
 // === GENERACIÓN DEL CASTILLO ===
+function solidW(c, r) {
+  if (c < 0 || c >= WC || r < 0 || r >= WR) return true;
+  const t = wMap[r][c];
+  // Agua, árboles, rocas son sólidos
+  // Edificios (4) son sólidos
+  // Torre cerrada es sólida
+  if (t === 2 || t === 3 || t === 7) return true;
+  if (t === 4) return true;
+  // Decoración sólida del mundo: puestos, estatuas, cercas, cajas, pozos, muñecos y cámara/set.
+  if ([18, 19, 20, 21, 22, 23, 25, 27].includes(t)) return true;
+  if (t === 13) return true;
+  if (t === 9) return true;
+  if (t === 12 && !towerOpen) return true;
+  if (routeGateBlocks(c, r)) return true;
+  return false;
+}
+
+function solidC(c, r, map, cols, rows) {
+  if (c < 0 || c >= cols || r < 0 || r >= rows) return true;
+  const t = map[r][c];
+  // Solo paredes, agua subterránea, lava y puerta bloqueada son sólidos
+  // Tiles 27,28,33 NO son sólidos (salidas y cristales)
+  // Tile 34 = puerta bloqueada del rey (sólida hasta derrotar a Yam)
+  return t === 21 || t === 23 || t === 24 || t === 29 || t === 31 || t === 34;
+}
+
+// === GENERACIÓN DE TORRE (mapa especial post-game) ===
+let towerMap = [];
+const TWC = 30,
+  TWR = 25;
+
 function genTower() {
   for (let r = 0; r < TWR; r++) {
     towerMap[r] = [];
