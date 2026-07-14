@@ -17,37 +17,33 @@ function dTrainerBig(x, y, id, f) {
   const bob = Math.sin(f * 0.08) * 2,
     by = y + bob;
 
-  // Marco decorativo común (+25% más grande)
+  // Marco decorativo común (+50% más grande)
   {
-    const fw = 102, fh = 138;
+    const fw = 153, fh = 207;
     const fx = x - fw / 2, fy = by + 50 - fh;
-    px(fx + 3, fy + 3, fw, fh, 'rgba(0,0,0,.35)');
+    px(fx + 4, fy + 4, fw, fh, 'rgba(0,0,0,.35)');
     px(fx - 1, fy - 1, fw + 2, fh + 2, '#1A1A2E');
     px(fx, fy, fw, fh, '#C8A830');
-    px(fx + 2, fy + 2, fw - 4, fh - 4, '#F8F8F0');
-    px(fx + 2, fy + 2, 10, 10, '#E8C840');
-    px(fx + fw - 12, fy + 2, 10, 10, '#E8C840');
-    px(fx + 2, fy + fh - 12, 10, 10, '#A08828');
-    px(fx + fw - 12, fy + fh - 12, 10, 10, '#A08828');
+    px(fx + 3, fy + 3, fw - 6, fh - 6, '#F8F8F0');
+    px(fx + 3, fy + 3, 12, 12, '#E8C840');
+    px(fx + fw - 15, fy + 3, 12, 12, '#E8C840');
+    px(fx + 3, fy + fh - 15, 12, 12, '#A08828');
+    px(fx + fw - 15, fy + fh - 15, 12, 12, '#A08828');
   }
 
-  // Si hay sprite PNG en assets/sprites/trainers/<id>.png, úsalo
+  // Si hay sprite PNG en trainers/<id>.png, úsalo
   const trainerKey = 'trainers/' + id;
   if (SPRITE_LOADER.has(trainerKey)) {
     const img = SPRITE_LOADER.get(trainerKey);
     const prevSmoothing = cx.imageSmoothingEnabled;
     cx.imageSmoothingEnabled = false;
-    // Marco interior: 98x134 (102-4 x 138-4)
-    const maxW = 87, maxH = 122;
+    const maxW = 133, maxH = 185;
     const ratio = img.naturalWidth / img.naturalHeight;
     let targetW = maxH * ratio, targetH = maxH;
     if (targetW > maxW) { targetW = maxW; targetH = maxW / ratio; }
-    // Posición centrada horizontal, anclada abajo dentro del marco
-    const fx = x - 51; // x - fw/2 (fw=102)
-    const fy = by + 50 - 138; // by + 50 - fh (fh=138)
-    const drawX = fx + 51 - targetW / 2; // centro del marco
-    const drawY = fy + 136 - targetH; // 2px del borde inferior del interior
-    cx.drawImage(img, drawX, drawY, targetW, targetH);
+    const frameX = x - Math.floor(153 / 2);
+    const frameY = by + 50 - 207;
+    cx.drawImage(img, frameX + Math.floor(153 / 2) - targetW / 2, frameY + 204 - targetH, targetW, targetH);
     cx.imageSmoothingEnabled = prevSmoothing;
     return;
   }

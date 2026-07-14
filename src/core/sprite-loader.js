@@ -32,6 +32,6 @@ SPRITE_LOADER.load('npcs/alessandro');
 
 // Entrenadores de batalla van en assets/sprites/trainers/<id>.png
 SPRITE_LOADER.load('trainers/alessandro');
-// SPRITE_LOADER.load('trainers/alejandro');
+SPRITE_LOADER.load('trainers/alejandro');
 
 export { SPRITE_LOADER };
