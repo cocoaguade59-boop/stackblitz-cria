@@ -245,6 +245,21 @@ function tryOloSecretEntrance() {
   return false;
 }
 // === GENERACIÓN DEL CASTILLO ===
+function npcAtWorld(c, r) {
+  const cx = Math.round(c), cy2 = Math.round(r);
+  if (G.curMap === 'world') {
+    if (npcs.some((n) => npcVisible(n) && Math.round(n.x) === cx && Math.round(n.y) === cy2)) return true;
+    if (postGame && Math.round(edisonNPC.x) === cx && Math.round(edisonNPC.y) === cy2) return true;
+  }
+  if (G.curMap.startsWith('cave')) {
+    return caveNpcs.some((n) => npcVisible(n) && Math.round(n.x) === cx && Math.round(n.y) === cy2);
+  }
+  if (G.curMap === 'castle') {
+    return castNpcs.some((n) => npcVisible(n) && Math.round(n.x) === cx && Math.round(n.y) === cy2);
+  }
+  return false;
+}
+
 function solidW(c, r) {
   if (c < 0 || c >= WC || r < 0 || r >= WR) return true;
   const t = wMap[r][c];
@@ -259,6 +274,7 @@ function solidW(c, r) {
   if (t === 9) return true;
   if (t === 12 && !towerOpen) return true;
   if (routeGateBlocks(c, r)) return true;
+  if (npcAtWorld(c, r)) return true;
   return false;
 }
 
@@ -5680,41 +5696,44 @@ function drawMap() {
       }
     });
 
-    // NPCs del mundo
+    // Depth-sorted NPCs + player (mundo)
+    // Recolectar todos los NPCs visibles con su Y del mundo
+    const renderList = [];
     npcs.forEach((n) => {
       if (!npcVisible(n)) return;
-      const sx = n.x * T - cam.x,
-        sy = n.y * T - cam.y;
+      const sx = n.x * T - cam.x, sy = n.y * T - cam.y;
       if (sx > -40 && sx < 680 && sy > -40 && sy < 520) {
-        dNPC(sx, sy - 8, n.tp, fr);
-        if (nearNPC(n)) {
-          cx.fillStyle = '#ffd700';
-          cx.font = '7px "Press Start 2P"';
-          cx.textAlign = 'center';
-          cx.fillText(n.nm, sx + 16, sy - 18);
-          cx.fillText('⬇', sx + 16, sy - 10 + Math.sin(fr * 0.15) * 2);
-          cx.textAlign = 'left';
-        }
+        renderList.push({ type: 'npc', y: n.y, sx, sy, n });
       }
     });
-
-    // Edison post-game
     if (postGame) {
       const ed = edisonNPC;
-      const esx = ed.x * T - cam.x,
-        esy = ed.y * T - cam.y;
+      const esx = ed.x * T - cam.x, esy = ed.y * T - cam.y;
       if (esx > -40 && esx < 680 && esy > -40 && esy < 520) {
-        dNPC(esx, esy - 8, ed.tp, fr);
-        if (nearNPC(ed)) {
+        renderList.push({ type: 'npc', y: ed.y, sx: esx, sy: esy, n: ed });
+      }
+    }
+    // Jugador
+    const ppx = G.pl.x * T - cam.x, ppy = G.pl.y * T - cam.y;
+    renderList.push({ type: 'player', y: G.pl.y, ppx, ppy });
+    // Ordenar: menor Y primero (norte arriba) → si igual Y, NPCs con +0.5 offset
+    renderList.sort((a, b) => a.y - b.y);
+
+    renderList.forEach((it) => {
+      if (it.type === 'npc') {
+        dNPC(it.sx, it.sy - 8, it.n.tp, fr);
+        if (nearNPC(it.n)) {
           cx.fillStyle = '#ffd700';
           cx.font = '7px "Press Start 2P"';
           cx.textAlign = 'center';
-          cx.fillText(ed.nm, esx + 16, esy - 18);
-          cx.fillText('⬇', esx + 16, esy - 10 + Math.sin(fr * 0.15) * 2);
+          cx.fillText(it.n.nm, it.sx + 16, it.sy - 18);
+          cx.fillText('⬇', it.sx + 16, it.sy - 10 + Math.sin(fr * 0.15) * 2);
           cx.textAlign = 'left';
         }
+      } else {
+        dPlayerGBA(it.ppx, it.ppy - 8, G.pl.d, G.pl.f);
       }
-    }
+    });
   } else if (G.curMap.startsWith('cave')) {
     const map = G.curMap === 'cave1' ? cave1 : cave2;
     const sc = Math.max(0, Math.floor(cam.x / T) - 1),
@@ -5724,22 +5743,26 @@ function drawMap() {
     for (let r = sr; r < er; r++)
       for (let c = sc; c < ec; c++) dTileC(c, r, map);
 
-    // NPCs cueva
-    caveNpcs.forEach((n) => {
-      if (!npcVisible(n)) return;
-      const sx = n.x * T - cam.x,
-        sy = n.y * T - cam.y;
-      if (sx > -40 && sx < 680) {
-        dNPC(sx, sy - 8, n.tp, fr);
-        if (nearNPC(n)) {
-          cx.fillStyle = '#ffd700';
-          cx.font = '7px "Press Start 2P"';
-          cx.textAlign = 'center';
-          cx.fillText(n.nm, sx + 16, sy - 18);
-          cx.textAlign = 'left';
+    // NPCs cueva (depth-sorted)
+    {
+      const rlist = [];
+      caveNpcs.forEach((n) => {
+        if (!npcVisible(n)) return;
+        const sx = n.x * T - cam.x, sy = n.y * T - cam.y;
+        if (sx > -40 && sx < 680) rlist.push({ y: n.y, sx, sy, n });
+      });
+      const ppx = G.pl.x * T - cam.x, ppy = G.pl.y * T - cam.y;
+      rlist.push({ y: G.pl.y, ppx, ppy, isPlayer: true });
+      rlist.sort((a, b) => a.y - b.y);
+      rlist.forEach((it) => {
+        if (it.isPlayer) { dPlayerGBA(it.ppx, it.ppy - 8, G.pl.d, G.pl.f); return; }
+        dNPC(it.sx, it.sy - 8, it.n.tp, fr);
+        if (nearNPC(it.n)) {
+          cx.fillStyle = '#ffd700'; cx.font = '7px "Press Start 2P"'; cx.textAlign = 'center';
+          cx.fillText(it.n.nm, it.sx + 16, it.sy - 18); cx.textAlign = 'left';
         }
-      }
-    });
+      });
+    }
 
     // Nombre de cueva
     dBox(230, 4, 180, 18);
@@ -5760,22 +5783,26 @@ function drawMap() {
     for (let r = sr; r < er; r++)
       for (let c = sc; c < ec; c++) dTileC(c, r, castMap);
 
-    // NPCs castillo
-    castNpcs.forEach((n) => {
-      if (!npcVisible(n)) return;
-      const sx = n.x * T - cam.x,
-        sy = n.y * T - cam.y;
-      if (sx > -40 && sx < 680) {
-        dNPC(sx, sy - 8, n.tp, fr);
-        if (nearNPC(n)) {
-          cx.fillStyle = '#ffd700';
-          cx.font = '7px "Press Start 2P"';
-          cx.textAlign = 'center';
-          cx.fillText(n.nm, sx + 16, sy - 18);
-          cx.textAlign = 'left';
+    // NPCs castillo (depth-sorted)
+    {
+      const rlist = [];
+      castNpcs.forEach((n) => {
+        if (!npcVisible(n)) return;
+        const sx = n.x * T - cam.x, sy = n.y * T - cam.y;
+        if (sx > -40 && sx < 680) rlist.push({ y: n.y, sx, sy, n });
+      });
+      const ppx = G.pl.x * T - cam.x, ppy = G.pl.y * T - cam.y;
+      rlist.push({ y: G.pl.y, ppx, ppy, isPlayer: true });
+      rlist.sort((a, b) => a.y - b.y);
+      rlist.forEach((it) => {
+        if (it.isPlayer) { dPlayerGBA(it.ppx, it.ppy - 8, G.pl.d, G.pl.f); return; }
+        dNPC(it.sx, it.sy - 8, it.n.tp, fr);
+        if (nearNPC(it.n)) {
+          cx.fillStyle = '#ffd700'; cx.font = '7px "Press Start 2P"'; cx.textAlign = 'center';
+          cx.fillText(it.n.nm, it.sx + 16, it.sy - 18); cx.textAlign = 'left';
         }
-      }
-    });
+      });
+    }
 
     dBox(250, 4, 140, 18);
     cx.fillStyle = '#ffd700';
@@ -5828,10 +5855,12 @@ function drawMap() {
     cx.textAlign = 'left';
   }
 
-  // === JUGADOR ===
-  const ppx = G.pl.x * T - cam.x,
-    ppy = G.pl.y * T - cam.y;
-  dPlayerGBA(ppx, ppy - 8, G.pl.d, G.pl.f);
+  // JUGADOR (mundo/cueva/castillo ya lo dibujaron en depth-sort; torre lo dibuja aquí)
+  if (G.curMap === 'tower') {
+    const ppx = G.pl.x * T - cam.x,
+      ppy = G.pl.y * T - cam.y;
+    dPlayerGBA(ppx, ppy - 8, G.pl.d, G.pl.f);
+  }
 
   // === HUD SUPERIOR ===
   // Info de criatura líder
