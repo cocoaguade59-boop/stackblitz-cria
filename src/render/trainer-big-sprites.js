@@ -32,7 +32,26 @@ function dTrainerBig(x, y, id, f) {
   }
 
   switch (id) {
-    case 'alessandro': // Armadura parcial, rojo/azul, pelo castaño
+    case 'alessandro': // Marco dorado + retrato blanco + sprite de batalla
+      // Recuadro decorativo pixel-art (fondo blanco, borde dorado, sombra)
+      {
+        const fw = 82, fh = 110;
+        const fx = x - fw / 2, fy = by + 50 - fh;
+        // Sombra exterior
+        px(fx + 3, fy + 3, fw, fh, 'rgba(0,0,0,.35)');
+        // Borde exterior oscuro
+        px(fx - 1, fy - 1, fw + 2, fh + 2, '#1A1A2E');
+        // Borde dorado
+        px(fx, fy, fw, fh, '#C8A830');
+        // Interior blanco
+        px(fx + 2, fy + 2, fw - 4, fh - 4, '#F8F8F0');
+        // Esquinas decorativas doradas
+        px(fx + 2, fy + 2, 8, 8, '#E8C840');
+        px(fx + fw - 10, fy + 2, 8, 8, '#E8C840');
+        px(fx + 2, fy + fh - 10, 8, 8, '#A08828');
+        px(fx + fw - 10, fy + fh - 10, 8, 8, '#A08828');
+      }
+      // Pixel-art fallback: Armadura parcial, rojo/azul, pelo castaño
       px(x + 20, by + 60, 10, 8, '#5A3818');
       px(x + 34, by + 60, 10, 8, '#5A3818');
       px(x + 18, by + 44, 14, 18, '#2848A0');
