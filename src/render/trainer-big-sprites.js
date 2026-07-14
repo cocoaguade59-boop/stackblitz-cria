@@ -17,18 +17,18 @@ function dTrainerBig(x, y, id, f) {
   const bob = Math.sin(f * 0.08) * 2,
     by = y + bob;
 
-  // Marco decorativo común a todos los entrenadores de batalla
+  // Marco decorativo común (+25% más grande)
   {
-    const fw = 82, fh = 110;
+    const fw = 102, fh = 138;
     const fx = x - fw / 2, fy = by + 50 - fh;
     px(fx + 3, fy + 3, fw, fh, 'rgba(0,0,0,.35)');
     px(fx - 1, fy - 1, fw + 2, fh + 2, '#1A1A2E');
     px(fx, fy, fw, fh, '#C8A830');
     px(fx + 2, fy + 2, fw - 4, fh - 4, '#F8F8F0');
-    px(fx + 2, fy + 2, 8, 8, '#E8C840');
-    px(fx + fw - 10, fy + 2, 8, 8, '#E8C840');
-    px(fx + 2, fy + fh - 10, 8, 8, '#A08828');
-    px(fx + fw - 10, fy + fh - 10, 8, 8, '#A08828');
+    px(fx + 2, fy + 2, 10, 10, '#E8C840');
+    px(fx + fw - 12, fy + 2, 10, 10, '#E8C840');
+    px(fx + 2, fy + fh - 12, 10, 10, '#A08828');
+    px(fx + fw - 12, fy + fh - 12, 10, 10, '#A08828');
   }
 
   // Si hay sprite PNG en assets/sprites/trainers/<id>.png, úsalo
@@ -37,17 +37,16 @@ function dTrainerBig(x, y, id, f) {
     const img = SPRITE_LOADER.get(trainerKey);
     const prevSmoothing = cx.imageSmoothingEnabled;
     cx.imageSmoothingEnabled = false;
-    // Marco interior: 78x106 (82-4 x 110-4)
-    const maxW = 70, maxH = 98;
+    // Marco interior: 98x134 (102-4 x 138-4)
+    const maxW = 87, maxH = 122;
     const ratio = img.naturalWidth / img.naturalHeight;
     let targetW = maxH * ratio, targetH = maxH;
-    // Si es más ancho que el marco, limitar por ancho
     if (targetW > maxW) { targetW = maxW; targetH = maxW / ratio; }
-    // Posición: centrado horizontal, anclado abajo dentro del marco
-    const fx = x - 41; // x - fw/2 (fw=82)
-    const fy = by + 50 - 110; // by + 50 - fh (fh=110)
-    const drawX = fx + 41 - targetW / 2; // centro del marco
-    const drawY = fy + 108 - targetH; // 2px desde el borde inferior del interior
+    // Posición centrada horizontal, anclada abajo dentro del marco
+    const fx = x - 51; // x - fw/2 (fw=102)
+    const fy = by + 50 - 138; // by + 50 - fh (fh=138)
+    const drawX = fx + 51 - targetW / 2; // centro del marco
+    const drawY = fy + 136 - targetH; // 2px del borde inferior del interior
     cx.drawImage(img, drawX, drawY, targetW, targetH);
     cx.imageSmoothingEnabled = prevSmoothing;
     return;
