@@ -6635,6 +6635,8 @@ function buildBatalladorOpponentList() {
   pairBattleData.forEach((pair) => {
     list.push({ nm: pair.nm, isPair: true, team: [...pair.t1.map((c) => ({ id: c.id, lv: 20 })), ...pair.t2.map((c) => ({ id: c.id, lv: 20 }))] });
   });
+  // Opción sin oponente: explorar el mundo
+  list.push({ nm: 'Sin oponente (explorar el mundo)', _skip: true });
   return list;
 }
 
@@ -6675,20 +6677,35 @@ function uBatalladorSelect() {
   // Fase 2: elegir oponente
   else if (s.phase === 'opponent') {
     const opps = s.opponents || [];
-    if (kp('ArrowUp'))    { s.opponentCursor = (s.opponentCursor + opps.length - 1) % opps.length; sfx.walk(); }
-    if (kp('ArrowDown'))  { s.opponentCursor = (s.opponentCursor + 1) % opps.length; sfx.walk(); }
+    const maxV = 16; // máximo visible en pantalla
+    if (!s.opponentScroll) s.opponentScroll = 0;
+
+    if (kp('ArrowUp')) {
+      s.opponentCursor = (s.opponentCursor + opps.length - 1) % opps.length;
+      // Auto-scroll: mantener cursor visible
+      if (s.opponentCursor < s.opponentScroll) s.opponentScroll = s.opponentCursor;
+      if (s.opponentCursor >= s.opponentScroll + maxV) s.opponentScroll = s.opponentCursor - maxV + 1;
+      sfx.walk();
+    }
+    if (kp('ArrowDown')) {
+      s.opponentCursor = (s.opponentCursor + 1) % opps.length;
+      if (s.opponentCursor < s.opponentScroll) s.opponentScroll = s.opponentCursor;
+      if (s.opponentCursor >= s.opponentScroll + maxV) s.opponentScroll = s.opponentCursor - maxV + 1;
+      sfx.walk();
+    }
     if (kp('x') || kp('Escape')) {
-      // Volver a fase 1
       s.phase = 'creatures';
       s.opponents = null;
       s.opponentCursor = 0;
+      s.opponentScroll = 0;
       sfx.sel();
     }
     if (kp(' ') || kp('Enter')) {
       const opp = opps[s.opponentCursor];
       const ids = s.selected.slice();
       G.batalladorSel = null;
-      enterBatalladorMode(ids, opp);
+      // Si eligió "sin oponente", entrar sin pelear
+      enterBatalladorMode(ids, opp._skip ? null : opp);
       return;
     }
   }
@@ -6772,10 +6789,13 @@ function dBatalladorSelect() {
   // === FASE 2: SELECCIÓN DE OPONENTE ===
   else if (s.phase === 'opponent') {
     const opps = s.opponents || [];
+    const maxV = 16;
+    if (s.opponentScroll === undefined) s.opponentScroll = 0;
+
     cx.fillStyle = '#D8D8E8';
     cx.font = '9px "Press Start 2P"';
     cx.textAlign = 'center';
-    cx.fillText(`Elige tu oponente (nivel 20)`, 320, 46);
+    cx.fillText(`Elige tu oponente (nivel 20) — ${opps.length} disponibles`, 320, 46);
     cx.textAlign = 'left';
 
     // Mostrar equipo seleccionado en mini
@@ -6784,20 +6804,23 @@ function dBatalladorSelect() {
     cx.fillText('Tu equipo: ' + s.selected.map((id) => CDB[id]?.nm || id).slice(0, 6).join(', '), 20, 60);
 
     const startY = 78;
-    opps.forEach((opp, i) => {
-      const py = startY + i * 26;
-      if (py > 430) return;
+    const endIdx = Math.min(opps.length, s.opponentScroll + maxV);
+    for (let i = s.opponentScroll; i < endIdx; i++) {
+      const opp = opps[i];
+      const py = startY + (i - s.opponentScroll) * 24;
       const sel = s.opponentCursor === i;
       if (sel) {
         cx.fillStyle = 'rgba(255,215,0,.12)';
-        cx.fillRect(18, py - 4, 604, 22);
+        cx.fillRect(18, py - 4, 604, 20);
       }
-      cx.fillStyle = sel ? '#ffd700' : '#fff';
+      cx.fillStyle = sel ? '#ffd700' : (opp._skip ? '#A0B0C0' : '#fff');
       cx.font = '7px "Press Start 2P"';
       cx.fillText(`${sel ? '▶ ' : '  '}${opp.nm}`, 30, py + 10);
       // Mostrar criaturas del oponente
       let teamPreview = '';
-      if (opp.fixedTeam) {
+      if (opp._skip) {
+        teamPreview = '(entrar al mapa sin combatir)';
+      } else if (opp.fixedTeam) {
         teamPreview = opp.fixedTeam.map((c) => CDB[c.id]?.nm || c.id).join(', ');
       } else if (opp.team) {
         teamPreview = opp.team.map((c) => CDB[c.id]?.nm || c.id).join(', ');
@@ -6808,8 +6831,17 @@ function dBatalladorSelect() {
       }
       cx.fillStyle = '#888';
       cx.font = '5px "Press Start 2P"';
-      cx.fillText(teamPreview, 36, py + 20);
-    });
+      cx.fillText(teamPreview, 36, py + 18);
+    }
+
+    // Indicador de scroll
+    if (opps.length > maxV) {
+      cx.fillStyle = '#606878';
+      cx.font = '5px "Press Start 2P"';
+      cx.textAlign = 'center';
+      cx.fillText(`↑ ${s.opponentScroll + 1}-${endIdx} de ${opps.length} ↓`, 320, startY + maxV * 24 + 10);
+      cx.textAlign = 'left';
+    }
 
     cx.fillStyle = '#0a0a2e';
     cx.fillRect(0, 440, 640, 40);
