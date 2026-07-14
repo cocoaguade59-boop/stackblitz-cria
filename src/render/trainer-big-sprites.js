@@ -17,41 +17,36 @@ function dTrainerBig(x, y, id, f) {
   const bob = Math.sin(f * 0.08) * 2,
     by = y + bob;
 
+  // Marco decorativo común a todos los entrenadores de batalla
+  {
+    const fw = 82, fh = 110;
+    const fx = x - fw / 2, fy = by + 50 - fh;
+    px(fx + 3, fy + 3, fw, fh, 'rgba(0,0,0,.35)');
+    px(fx - 1, fy - 1, fw + 2, fh + 2, '#1A1A2E');
+    px(fx, fy, fw, fh, '#C8A830');
+    px(fx + 2, fy + 2, fw - 4, fh - 4, '#F8F8F0');
+    px(fx + 2, fy + 2, 8, 8, '#E8C840');
+    px(fx + fw - 10, fy + 2, 8, 8, '#E8C840');
+    px(fx + 2, fy + fh - 10, 8, 8, '#A08828');
+    px(fx + fw - 10, fy + fh - 10, 8, 8, '#A08828');
+  }
+
   // Si hay sprite PNG en assets/sprites/trainers/<id>.png, úsalo
   const trainerKey = 'trainers/' + id;
   if (SPRITE_LOADER.has(trainerKey)) {
     const img = SPRITE_LOADER.get(trainerKey);
     const prevSmoothing = cx.imageSmoothingEnabled;
     cx.imageSmoothingEnabled = false;
-    const targetH = 140;
+    const targetH = 100;
     const ratio = img.naturalWidth / img.naturalHeight;
     const targetW = targetH * ratio;
-    cx.drawImage(img, x - targetW / 2, y + by + 60 - targetH, targetW, targetH);
+    cx.drawImage(img, x - targetW / 2, y + by + 50 - targetH, targetW, targetH);
     cx.imageSmoothingEnabled = prevSmoothing;
     return;
   }
 
   switch (id) {
-    case 'alessandro': // Marco dorado + retrato blanco + sprite de batalla
-      // Recuadro decorativo pixel-art (fondo blanco, borde dorado, sombra)
-      {
-        const fw = 82, fh = 110;
-        const fx = x - fw / 2, fy = by + 50 - fh;
-        // Sombra exterior
-        px(fx + 3, fy + 3, fw, fh, 'rgba(0,0,0,.35)');
-        // Borde exterior oscuro
-        px(fx - 1, fy - 1, fw + 2, fh + 2, '#1A1A2E');
-        // Borde dorado
-        px(fx, fy, fw, fh, '#C8A830');
-        // Interior blanco
-        px(fx + 2, fy + 2, fw - 4, fh - 4, '#F8F8F0');
-        // Esquinas decorativas doradas
-        px(fx + 2, fy + 2, 8, 8, '#E8C840');
-        px(fx + fw - 10, fy + 2, 8, 8, '#E8C840');
-        px(fx + 2, fy + fh - 10, 8, 8, '#A08828');
-        px(fx + fw - 10, fy + fh - 10, 8, 8, '#A08828');
-      }
-      // Pixel-art fallback: Armadura parcial, rojo/azul, pelo castaño
+    case 'alessandro': // Armadura parcial, rojo/azul, pelo castaño
       px(x + 20, by + 60, 10, 8, '#5A3818');
       px(x + 34, by + 60, 10, 8, '#5A3818');
       px(x + 18, by + 44, 14, 18, '#2848A0');
