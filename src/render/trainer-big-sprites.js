@@ -37,13 +37,16 @@ function dTrainerBig(x, y, id, f) {
     const img = SPRITE_LOADER.get(trainerKey);
     const prevSmoothing = cx.imageSmoothingEnabled;
     cx.imageSmoothingEnabled = false;
+    // Interior: 147x201 (153-6 x 207-6). PNG centrado horizontal y verticalmente
     const maxW = 133, maxH = 185;
     const ratio = img.naturalWidth / img.naturalHeight;
     let targetW = maxH * ratio, targetH = maxH;
     if (targetW > maxW) { targetW = maxW; targetH = maxW / ratio; }
     const frameX = x - Math.floor(153 / 2);
     const frameY = by + 50 - 207;
-    cx.drawImage(img, frameX + Math.floor(153 / 2) - targetW / 2, frameY + 204 - targetH, targetW, targetH);
+    const drawX = frameX + Math.floor(153 / 2) - targetW / 2;        // centro horizontal
+    const drawY = frameY + 3 + Math.floor((201 - targetH) / 2);       // centro vertical dentro del interior (147x201 - margen 3px)
+    cx.drawImage(img, drawX, drawY, targetW, targetH);
     cx.imageSmoothingEnabled = prevSmoothing;
     return;
   }
