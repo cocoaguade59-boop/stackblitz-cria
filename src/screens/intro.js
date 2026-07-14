@@ -10,6 +10,7 @@ import { kp } from '../core/input.js';
 import { dNPC } from '../render/npc-sprites.js';
 import { dPlayerGBA } from '../render/player-sprite.js';
 import { dDialogBox, wrapText } from '../render/ui-boxes.js';
+import { px } from '../render/render-utils.js';
 
 // === INTRO TUTORIAL: ALESSANDRO ENTREGA EL INICIAL ===
 const INTRO_LINES = [
@@ -107,6 +108,20 @@ function dIntro() {
 
   // Protagonista al centro de la imagen, mirando hacia Alessandro.
   dPlayerGBA(304, 252, 3, fr);
+
+  // Recuadro blanco con borde pixel-art alrededor del sprite de Alessandro
+  {
+    const fw = 64, fh = 50;
+    const frameX = 288, frameY = it.y - 10;
+    // Sombra exterior
+    px(frameX + 2, frameY + 2, fw, fh, 'rgba(0,0,0,.3)');
+    // Borde oscuro
+    px(frameX - 1, frameY - 1, fw + 2, fh + 2, '#1A1A2E');
+    // Borde dorado
+    px(frameX, frameY, fw, fh, '#C8A830');
+    // Interior blanco
+    px(frameX + 2, frameY + 2, fw - 4, fh - 4, '#F8F8F0');
+  }
 
   // Alessandro se mueve hasta quedar al frente del jugador.
   dNPC(304, it.y, 'alessandro', fr);

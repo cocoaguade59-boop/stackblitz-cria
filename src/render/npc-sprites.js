@@ -28,10 +28,11 @@ function dNPC(x, y, id, f) {
         const prevSmoothing = cx.imageSmoothingEnabled;
         cx.imageSmoothingEnabled = false;
         const img = SPRITE_LOADER.get('npcs/alessandro');
-        const targetH = 40;
+        const targetH = 44;
         const ratio = img.naturalWidth / img.naturalHeight;
         const targetW = targetH * ratio;
-        const ox = x + (32 - targetW) / 2;
+        // Centrar horizontalmente en la casilla de 32px + leve ajuste a la derecha
+        const ox = x + 16 - targetW / 2 + 2;
         cx.drawImage(img, ox, by + 30 - targetH, targetW, targetH);
         cx.imageSmoothingEnabled = prevSmoothing;
         break;
