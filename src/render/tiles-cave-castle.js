@@ -613,75 +613,64 @@ function dTileC(c, r, map) {
       }
       break;
 
-    case 28: // Cristal Vínculo en cueva
+    case 28: // Pin de hallazgo en cueva/torre (negro/rojo) — NO es cristal
       {
         // Suelo base
         const v = (c * 7 + r * 13) % 3;
         cx.fillStyle = ['#3D4455', '#3A4050', '#383E4C'][v];
         cx.fillRect(x, y, T, T);
 
-        // Base rocosa elevada
-        cx.fillStyle = '#404858';
-        cx.fillRect(x + 6, y + 22, 20, 6);
-        cx.fillStyle = '#485060';
-        cx.fillRect(x + 8, y + 20, 16, 4);
-        cx.fillStyle = '#505868';
-        cx.fillRect(x + 10, y + 18, 12, 4);
+        // Base rocosa donde está clavado el pin
+        cx.fillStyle = '#2A3038';
+        cx.fillRect(x + 8, y + 24, 16, 5);
+        cx.fillStyle = '#383E48';
+        cx.fillRect(x + 10, y + 22, 12, 4);
 
-        // Cristal púrpura principal
-        const gl = Math.sin(fr * 0.12) * 0.3 + 0.7;
-        cx.globalAlpha = gl;
-        cx.fillStyle = '#7028D0';
-        cx.fillRect(x + 10, y + 4, 12, 16);
-        cx.fillStyle = '#8838E0';
-        cx.fillRect(x + 12, y + 6, 8, 12);
-        cx.fillStyle = '#A050F0';
-        cx.fillRect(x + 14, y + 8, 4, 8);
+        // Sombra
+        cx.fillStyle = 'rgba(0,0,0,0.35)';
+        cx.fillRect(x + 11, y + 26, 10, 3);
 
-        // Facetas del cristal
-        cx.fillStyle = '#B868F8';
-        cx.fillRect(x + 14, y + 8, 2, 4);
-        cx.fillStyle = '#C880F8';
-        cx.fillRect(x + 15, y + 9, 1, 2);
+        // Asta negra
+        cx.fillStyle = '#08080C';
+        cx.fillRect(x + 14, y + 10, 4, 16);
+        cx.fillStyle = '#1A1A22';
+        cx.fillRect(x + 15, y + 10, 2, 16);
+        // Punta
+        cx.fillStyle = '#050508';
+        cx.fillRect(x + 14, y + 24, 4, 3);
+        cx.fillRect(x + 15, y + 26, 2, 2);
 
-        // Brillo estrella
-        cx.fillStyle = '#E0A8F8';
-        cx.fillRect(x + 14, y + 9, 1, 3);
-        cx.fillRect(x + 13, y + 10, 3, 1);
-        cx.fillStyle = '#fff';
-        cx.fillRect(x + 14, y + 10, 1, 1);
-
-        // Cristales menores
-        cx.fillStyle = '#6020B0';
-        cx.fillRect(x + 6, y + 12, 4, 8);
-        cx.fillRect(x + 22, y + 10, 4, 10);
-        cx.fillStyle = '#7830C0';
-        cx.fillRect(x + 7, y + 14, 2, 4);
-        cx.fillRect(x + 23, y + 12, 2, 6);
-
+        // Cabeza roja del pin
+        const pulse = 0.82 + Math.sin(fr * 0.12) * 0.18;
+        cx.globalAlpha = pulse;
+        cx.fillStyle = '#140408';
+        cx.fillRect(x + 10, y + 5, 12, 10);
+        cx.fillStyle = '#8B1018';
+        cx.fillRect(x + 11, y + 3, 10, 10);
+        cx.fillStyle = '#C81828';
+        cx.fillRect(x + 12, y + 4, 8, 8);
+        cx.fillStyle = '#E83040';
+        cx.fillRect(x + 13, y + 5, 6, 5);
+        cx.fillStyle = '#FF6870';
+        cx.fillRect(x + 14, y + 6, 2, 2);
         cx.globalAlpha = 1;
 
-        // Aura mágica
-        cx.globalAlpha = 0.06 + Math.sin(fr * 0.08) * 0.03;
-        cx.fillStyle = '#A050F0';
-      pixelGlow(x + 16, y + 14, 16, 14);
+        // Anillo negro
+        cx.fillStyle = '#08080C';
+        cx.fillRect(x + 11, y + 11, 10, 2);
+
+        // Aura roja suave (no violeta)
+        cx.globalAlpha = 0.08 + Math.sin(fr * 0.08) * 0.04;
+        cx.fillStyle = '#C81828';
+        pixelGlow(x + 16, y + 10, 14, 12);
         cx.globalAlpha = 1;
 
-        // Destellos
-        if (fr % 24 < 12) {
-          cx.globalAlpha = 0.6;
-          cx.fillStyle = '#E8D0F8';
-          cx.fillRect(x + 6 + Math.sin(fr * 0.1) * 2, y + 4, 2, 2);
-          cx.fillRect(x + 24 + Math.sin(fr * 0.12) * 2, y + 16, 2, 2);
-          cx.globalAlpha = 1;
-        }
-
-        // Partículas flotantes ascendentes
-        if (fr % 16 < 8) {
-          cx.globalAlpha = 0.4;
-          cx.fillStyle = '#C088F0';
-          cx.fillRect(x + 10, y + 2 + Math.sin(fr * 0.05) * 2, 1, 1);
-          cx.fillRect(x + 20, y + 4 + Math.sin(fr * 0.07) * 2, 1, 1);
+        // Destellos rojos
+        if (fr % 22 < 11) {
+          cx.globalAlpha = 0.65;
+          cx.fillStyle = '#FF4050';
+          cx.fillRect(x + 7 + Math.sin(fr * 0.1) * 1, y + 2, 2, 2);
+          cx.fillRect(x + 23, y + 9, 2, 2);
           cx.globalAlpha = 1;
         }
       }

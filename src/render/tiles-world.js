@@ -587,26 +587,54 @@ function dTileW(c, r) {
       }
       break;
 
-    case 10: { // Cristal Vinculo - la base cambia con la altura (nieve)
+    case 10: { // Pin de hallazgo (negro/rojo) — NO es cristal
       const snow = Math.max(0, Math.min(1, (68 - r) / 46));
       cx.fillStyle = lerpColor('#3E8A2A', '#DCE8DC', snow);
       cx.fillRect(x, y, T, T);
       cx.fillStyle = lerpColor('#347A24', '#C8D4C8', snow);
       cx.fillRect(x, y + 24, T, 8);
-      cx.globalAlpha = 0.78 + Math.sin(fr * 0.1) * 0.22;
-      cx.fillStyle = '#7A2FD0'; cx.fillRect(x + 11, y + 6, 10, 18);
-      cx.fillStyle = '#5E1FA8';
-      pixelDiamond(x + 7, y + 6, 8, 18, cx.fillStyle);
-      cx.fillStyle = '#9A4FE0';
-      pixelDiamond(x + 17, y + 6, 8, 18, cx.fillStyle);
-      cx.fillStyle = '#B56CF0';
-      pixelDiamond(x + 11, y - 2, 10, 10, cx.fillStyle);
-      cx.fillStyle = '#E6B8FF'; cx.fillRect(x + 14, y + 9, 3, 12);
+
+      // Sombra del pin en el suelo
+      cx.fillStyle = 'rgba(0,0,0,0.28)';
+      cx.fillRect(x + 10, y + 26, 12, 4);
+
+      // Asta negra
+      cx.fillStyle = '#0A0A0C';
+      cx.fillRect(x + 14, y + 10, 4, 18);
+      cx.fillStyle = '#1A1A20';
+      cx.fillRect(x + 15, y + 10, 2, 18);
+      // Punta clavada
+      cx.fillStyle = '#050508';
+      cx.fillRect(x + 14, y + 26, 4, 3);
+      cx.fillRect(x + 15, y + 28, 2, 2);
+
+      // Cabeza del pin (rombo rojo oscuro / negro)
+      const pulse = 0.85 + Math.sin(fr * 0.12) * 0.15;
+      cx.globalAlpha = pulse;
+      cx.fillStyle = '#1A0508';
+      cx.fillRect(x + 10, y + 6, 12, 10);
+      cx.fillStyle = '#8B1018';
+      cx.fillRect(x + 11, y + 4, 10, 10);
+      cx.fillStyle = '#C81828';
+      cx.fillRect(x + 12, y + 5, 8, 8);
+      cx.fillStyle = '#E83040';
+      cx.fillRect(x + 13, y + 6, 6, 5);
+      // brillo rojo
+      cx.fillStyle = '#FF6870';
+      cx.fillRect(x + 14, y + 7, 2, 2);
       cx.globalAlpha = 1;
-      if (Math.floor(fr / 22) % 2 === 0) {
-        cx.fillStyle = '#FFFFFF';
-        cx.fillRect(x + 7, y + 3, 2, 2);
-        cx.fillRect(x + 23, y + 13, 2, 2);
+
+      // Anillo negro inferior de la cabeza
+      cx.fillStyle = '#0A0A0C';
+      cx.fillRect(x + 11, y + 12, 10, 2);
+
+      // Destello rojo ocasional (no blanco/violeta de cristal)
+      if (Math.floor(fr / 18) % 2 === 0) {
+        cx.globalAlpha = 0.7;
+        cx.fillStyle = '#FF4050';
+        cx.fillRect(x + 8, y + 3, 2, 2);
+        cx.fillRect(x + 22, y + 8, 2, 2);
+        cx.globalAlpha = 1;
       }
       break;
     }
