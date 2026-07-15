@@ -288,6 +288,35 @@ function genWorld() {
   hPath(82, 50, 65);   // conecta la aldea Rodaje al corredor central
 
   // ============================================================
+  // CAMINO DIRECTO STORYBOARD → RODAJE (sin árboles ni agua)
+  // Diagonal escalonada de 3 tiles de ancho desde la salida norte
+  // de Storyboard (col ~42, row ~100) hasta la entrada sur de
+  // Rodaje (col ~54, row ~78).
+  // ============================================================
+  for (let r = 98; r >= 82; r--) {
+    const prog = (98 - r) / 16;
+    const centerC = Math.round(42 + prog * 12);
+    for (let dc = -1; dc <= 1; dc++) {
+      const cc = centerC + dc;
+      if (r >= 2 && r < WR - 2 && cc >= 2 && cc < WC - 2) wMap[r][cc] = 1;
+    }
+    if ((98 - r) % 6 === 0 && r < 97) {
+      for (let side = -1; side <= 1; side += 2) {
+        const tc = centerC + side * 3;
+        if (tc >= 2 && tc < WC - 2 && wMap[r][tc] === 0) wMap[r][tc] = 15;
+      }
+    }
+  }
+  for (let r = 80; r <= 100; r++) {
+    for (let c = 39; c <= 57; c++) {
+      if (r >= 2 && r < WR - 2 && c >= 2 && c < WC - 2) {
+        const t = wMap[r][c];
+        if (t === 2 || t === 3 || t === 7) wMap[r][c] = 0;
+      }
+    }
+  }
+
+  // ============================================================
   // LAGOS - Reposicionados para NO bloquear caminos
   // ============================================================
   [
