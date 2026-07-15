@@ -587,43 +587,52 @@ function dTileW(c, r) {
       }
       break;
 
-    case 10: { // Pin de hallazgo — solo gema roja baja, SIN base negra ni palo
+    case 10: { // Pin de hallazgo — óvalo pixel-art alargado y chato (todos iguales)
       const snow = Math.max(0, Math.min(1, (68 - r) / 46));
       cx.fillStyle = lerpColor('#3E8A2A', '#DCE8DC', snow);
       cx.fillRect(x, y, T, T);
       cx.fillStyle = lerpColor('#347A24', '#C8D4C8', snow);
       cx.fillRect(x, y + 24, T, 8);
 
-      // Sombra suave en el suelo
+      // Sombra ovalada baja
       cx.fillStyle = 'rgba(0,0,0,0.28)';
-      cx.fillRect(x + 10, y + 26, 12, 3);
-      cx.fillRect(x + 12, y + 28, 8, 1);
+      cx.fillRect(x + 8, y + 26, 16, 2);
+      cx.fillRect(x + 10, y + 28, 12, 1);
 
-      // Gema roja baja y compacta (sin plato/base negra)
+      // Óvalo rojo alargado (ancho) y chato (bajo) — misma forma en todos los pines
+      // Filas de 2px: ........########........
+      //               ......############......
+      //               ......############......
+      //               ........########........
       const pulse = 0.85 + Math.sin(fr * 0.12) * 0.15;
       cx.globalAlpha = pulse;
-      // contorno oscuro fino
+      // contorno oscuro
       cx.fillStyle = '#100408';
-      cx.fillRect(x + 12, y + 18, 8, 6);
-      cx.fillRect(x + 13, y + 17, 6, 8);
-      // cuerpo rojo
+      cx.fillRect(x + 10, y + 18, 12, 2); // fila superior
+      cx.fillRect(x + 8, y + 20, 16, 4);  // filas medias
+      cx.fillRect(x + 10, y + 24, 12, 2); // fila inferior
+      // relleno rojo
       cx.fillStyle = '#8B1018';
-      cx.fillRect(x + 13, y + 19, 6, 4);
+      cx.fillRect(x + 11, y + 19, 10, 1);
+      cx.fillRect(x + 9, y + 20, 14, 4);
+      cx.fillRect(x + 11, y + 24, 10, 1);
       cx.fillStyle = '#C81828';
-      cx.fillRect(x + 14, y + 19, 4, 3);
+      cx.fillRect(x + 12, y + 20, 8, 1);
+      cx.fillRect(x + 10, y + 21, 12, 2);
+      cx.fillRect(x + 12, y + 23, 8, 1);
       cx.fillStyle = '#E83040';
-      cx.fillRect(x + 14, y + 20, 3, 2);
+      cx.fillRect(x + 12, y + 21, 8, 2);
       // brillo
       cx.fillStyle = '#FF6870';
-      cx.fillRect(x + 14, y + 18, 2, 2);
+      cx.fillRect(x + 12, y + 20, 3, 1);
       cx.globalAlpha = 1;
 
-      // Destellos rojos bajos
+      // Destellos laterales
       if (Math.floor(fr / 18) % 2 === 0) {
         cx.globalAlpha = 0.7;
         cx.fillStyle = '#FF4050';
-        cx.fillRect(x + 10, y + 18, 2, 2);
-        cx.fillRect(x + 20, y + 21, 2, 2);
+        cx.fillRect(x + 6, y + 20, 2, 2);
+        cx.fillRect(x + 24, y + 22, 2, 2);
         cx.globalAlpha = 1;
       }
       break;

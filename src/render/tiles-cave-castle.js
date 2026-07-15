@@ -613,46 +613,51 @@ function dTileC(c, r, map) {
       }
       break;
 
-    case 28: // Pin de hallazgo en cueva/torre — solo gema roja baja, SIN base negra ni palo
+    case 28: // Pin de hallazgo en cueva/torre — óvalo pixel-art alargado y chato (igual que mundo)
       {
         // Suelo base
         const v = (c * 7 + r * 13) % 3;
         cx.fillStyle = ['#3D4455', '#3A4050', '#383E4C'][v];
         cx.fillRect(x, y, T, T);
 
-        // Sombra baja
+        // Sombra ovalada baja
         cx.fillStyle = 'rgba(0,0,0,0.30)';
-        cx.fillRect(x + 10, y + 26, 12, 3);
-        cx.fillRect(x + 12, y + 28, 8, 1);
+        cx.fillRect(x + 8, y + 26, 16, 2);
+        cx.fillRect(x + 10, y + 28, 12, 1);
 
-        // Gema roja baja y compacta (sin plato/base negra)
+        // Óvalo rojo alargado y chato — misma forma en todos los pines
         const pulse = 0.82 + Math.sin(fr * 0.12) * 0.18;
         cx.globalAlpha = pulse;
         cx.fillStyle = '#100408';
-        cx.fillRect(x + 12, y + 18, 8, 6);
-        cx.fillRect(x + 13, y + 17, 6, 8);
+        cx.fillRect(x + 10, y + 18, 12, 2);
+        cx.fillRect(x + 8, y + 20, 16, 4);
+        cx.fillRect(x + 10, y + 24, 12, 2);
         cx.fillStyle = '#8B1018';
-        cx.fillRect(x + 13, y + 19, 6, 4);
+        cx.fillRect(x + 11, y + 19, 10, 1);
+        cx.fillRect(x + 9, y + 20, 14, 4);
+        cx.fillRect(x + 11, y + 24, 10, 1);
         cx.fillStyle = '#C81828';
-        cx.fillRect(x + 14, y + 19, 4, 3);
+        cx.fillRect(x + 12, y + 20, 8, 1);
+        cx.fillRect(x + 10, y + 21, 12, 2);
+        cx.fillRect(x + 12, y + 23, 8, 1);
         cx.fillStyle = '#E83040';
-        cx.fillRect(x + 14, y + 20, 3, 2);
+        cx.fillRect(x + 12, y + 21, 8, 2);
         cx.fillStyle = '#FF6870';
-        cx.fillRect(x + 14, y + 18, 2, 2);
+        cx.fillRect(x + 12, y + 20, 3, 1);
         cx.globalAlpha = 1;
 
-        // Aura roja suave y baja
+        // Aura roja suave
         cx.globalAlpha = 0.08 + Math.sin(fr * 0.08) * 0.04;
         cx.fillStyle = '#C81828';
-        pixelGlow(x + 16, y + 21, 10, 6);
+        pixelGlow(x + 16, y + 22, 12, 6);
         cx.globalAlpha = 1;
 
-        // Destellos rojos bajos
+        // Destellos laterales
         if (fr % 22 < 11) {
           cx.globalAlpha = 0.65;
           cx.fillStyle = '#FF4050';
-          cx.fillRect(x + 10, y + 18, 2, 2);
-          cx.fillRect(x + 20, y + 21, 2, 2);
+          cx.fillRect(x + 6, y + 20, 2, 2);
+          cx.fillRect(x + 24, y + 22, 2, 2);
           cx.globalAlpha = 1;
         }
       }

@@ -7340,9 +7340,22 @@ function uMenu() {
 /** Input de la pantalla Objetos (inline: toca G.scr / flags). */
 function uObjects() {
   if (!G.os) G.os = { s: 0, scroll: 0 };
-  const rows = buildObjectRows();
-  const n = Math.max(1, rows.length);
-  const VISIBLE = 10;
+  const rows = buildObjectRows(); // solo count >= 1
+  const n = rows.length;
+  const VISIBLE = 8;
+
+  if (n === 0) {
+    if (kp('x') || kp('Escape') || kp(' ') || kp('Enter')) {
+      G.showObjects = false;
+      G.os = null;
+      sfx.sel();
+    }
+    return;
+  }
+
+  // Clamp selección si el inventario se achicó
+  if (G.os.s >= n) G.os.s = n - 1;
+  if (G.os.s < 0) G.os.s = 0;
 
   if (kp('ArrowUp') || kp('ArrowLeft')) {
     G.os.s = (G.os.s + n - 1) % n;
@@ -7356,14 +7369,13 @@ function uObjects() {
   if (G.os.s < G.os.scroll) G.os.scroll = G.os.s;
   if (G.os.s >= G.os.scroll + VISIBLE) G.os.scroll = G.os.s - VISIBLE + 1;
 
-  // SPACE: por ahora solo feedback (activar incienso llega en T6)
+  // SPACE: info / activar incienso
   if (kp(' ') || kp('Enter')) {
     const row = rows[G.os.s];
     if (!row) {
-      aN('Sin objetos.');
+      aN('Mochila vacía.');
       sfx.nef();
-    } else if (row.kind === 'incense' && row.count > 0) {
-      // Prep T6: activar incienso (si no hay uno activo)
+    } else if (row.kind === 'incense') {
       if (G.activeIncense) {
         aN('Tranquilo, no queremos causar un delirio mortal.');
         sfx.nef();
@@ -7376,9 +7388,9 @@ function uObjects() {
           sfx.sel();
         }
       }
-    } else if (row.count <= 0) {
-      aN('No tienes ese objeto.');
-      sfx.nef();
+    } else if (row.kind === 'fragment') {
+      aN('Fabiana puede armar 4 fragmentos en 1 cristal.');
+      sfx.sel();
     } else {
       aN(row.desc || row.name);
       sfx.sel();
