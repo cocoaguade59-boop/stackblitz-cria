@@ -97,6 +97,19 @@ class SFX {
     else if (rarity === 'uncommon') this.findUncommon();
     else this.findCommon();
   }
+  // Cristal armado (Fabiana) — tintineo agudo resonante, distinto de cap()
+  craft() {
+    // campaneo cristalino: armónicos altos con decay largo
+    [1047, 1319, 1568, 2093].forEach((n, i) =>
+      setTimeout(() => this.n(n, 0.35, 'sine', 0.09), i * 90)
+    );
+    setTimeout(() => this.n(2637, 0.5, 'sine', 0.05), 380);
+  }
+  // Fragmentos juntándose (toque suave por cada uno)
+  craftTick() {
+    this.n(880, 0.08, 'sine', 0.05);
+    setTimeout(() => this.n(1175, 0.1, 'sine', 0.04), 40);
+  }
 }
 const sfx = new SFX();
 

@@ -54,6 +54,10 @@ function uDialog() {
       if (d.li >= d.dlgArr.length) {
         // Fin del diálogo → delegar al dispatcher en script.js
         G.ds._finished = true;
+        // Consumir teclas residuales para no saltar la siguiente pantalla
+        G.keys[' '] = false; G.keys['Enter'] = false;
+        G.held[' '] = false; G.held['Enter'] = false;
+        G.kcd[' '] = false; G.kcd['Enter'] = false;
         G.scr = '_dialogDone';
       }
     }

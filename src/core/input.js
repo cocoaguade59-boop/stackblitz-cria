@@ -11,7 +11,10 @@ import { G } from './game-state.js';
 import { sfx } from './audio.js';
 
 function normKey(k) {
-  return typeof k === 'string' && k.length === 1 ? k.toLowerCase() : k;
+  if (typeof k !== 'string') return k;
+  // Playwright / algunos browsers mandan "Space" en vez de " ".
+  if (k === 'Space' || k === 'Spacebar') return ' ';
+  return k.length === 1 ? k.toLowerCase() : k;
 }
 
 document.addEventListener('keydown', (e) => {

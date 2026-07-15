@@ -64,6 +64,10 @@ if (!window.__gs) {
     // Pantalla de inventario de objetos (menú → Objetos)
     showObjects: false,
     os: null, // { s: selection index, scroll }
+    // Fabiana crafting (T5)
+    fabSel: 0,
+    craftSel: 0,
+    craft: null, // { code, phase, tm, ticks, applied }
   };
 }
 

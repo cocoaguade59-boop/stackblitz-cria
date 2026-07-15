@@ -83,6 +83,12 @@ import {
 } from './src/data/pins.js';
 import { dFind } from './src/screens/find.js';
 import { dObjects, buildObjectRows } from './src/screens/objects.js';
+import {
+  dFabianaChoice,
+  dFabianaCraft,
+  dFabianaAnim,
+  craftOptions,
+} from './src/screens/craft.js';
 
 
 // [refactor-game-flags] flags mutables globales importadas
@@ -2012,7 +2018,9 @@ function getFollowerPos() {
 
 // === UTILIDAD: ACERCAMIENTO A NPC ===
 function nearNPC(n) {
-  return Math.abs(G.pl.x - n.x) + Math.abs(G.pl.y - n.y) < 2;
+  const px = Math.round(G.pl.x);
+  const py = Math.round(G.pl.y);
+  return Math.abs(px - n.x) + Math.abs(py - n.y) <= 1;
 }
 
 // === UTILIDAD: TILE ACTUAL DEL JUGADOR ===
@@ -3336,6 +3344,46 @@ function checkNPC(list) {
     if (n.flag === 'metOscar') { showOscarChronicle(n); return; }
     // Piero: Subgrupos
     if (n.flag === 'metPiero') { showPieroChronicle(n); return; }
+
+    // Fabiana (T5): diálogo normal → oferta de crafting
+    if (n.flag === 'metFab') {
+      const dlgArr = getNPCDialog(n);
+      G.scr = 'dialog';
+      G.ds = {
+        npc: n,
+        dlgArr,
+        li: 0,
+        ci: 0,
+        tm: 0,
+        full: false,
+        goto: 'fabianaChoice', // backup sin función (serialización / double-G)
+        _onDialogFinish: () => {
+          const frags = G.frag || { p: 0, c: 0, o: 0 };
+          const total = (frags.p || 0) + (frags.c || 0) + (frags.o || 0);
+          if (total > 0) {
+            G.scr = 'fabianaChoice';
+            G.fabSel = 0;
+          } else {
+            // Sin fragmentos: cierra con un tip
+            G.scr = 'dialog';
+            G.ds = {
+              npc: n,
+              dlgArr: [
+                'Cuando tengas fragmentos,',
+                'traéme 4 del mismo color',
+                'y hacemos arte juntos.',
+              ],
+              li: 0,
+              ci: 0,
+              tm: 0,
+              full: false,
+            };
+          }
+        },
+      };
+      sfx.sel();
+      return;
+    }
     // Obtener diálogo correcto
     // Deyna: mostrar checklist de personas habladas
     if (n.hasChecklist) {
@@ -4091,6 +4139,9 @@ function resetGame(startIntro = false) {
   G.activeIncense = null;
   G.bagUpgrade = false;
   G.find = null;
+  G.fabSel = 0;
+  G.craftSel = 0;
+  G.craft = null;
   G.bWon = 0;
   G.tExp = 0;
   G.mFriend = 0;
@@ -6692,6 +6743,9 @@ function loadGame() {
     G.activeIncense = save.activeIncense || null;
     G.bagUpgrade = !!save.bagUpgrade;
     G.find = null;
+    G.craft = null;
+    G.fabSel = 0;
+    G.craftSel = 0;
 
     // Progreso
     G.talkedTo = save.talkedTo || {};
@@ -7308,6 +7362,132 @@ function uStarter() {
   }
 }
 
+// ============================================================
+// T5: FABIANA CRAFTING (lógica INLINE por bug double-G)
+// ============================================================
+
+function uFabianaChoice() {
+  if (kp('ArrowUp') || kp('ArrowDown') || kp('ArrowLeft') || kp('ArrowRight')) {
+    G.fabSel = (G.fabSel + 1) % 2;
+    sfx.sel();
+  }
+  if (kp(' ') || kp('Enter')) {
+    sfx.sel();
+    if (G.fabSel === 0) {
+      // Sí → mini pantalla de crafting
+      G.scr = 'fabianaCraft';
+      G.craftSel = 0;
+    } else {
+      // No
+      G.scr = 'dialog';
+      G.ds = {
+        npc: { nm: 'Fabiana' },
+        dlgArr: ['Está bien, cuando quieras', 'hacer arte, acá estoy.'],
+        li: 0,
+        ci: 0,
+        tm: 0,
+        full: false,
+      };
+    }
+  }
+  if (kp('x') || kp('Escape')) {
+    G.scr = 'world';
+    sfx.sel();
+  }
+}
+
+function uFabianaCraft() {
+  const opts = craftOptions();
+  const n = opts.length;
+  if (kp('ArrowUp') || kp('ArrowLeft')) {
+    G.craftSel = (G.craftSel + n - 1) % n;
+    sfx.sel();
+  }
+  if (kp('ArrowDown') || kp('ArrowRight')) {
+    G.craftSel = (G.craftSel + 1) % n;
+    sfx.sel();
+  }
+  if (kp(' ') || kp('Enter')) {
+    const opt = opts[G.craftSel];
+    if (!opt || !opt.can) {
+      aN(`Necesitas 4 ${opt ? opt.fragLabel : 'fragmentos'}.`);
+      sfx.nef();
+    } else {
+      // Consumir 4 fragmentos y empezar animación
+      if (!G.frag) G.frag = emptyFragments();
+      G.frag[opt.code] = Math.max(0, (G.frag[opt.code] || 0) - 4);
+      // Sumar cristal al inventario al REVEAL (no antes) para que el
+      // "obtuviste" se sienta al final. Guardamos pending en G.craft.
+      G.craft = {
+        code: opt.code,
+        phase: 'gather', // gather → flash → reveal
+        tm: 0,
+        ticks: 0, // cuántos fragmentos ya "sonaron"
+        applied: false,
+      };
+      G.scr = 'fabianaAnim';
+      sfx.sel();
+    }
+  }
+  if (kp('x') || kp('Escape')) {
+    G.scr = 'world';
+    sfx.sel();
+  }
+}
+
+function uFabianaAnim() {
+  const c = G.craft;
+  if (!c) {
+    G.scr = 'world';
+    return;
+  }
+  c.tm++;
+
+  // gather: ~ 4*28 + 50 ≈ 162 frames (~2.7s a 60fps) — acortamos un poco
+  if (c.phase === 'gather') {
+    // sfx tick al "aparecer" cada fragmento
+    const nextTickAt = c.ticks * 28;
+    if (c.ticks < 4 && c.tm >= nextTickAt) {
+      sfx.craftTick();
+      c.ticks++;
+    }
+    // cuando los 4 llegaron al centro (último start 84 + 50)
+    if (c.tm > 140) {
+      c.phase = 'flash';
+      c.tm = 0;
+      sfx.craft();
+    }
+  } else if (c.phase === 'flash') {
+    if (c.tm > 28) {
+      c.phase = 'reveal';
+      c.tm = 0;
+      // Aplicar cristal al inventario
+      if (!c.applied) {
+        const info = CRYSTAL_INFO[c.code];
+        if (info) {
+          G[info.key] = (G[info.key] || 0) + 1;
+        }
+        c.applied = true;
+        const colorName =
+          c.code === 'p' ? 'Morado' : c.code === 'c' ? 'Cian' : 'Naranja';
+        aN(`¡Cristal ${colorName} creado!`);
+      }
+    }
+  } else if (c.phase === 'reveal') {
+    // SPACE para salir (o auto a ~4s total)
+    if (c.tm > 40 && (kp(' ') || kp('Enter') || kp('x') || kp('Escape'))) {
+      G.craft = null;
+      G.scr = 'world';
+      sfx.sel();
+    }
+    // auto-close suave tras ~3s de reveal
+    if (c.tm > 200) {
+      G.craft = null;
+      G.scr = 'world';
+    }
+  }
+}
+
 // Menú: 10 opciones (Poción…Objetos…Reiniciar). Inline por bug double-G.
 const MENU_COUNT = 10;
 
@@ -7456,7 +7636,13 @@ function update() {
       {
         const d = G.ds || {};
         // ¿callback personalizado?
-        if (d._onDialogFinish) { d._onDialogFinish(d); break; }
+        if (typeof d._onDialogFinish === 'function') { d._onDialogFinish(d); break; }
+        // Fabiana crafting (backup si el callback no viajó)
+        if (d.goto === 'fabianaChoice') {
+          G.scr = 'fabianaChoice';
+          G.fabSel = 0;
+          break;
+        }
         // ¿Edison con opciones?
         if (d.isEdison && postGame && !pairBattles) { showEdisonChoice(); break; }
         // Pantallas especiales de líderes (quiz / chismes)
@@ -7505,6 +7691,15 @@ function update() {
       break;
     case 'batalladorSelect':
       uBatalladorSelect();
+      break;
+    case 'fabianaChoice':
+      uFabianaChoice();
+      break;
+    case 'fabianaCraft':
+      uFabianaCraft();
+      break;
+    case 'fabianaAnim':
+      uFabianaAnim();
       break;
   }
 }
@@ -7576,6 +7771,17 @@ function draw() {
       break;
     case 'batalladorSelect':
       dBatalladorSelect();
+      break;
+    case 'fabianaChoice':
+      drawMap();
+      dFabianaChoice();
+      break;
+    case 'fabianaCraft':
+      drawMap();
+      dFabianaCraft();
+      break;
+    case 'fabianaAnim':
+      dFabianaAnim();
       break;
   }
 }
