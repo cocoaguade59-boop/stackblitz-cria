@@ -587,58 +587,43 @@ function dTileW(c, r) {
       }
       break;
 
-    case 10: { // Pin de hallazgo (negro/rojo) — plato/gema pegado al suelo, SIN palo
+    case 10: { // Pin de hallazgo — solo gema roja baja, SIN base negra ni palo
       const snow = Math.max(0, Math.min(1, (68 - r) / 46));
       cx.fillStyle = lerpColor('#3E8A2A', '#DCE8DC', snow);
       cx.fillRect(x, y, T, T);
       cx.fillStyle = lerpColor('#347A24', '#C8D4C8', snow);
       cx.fillRect(x, y + 24, T, 8);
 
-      // Sombra baja pegada al suelo (sin asta)
-      cx.fillStyle = 'rgba(0,0,0,0.32)';
-      cx.fillRect(x + 8, y + 26, 16, 3);
-      cx.fillRect(x + 10, y + 28, 12, 2);
+      // Sombra suave en el suelo
+      cx.fillStyle = 'rgba(0,0,0,0.28)';
+      cx.fillRect(x + 10, y + 26, 12, 3);
+      cx.fillRect(x + 12, y + 28, 8, 1);
 
-      // Plato / engaste negro bajo, casi en el piso (y≈20–26)
-      cx.fillStyle = '#0A0A0C';
-      cx.fillRect(x + 8, y + 22, 16, 5);
-      cx.fillStyle = '#1A1214';
-      cx.fillRect(x + 9, y + 21, 14, 4);
-      cx.fillStyle = '#2A1818';
-      cx.fillRect(x + 10, y + 22, 12, 2);
-      // borde superior del plato
-      cx.fillStyle = '#0A0A0C';
-      cx.fillRect(x + 9, y + 20, 14, 2);
-
-      // Gema roja compacta sentada EN el plato (no flota, no hay palo)
+      // Gema roja baja y compacta (sin plato/base negra)
       const pulse = 0.85 + Math.sin(fr * 0.12) * 0.15;
       cx.globalAlpha = pulse;
-      // contorno negro del plato/gema
+      // contorno oscuro fino
       cx.fillStyle = '#100408';
-      cx.fillRect(x + 11, y + 14, 10, 8);
-      cx.fillRect(x + 12, y + 13, 8, 10);
+      cx.fillRect(x + 12, y + 18, 8, 6);
+      cx.fillRect(x + 13, y + 17, 6, 8);
       // cuerpo rojo
       cx.fillStyle = '#8B1018';
-      cx.fillRect(x + 12, y + 15, 8, 6);
+      cx.fillRect(x + 13, y + 19, 6, 4);
       cx.fillStyle = '#C81828';
-      cx.fillRect(x + 13, y + 16, 6, 4);
+      cx.fillRect(x + 14, y + 19, 4, 3);
       cx.fillStyle = '#E83040';
-      cx.fillRect(x + 14, y + 16, 4, 3);
+      cx.fillRect(x + 14, y + 20, 3, 2);
       // brillo
       cx.fillStyle = '#FF6870';
-      cx.fillRect(x + 14, y + 15, 2, 2);
+      cx.fillRect(x + 14, y + 18, 2, 2);
       cx.globalAlpha = 1;
-
-      // Anillo negro del engaste (separador plato/gema, NO asta vertical)
-      cx.fillStyle = '#0A0A0C';
-      cx.fillRect(x + 11, y + 20, 10, 2);
 
       // Destellos rojos bajos
       if (Math.floor(fr / 18) % 2 === 0) {
         cx.globalAlpha = 0.7;
         cx.fillStyle = '#FF4050';
-        cx.fillRect(x + 8, y + 14, 2, 2);
-        cx.fillRect(x + 22, y + 17, 2, 2);
+        cx.fillRect(x + 10, y + 18, 2, 2);
+        cx.fillRect(x + 20, y + 21, 2, 2);
         cx.globalAlpha = 1;
       }
       break;
