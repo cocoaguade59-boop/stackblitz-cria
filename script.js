@@ -2802,8 +2802,8 @@ function uWorld() {
     }
   }
 
-  // Acción
-  if (kp(' ')) {
+  // Acción (SPACE o ENTER para hablar / recoger pin)
+  if (kp(' ') || kp('Enter')) {
     if (tryCollectPin()) return;
     if (checkRouteSign()) return;
     if (G.supervisor) {
