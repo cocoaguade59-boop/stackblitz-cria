@@ -370,8 +370,13 @@ function genWorld() {
   // Bancos, faroles, estatuas y cercas en rutas.
   addRouteDecorations();
 
+  // Pines del mundo (antes cristales tile 10).
+  // Se colocan aquí en la gen inicial; al reentrar el mapa se re-sortean
+  // desde pin-system.respawnWorldPins().
   let cv2 = 0;
-  while (cv2 < 45) {
+  let pinAttempts = 0;
+  while (cv2 < 45 && pinAttempts < 2000) {
+    pinAttempts++;
     const c = 4 + Math.floor(Math.random() * (WC - 8));
     const r = 4 + Math.floor(Math.random() * (WR - 8));
     if (wMap[r][c] === 0) {
@@ -759,7 +764,8 @@ function genCave(map, cols, rows) {
     map[ay][ax + 1] = 23;
   }
 
-  // === CRISTALES VÍNCULO (capturables) ===
+  // === PINES (antes cristales vínculo capturables) ===
+  // Tile 28: pin sólido, se recoge con SPACE. Reaparecen al reentrar.
   let cp = 0;
   let attempts = 0;
   while (cp < 5 && attempts < 100) {

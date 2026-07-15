@@ -77,6 +77,26 @@ class SFX {
       setTimeout(() => this.n(n, 0.4, 'sawtooth', 0.08), i * 250)
     );
   }
+  // Hallazgo de pin — rareza: common / uncommon / rare
+  findCommon() {
+    this.n(330, 0.12, 'sine', 0.08);
+    setTimeout(() => this.n(440, 0.18, 'sine', 0.07), 80);
+  }
+  findUncommon() {
+    this.n(392, 0.12, 'square', 0.08);
+    setTimeout(() => this.n(523, 0.14, 'square', 0.08), 90);
+    setTimeout(() => this.n(659, 0.18, 'sine', 0.07), 180);
+  }
+  findRare() {
+    [523, 659, 784, 1047].forEach((n, i) =>
+      setTimeout(() => this.n(n, 0.22, 'square', 0.1), i * 110)
+    );
+  }
+  find(rarity = 'common') {
+    if (rarity === 'rare') this.findRare();
+    else if (rarity === 'uncommon') this.findUncommon();
+    else this.findCommon();
+  }
 }
 const sfx = new SFX();
 

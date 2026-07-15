@@ -1,6 +1,7 @@
 // Pantalla de tienda (David-O).
-// Compra de pociones, revivir y cristales con descuento por amistad.
+// Compra de pociones, revivir y cristales (morado/cian/naranja) con descuento por amistad.
 // También permite combatir contra David-O para subir amistad.
+// (Página de Inciensos se agrega en T6.)
 
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';
@@ -9,6 +10,7 @@ import { sfx } from '../core/audio.js';
 import { fr } from '../core/frame.js';
 import { dBoxMenu } from '../render/ui-boxes.js';
 import { aN } from '../utils/particles.js';
+import { SHOP_CRYSTALS } from '../data/pins.js';
 
 const shopLore = [
   'Flameye nació de una hoguera olvidada.',
@@ -27,6 +29,35 @@ const shopLore = [
 let _startBattle = null;
 function setShopBattleStarter(fn) { _startBattle = fn; }
 
+function shopDisc() {
+  if (G.mFriend < 3) return 0;
+  if (G.mFriend < 6) return 10;
+  if (G.mFriend < 10) return 20;
+  if (G.mFriend < 15) return 30;
+  return 40;
+}
+
+function shopStars() {
+  if (G.mFriend < 3) return 1;
+  if (G.mFriend < 6) return 2;
+  if (G.mFriend < 10) return 3;
+  if (G.mFriend < 15) return 4;
+  return 5;
+}
+
+function buyItems() {
+  return [
+    { nm: '🧪 Poción', base: 30, key: 'pot', desc: 'Cura 20% HP' },
+    { nm: '❤️ Revivir', base: 80, key: 'rev', desc: 'Revive con 50% HP' },
+    ...SHOP_CRYSTALS.map((c) => ({
+      nm: c.nm,
+      base: c.base,
+      key: c.key,
+      desc: c.desc,
+    })),
+  ];
+}
+
 function uShop() {
   const s = G.ss;
   if (s.page === 'main') {
@@ -40,16 +71,20 @@ function uShop() {
     }
     if (kp(' ') || kp('Enter')) {
       sfx.sel();
-      if (s.s === 0) s.page = 'buy';
-      else if (s.s === 1) {
-        if (_startBattle) _startBattle({
-          nm: 'David-O',
-          tp: 'davido',
-          shop: true,
-          isMerch: true,
-          battleIntro: ['¡Combatamos, amigo!'],
-          fixedTeam: [{ id: 'pinzardo' }, { id: 'thornbuck' }],
-        });
+      if (s.s === 0) {
+        s.page = 'buy';
+        s.s = 0;
+      } else if (s.s === 1) {
+        if (_startBattle) {
+          _startBattle({
+            nm: 'David-O',
+            tp: 'davido',
+            shop: true,
+            isMerch: true,
+            battleIntro: ['¡Combatamos, amigo!'],
+            fixedTeam: [{ id: 'pinzardo' }, { id: 'thornbuck' }],
+          });
+        }
         return;
       } else {
         shopExitDialog();
@@ -61,21 +96,8 @@ function uShop() {
       return;
     }
   } else {
-    const disc =
-      G.mFriend < 3
-        ? 0
-        : G.mFriend < 6
-        ? 10
-        : G.mFriend < 10
-        ? 20
-        : G.mFriend < 15
-        ? 30
-        : 40;
-    const items = [
-      { nm: 'Poción', base: 30, key: 'pot', icon: '🧪' },
-      { nm: 'Revivir', base: 80, key: 'rev', icon: '❤️' },
-      { nm: 'Cristal V.', base: 50, key: 'crv', icon: '💎' },
-    ];
+    const disc = shopDisc();
+    const items = buyItems();
     if (kp('ArrowUp')) {
       s.s = (s.s + items.length - 1) % items.length;
       sfx.sel();
@@ -89,10 +111,12 @@ function uShop() {
       const price = Math.floor(it.base * (1 - disc / 100));
       if (G.gold >= price) {
         G.gold -= price;
-        G[it.key]++;
+        G[it.key] = (G[it.key] || 0) + 1;
         sfx.sel();
         aN(`Compraste ${it.nm}!`);
-      } else aN('¡Sin oro!');
+      } else {
+        aN('¡Sin oro!');
+      }
     }
     if (kp('x') || kp('Escape')) {
       s.page = 'main';
@@ -120,26 +144,8 @@ function dShop() {
   cx.fillRect(0, 0, 640, 480);
   dBoxMenu(120, 15, 400, 450, 'Tienda David-O');
   const s = G.ss;
-  const stars =
-    G.mFriend < 3
-      ? 1
-      : G.mFriend < 6
-      ? 2
-      : G.mFriend < 10
-      ? 3
-      : G.mFriend < 15
-      ? 4
-      : 5;
-  const disc =
-    stars === 1
-      ? 0
-      : stars === 2
-      ? 10
-      : stars === 3
-      ? 20
-      : stars === 4
-      ? 30
-      : 40;
+  const stars = shopStars();
+  const disc = shopDisc();
 
   // Amistad
   cx.fillStyle = '#ffd700';
@@ -162,54 +168,45 @@ function dShop() {
       cx.font = '9px "Press Start 2P"';
       cx.fillText(`${s.s === i ? '▶ ' : '  '}${o}`, 150, 120 + i * 40);
     });
-    // Descripción de opción seleccionada
     cx.fillStyle = '#888';
     cx.font = '6px "Press Start 2P"';
     const descs = [
-      'Compra pociones, revivir y cristales',
+      'Pociones, revivir y cristales (3 rarezas)',
       'Combate para subir amistad',
       'Volver al mundo',
     ];
     cx.fillText(descs[s.s], 150, 250);
   } else {
-    const disc2 =
-      G.mFriend < 3
-        ? 0
-        : G.mFriend < 6
-        ? 10
-        : G.mFriend < 10
-        ? 20
-        : G.mFriend < 15
-        ? 30
-        : 40;
-    const items = [
-      { nm: '🧪 Poción', base: 30, desc: 'Cura 20% HP' },
-      { nm: '❤️ Revivir', base: 80, desc: 'Revive con 50% HP' },
-      { nm: '💎 Cristal V.', base: 50, desc: 'Para capturar criaturas' },
-    ];
+    const disc2 = shopDisc();
+    const items = buyItems();
     items.forEach((it, i) => {
       const price = Math.floor(it.base * (1 - disc2 / 100));
+      const y = 105 + i * 36;
       cx.fillStyle = s.s === i ? '#ffd700' : '#fff';
-      cx.font = '8px "Press Start 2P"';
-      cx.fillText(`${s.s === i ? '▶ ' : '  '}${it.nm}`, 150, 110 + i * 40);
+      cx.font = '7px "Press Start 2P"';
+      cx.fillText(`${s.s === i ? '▶ ' : '  '}${it.nm}`, 140, y);
       cx.fillStyle = '#aaa';
-      cx.fillText(`${price}G`, 400, 110 + i * 40);
-      // Descripción
+      cx.fillText(`${price}G`, 430, y);
       if (s.s === i) {
         cx.fillStyle = '#888';
-        cx.font = '6px "Press Start 2P"';
-        cx.fillText(it.desc, 170, 110 + i * 40 + 14);
+        cx.font = '5px "Press Start 2P"';
+        cx.fillText(it.desc, 160, y + 12);
       }
     });
     // Inventario actual
     cx.fillStyle = '#fff';
-    cx.font = '7px "Press Start 2P"';
-    cx.fillText(`Inventario:`, 150, 260);
+    cx.font = '6px "Press Start 2P"';
+    cx.fillText('Inventario:', 140, 310);
     cx.fillStyle = '#aaa';
-    cx.fillText(`🧪${G.pot}  ❤${G.rev}  💎${G.crv}  💰${G.gold}`, 150, 278);
+    cx.fillText(
+      `🧪${G.pot} ❤${G.rev} 💎${G.crv || 0} 💠${G.crvC || 0} 🔶${G.crvO || 0}`,
+      140,
+      328
+    );
+    cx.fillText(`💰${G.gold}  📜${G.scrolls || 0}`, 140, 344);
     cx.fillStyle = '#888';
     cx.font = '6px "Press Start 2P"';
-    cx.fillText('X: Volver', 150, 300);
+    cx.fillText('X: Volver', 140, 370);
   }
 }
 

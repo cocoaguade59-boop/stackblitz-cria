@@ -12,7 +12,21 @@ if (!window.__gs) {
     gold: 200,
     pot: 5,
     rev: 2,
+    // Cristales armados (morado / cian / naranja)
     crv: 3,
+    crvC: 0,
+    crvO: 0,
+    // Fragmentos: 4 del mismo color = 1 cristal (Fabiana / mochila)
+    frag: { p: 0, c: 0, o: 0 },
+    // Pergaminos de Batalla (Hernán tutor)
+    scrolls: 0,
+    // Fragancias e inciensos (David-O / inventario)
+    fragrances: { picante: 0, dulce: 0, salada: 0, amarga: 0, saludable: 0 },
+    incense: { picante: 0, dulce: 0, salada: 0, amarga: 0, saludable: 0 },
+    // Incienso activo: { type, stepsLeft } o null
+    activeIncense: null,
+    // Mejora de mochila (Claudia) — crafting portátil
+    bagUpgrade: false,
     bWon: 0,
     tExp: 0,
     mFriend: 0,
@@ -37,6 +51,7 @@ if (!window.__gs) {
     ds: null,
     ms: null,
     ss: null,
+    find: null, // pantalla de hallazgo de pin { loot, label, rarity }
     talkedTo: {},
     allTalked: false,
     bossTeam: null,

@@ -106,8 +106,16 @@ function dMenu() {
     cx.fillText(`${G.ms.s === i ? '▶ ' : '  '}${o}`, 34, 48 + i * 28);
   });
   cx.fillStyle = '#aaa';
-  cx.font = '6px "Press Start 2P"';
-  cx.fillText(`🧪${G.pot} 💎${G.crv} ❤${G.rev} 💰${G.gold}`, 34, 314);
+  cx.font = '5px "Press Start 2P"';
+  cx.fillText(`🧪${G.pot} ❤${G.rev} 💰${G.gold}`, 34, 300);
+  cx.fillText(
+    `💎${G.crv || 0} 💠${G.crvC || 0} 🔶${G.crvO || 0} 📜${G.scrolls || 0}`,
+    34,
+    314
+  );
+  const fr = G.frag || { p: 0, c: 0, o: 0 };
+  cx.fillStyle = '#777';
+  cx.fillText(`Frag ${fr.p}/${fr.c}/${fr.o}`, 34, 328);
 
   dBoxMenu(220, 16, 410, 450, 'EQUIPO');
   if (G.party.length === 0) {

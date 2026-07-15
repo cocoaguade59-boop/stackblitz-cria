@@ -62,6 +62,26 @@ import {
 } from './src/core/world-constants.js';
 
 import { genWorld, genCave, addOloSecretChamber, genCastle } from './src/world/map-generator.js';
+import {
+  setTowerMapGetter,
+  respawnPinsForMap,
+  removePinAt,
+  isPinTile,
+  isCaveLikeMap,
+} from './src/world/pin-system.js';
+import {
+  CRYSTAL_INFO,
+  rollPinLoot,
+  emptyFragrances,
+  emptyFragments,
+  totalCrystals,
+  hasAnyCrystal,
+  crystalCount,
+  spendCrystal,
+  applyLootToInventory,
+  lootRarity,
+} from './src/data/pins.js';
+import { dFind } from './src/screens/find.js';
 
 
 // [refactor-game-flags] flags mutables globales importadas
@@ -268,6 +288,8 @@ function solidW(c, r) {
   // Torre cerrada es sólida
   if (t === 2 || t === 3 || t === 7) return true;
   if (t === 4) return true;
+  // Pin de hallazgo (antes cristal): sólido, se recoge con SPACE
+  if (t === 10) return true;
   // Decoración sólida del mundo: puestos, estatuas, cercas, cajas, pozos, muñecos y cámara/set.
   if ([18, 19, 20, 21, 22, 23, 25, 27].includes(t)) return true;
   if (t === 13) return true;
@@ -281,10 +303,84 @@ function solidW(c, r) {
 function solidC(c, r, map, cols, rows) {
   if (c < 0 || c >= cols || r < 0 || r >= rows) return true;
   const t = map[r][c];
-  // Solo paredes, agua subterránea, lava y puerta bloqueada son sólidos
-  // Tiles 27,28,33 NO son sólidos (salidas y cristales)
-  // Tile 34 = puerta bloqueada del rey (sólida hasta derrotar a Yam)
-  return t === 21 || t === 23 || t === 24 || t === 29 || t === 31 || t === 34;
+  // Paredes, agua subterránea, lava, puerta bloqueada y PINES (28) son sólidos.
+  // Tile 27/33 NO son sólidos (salidas). Tile 34 = puerta del rey.
+  // Los pines (28) se recogen con SPACE, no al pisar.
+  return t === 21 || t === 23 || t === 24 || t === 28 || t === 29 || t === 31 || t === 34;
+}
+
+// === PINES / HALLAZGOS (T3+T4) ===
+function facingTile() {
+  const c = Math.round(G.pl.x);
+  const r = Math.round(G.pl.y);
+  let dc = 0,
+    dr = 0;
+  // d: 0=abajo, 1=derecha, 2=izquierda, 3=arriba
+  if (G.pl.d === 0) dr = 1;
+  else if (G.pl.d === 1) dc = 1;
+  else if (G.pl.d === 2) dc = -1;
+  else if (G.pl.d === 3) dr = -1;
+  return { c: c + dc, r: r + dr };
+}
+
+function tileAt(mapName, c, r) {
+  if (mapName === 'world') return wMap[r]?.[c];
+  if (mapName === 'cave1') return cave1[r]?.[c];
+  if (mapName === 'cave2') return cave2[r]?.[c];
+  if (mapName === 'castle') return castMap[r]?.[c];
+  if (mapName === 'tower') return towerMap[r]?.[c];
+  return null;
+}
+
+function enterMap(mapName, opts = {}) {
+  const prev = G.curMap;
+  G.curMap = mapName;
+  if (opts.x != null) G.pl.x = opts.x;
+  if (opts.y != null) G.pl.y = opts.y;
+  if (opts.d != null) G.pl.d = opts.d;
+  G.pl.stepTarget = null;
+  G.pl.moving = false;
+  // Al entrar a un mapa (desde otro), reaparecen los pines en posiciones nuevas.
+  if (prev !== mapName) {
+    respawnPinsForMap(mapName);
+  }
+  if (opts.camCols != null && opts.camRows != null) {
+    updateCamera(opts.camCols, opts.camRows);
+  }
+}
+
+function showPinFind(loot) {
+  const label = applyLootToInventory(G, loot);
+  const rarity = lootRarity(loot);
+  G.find = { loot, label, rarity };
+  G.scr = 'find';
+  sfx.find(rarity);
+  aN(`+${label}`);
+}
+
+/** Intenta recoger un pin en la casilla mirando. true si se recogió. */
+function tryCollectPin() {
+  const { c, r } = facingTile();
+  const mapName = G.curMap;
+  const tile = tileAt(mapName, c, r);
+  if (!isPinTile(mapName, tile)) return false;
+  if (!removePinAt(mapName, c, r)) return false;
+  const loot = rollPinLoot(isCaveLikeMap(mapName));
+  showPinFind(loot);
+  return true;
+}
+
+function uFind() {
+  const v = G.find;
+  if (!v) {
+    G.scr = 'world';
+    return;
+  }
+  if (kp(' ') || kp('Enter') || kp('x') || kp('Escape')) {
+    G.find = null;
+    G.scr = 'world';
+    sfx.sel();
+  }
 }
 
 // === GENERACIÓN DE TORRE (mapa especial post-game) ===
@@ -2589,13 +2685,14 @@ function uWorld() {
     if (wMap[etr - 1]?.[etc] === 9) {
       G.prevPos = { x: G.pl.x, y: G.pl.y };
       G.caveReturnPos = { x: G.pl.x, y: G.pl.y };
-      G.curMap = etc <= 40 ? 'cave1' : 'cave2';
-      G.pl.x = Math.floor(CC / 2);
-      G.pl.y = CR - 3;
-      G.pl.d = 3;
-      G.pl.stepTarget = null;
-      G.pl.moving = false;
-      updateCamera(CC, CR);
+      const caveName = etc <= 40 ? 'cave1' : 'cave2';
+      enterMap(caveName, {
+        x: Math.floor(CC / 2),
+        y: CR - 3,
+        d: 3,
+        camCols: CC,
+        camRows: CR,
+      });
       aN(etc <= 40 ? 'Cueva Volcánica...' : 'Cueva Cristalina...');
       return;
     }
@@ -2623,26 +2720,23 @@ function uWorld() {
       if (!G.supervisor && nearWater && Math.random() < 0.0088) startWild('water');
     }
 
-    // Cristal Vínculo
-    if (tile === 10) {
-      wMap[tr][tc] = 0;
-      G.crv += 2;
-      sfx.cap();
-      aN('+2 Cristales Vínculo!');
-    }
+    // (T3) Los pines ya NO se recogen al pisar: son sólidos y se abren con SPACE.
 
-    // Entrada cueva
-    // === ENTRADA A CUEVA (empujar ↑ contra la puerta) ===
+    // Entrada cueva (fallback legacy por si el paso aterriza raro)
     if (kh('ArrowUp')) {
       const etc = Math.floor(G.pl.x),
         etr = Math.floor(G.pl.y);
       if (wMap[etr - 1]?.[etc] === 9 && G.pl.y - etr < 0.4) {
-        G.prevPos = { x: G.pl.x, y: G.pl.y }; // Guarda: un bloque abajo de la entrada
-        G.curMap = etc <= 40 ? 'cave1' : 'cave2';
-        G.pl.x = Math.floor(CC / 2);
-        G.pl.y = CR - 3; // Un bloque adelante de la salida interna
-        G.pl.d = 3; // Mirando hacia el interior
-        updateCamera(CC, CR);
+        G.prevPos = { x: G.pl.x, y: G.pl.y };
+        G.caveReturnPos = { x: G.pl.x, y: G.pl.y };
+        const caveName = etc <= 40 ? 'cave1' : 'cave2';
+        enterMap(caveName, {
+          x: Math.floor(CC / 2),
+          y: CR - 3,
+          d: 3,
+          camCols: CC,
+          camRows: CR,
+        });
         aN(etc <= 40 ? 'Cueva Volcánica...' : 'Cueva Cristalina...');
         return;
       }
@@ -2650,12 +2744,14 @@ function uWorld() {
 
     // Puerta del castillo
     if (tile === 11) {
-      // Modo supervisor/batallador: acceso libre para testing
       if (G.supervisor || G.batallador || (G.allTalked && G.allCaught)) {
         G.prevPos = { x: G.pl.x, y: G.pl.y };
-        G.curMap = 'castle';
-        G.pl.x = 15;
-        G.pl.y = KR - 3;
+        enterMap('castle', {
+          x: 15,
+          y: KR - 3,
+          camCols: KC,
+          camRows: KR,
+        });
         aN(G.supervisor ? 'Castillo (Supervisor)' : G.batallador ? 'Castillo (Batallador)' : '¡Castillo Real!');
       } else {
         G.scr = 'dialog';
@@ -2673,12 +2769,14 @@ function uWorld() {
 
     // Torre Presupuesto Aprobado
     if (tile === 12) {
-      // Modo supervisor/batallador: acceso libre para testing
       if (G.supervisor || G.batallador || towerOpen) {
         G.prevPos = { x: G.pl.x, y: G.pl.y };
-        G.curMap = 'tower';
-        G.pl.x = Math.floor(TWC / 2);
-        G.pl.y = TWR - 3;
+        enterMap('tower', {
+          x: Math.floor(TWC / 2),
+          y: TWR - 3,
+          camCols: TWC,
+          camRows: TWR,
+        });
         aN(G.supervisor ? 'Torre (Supervisor)' : G.batallador ? 'Torre (Batallador)' : 'Torre Presupuesto Aprobado');
       } else {
         G.scr = 'dialog';
@@ -2697,6 +2795,7 @@ function uWorld() {
 
   // Acción
   if (kp(' ')) {
+    if (tryCollectPin()) return;
     if (checkRouteSign()) return;
     if (G.supervisor) {
       aN('Supervisor: interacción con NPCs desactivada.');
@@ -2744,42 +2843,26 @@ function uCave() {
     // Salida:
     // SOLO si vienes desde arriba y caminaste hacia abajo
     if (tile === 27 && oldTile !== 27 && tr > oldR) {
-      const fromMap = G.curMap; // Guardamos el nombre antes de cambiarlo
-      G.curMap = 'world';
-
+      const fromMap = G.curMap;
+      let rx = 15,
+        ry = 106;
       if (G.caveReturnPos) {
-        G.pl.x = G.caveReturnPos.x;
-        G.pl.y = G.caveReturnPos.y;
-        G.pl.d = 0; // mirando abajo
-      } else {
-        // fallback por si no existe retorno guardado
-        if (fromMap === 'cave1') {
-          G.pl.x = 15;
-          G.pl.y = 106;
-        } else {
-          G.pl.x = 72;
-          G.pl.y = 39;
-        }
-        G.pl.d = 0;
+        rx = G.caveReturnPos.x;
+        ry = G.caveReturnPos.y;
+      } else if (fromMap === 'cave2') {
+        rx = 72;
+        ry = 39;
       }
-
-      updateCamera(WC, WR);
+      enterMap('world', { x: rx, y: ry, d: 0, camCols: WC, camRows: WR });
       aN('Saliste de la cueva.');
       return;
     }
 
-    // Cristal
-    if (tile === 28) {
-      map[tr][tc] = 20;
-      G.crv += 2;
-      sfx.cap();
-      aN('+2 Cristales!');
-      tile = 20; // ahora cuenta como suelo normal para lógica posterior
-    }
+    // (T3) Pines (tile 28) son sólidos: no se pisan ni se recogen aquí.
 
     // Encuentros en cualquier tile caminable
     const walkableCaveTile =
-      tile === 20 || tile === 26 || tile === 27 || tile === 28;
+      tile === 20 || tile === 26 || tile === 27;
 
     if (walkableCaveTile && !G.supervisor) {
       const encounterChance = tile === 26 ? 0.018 : 0.007;
@@ -2806,7 +2889,9 @@ function uCave() {
   }
 
   if (kp(' ')) {
-    if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.'); else if (G.batallador) aN('Batallador: interacción con NPCs desactivada.');
+    if (tryCollectPin()) return;
+    if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.');
+    else if (G.batallador) aN('Batallador: interacción con NPCs desactivada.');
     else checkNPC(caveNpcs);
   }
   if (kp('x') || kp('Escape')) {
@@ -2817,18 +2902,6 @@ function uCave() {
 
   updateCamera(CC, CR);
 }
-
-if (kp(' ')) {
-  if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.'); else if (G.batallador) aN('Batallador: interacción con NPCs desactivada.');
-  else checkNPC(caveNpcs);
-}
-if (kp('x') || kp('Escape')) {
-  sfx.sel();
-  G.scr = 'menu';
-  G.ms = { s: 0 };
-}
-
-updateCamera(CC, CR);
 
 // === CASTILLO ===
 function uCastle() {
@@ -2862,21 +2935,16 @@ function uCastle() {
   if (mv) {
     const tile = castMap[Math.floor(G.pl.y)]?.[Math.floor(G.pl.x)];
     if (tile === 33) {
-      G.curMap = 'world';
-      if (G.prevPos) {
-        G.pl.x = G.prevPos.x;
-        G.pl.y = G.prevPos.y;
-      } else {
-        G.pl.x = 20;
-        G.pl.y = 32;
-      }
-      updateCamera(WC, WR);
+      const rx = G.prevPos ? G.prevPos.x : 20;
+      const ry = G.prevPos ? G.prevPos.y : 32;
+      enterMap('world', { x: rx, y: ry, camCols: WC, camRows: WR });
       aN('Saliste del castillo.');
     }
   }
 
   if (kp(' ')) {
-    if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.'); else if (G.batallador) aN('Batallador: interacción con NPCs desactivada.');
+    if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.');
+    else if (G.batallador) aN('Batallador: interacción con NPCs desactivada.');
     else checkNPC(castNpcs);
   }
   if (kp('x') || kp('Escape')) {
@@ -2908,23 +2976,19 @@ function uTower() {
       }
     }
 
-    // Cristales
-    if (tile === 28) {
-      towerMap[tr][tc] = 20;
-      G.crv += 2;
-      sfx.cap();
-      aN('+2 Cristales!');
-    }
+    // (T3) Pines (28) son sólidos: se recogen con SPACE, no al pisar.
 
     // Salida
     if (tile === 27 && tr > Math.floor(CR / 2)) {
-      G.curMap = 'world';
-      if (G.prevPos) {
-        G.pl.x = G.prevPos.x;
-        G.pl.y = G.prevPos.y;
-      }
+      const rx = G.prevPos ? G.prevPos.x : G.pl.x;
+      const ry = G.prevPos ? G.prevPos.y : G.pl.y;
+      enterMap('world', { x: rx, y: ry, camCols: WC, camRows: WR });
       aN('Saliste de la torre.');
     }
+  }
+
+  if (kp(' ')) {
+    if (tryCollectPin()) return;
   }
 
   if (kp('x') || kp('Escape')) {
@@ -3997,6 +4061,15 @@ function resetGame(startIntro = false) {
   G.pot = 5;
   G.rev = 2;
   G.crv = 3;
+  G.crvC = 0;
+  G.crvO = 0;
+  G.frag = emptyFragments();
+  G.scrolls = 0;
+  G.fragrances = emptyFragrances();
+  G.incense = emptyFragrances();
+  G.activeIncense = null;
+  G.bagUpgrade = false;
+  G.find = null;
   G.bWon = 0;
   G.tExp = 0;
   G.mFriend = 0;
@@ -4256,10 +4329,12 @@ function pCre() {
   return G.party[G.bs.pi];
 }
 
-function calcCaptureChance(enemy) {
+function calcCaptureChance(enemy, crystalCode = 'p') {
+  const info = CRYSTAL_INFO[crystalCode] || CRYSTAL_INFO.p;
+  // Base por rareza del cristal + bonus por vida faltante y estados.
   const hpRatio = enemy.hp / enemy.mHp;
   const missingHp = 1 - hpRatio;
-  let chance = 0.18 + missingHp * 0.52;
+  let chance = info.baseChance + missingHp * 0.35;
 
   // Estados alterados hacen que el Cristal Vínculo conecte mejor.
   const st = battleState.enemyStatus;
@@ -4273,13 +4348,48 @@ function calcCaptureChance(enemy) {
   if (lvDiff > 0) chance -= Math.min(0.18, lvDiff * 0.015);
   if (G.party.some((c) => c.id === enemy.id) || proa.some((c) => c.id === enemy.id)) chance += 0.04;
 
-  return clamp(chance, 0.08, 0.9);
+  return clamp(chance, 0.05, 0.92);
 }
 
-function startCaptureAttempt() {
+function availableCaptureCrystals() {
+  const list = [];
+  if ((G.crv || 0) > 0) list.push('p');
+  if ((G.crvC || 0) > 0) list.push('c');
+  if ((G.crvO || 0) > 0) list.push('o');
+  return list;
+}
+
+function openCaptureSelect() {
   const b = G.bs;
-  G.crv--;
-  const chance = calcCaptureChance(b.en);
+  const opts = availableCaptureCrystals();
+  if (!opts.length) {
+    b.msg = '¡Sin Cristales Vínculo!';
+    b.ph = 'msg';
+    b.tm = 0;
+    b.mq = [];
+    return;
+  }
+  // Si solo hay un tipo, lanzar directo (UX más rápida).
+  if (opts.length === 1) {
+    startCaptureAttempt(opts[0]);
+    return;
+  }
+  b.ph = 'captureSelect';
+  b.capSel = 0;
+  b.capOpts = opts;
+}
+
+function startCaptureAttempt(crystalCode = 'p') {
+  const b = G.bs;
+  if (!spendCrystal(G, crystalCode)) {
+    b.msg = '¡Sin ese cristal!';
+    b.ph = 'msg';
+    b.tm = 0;
+    b.mq = [];
+    return;
+  }
+  const info = CRYSTAL_INFO[crystalCode] || CRYSTAL_INFO.p;
+  const chance = calcCaptureChance(b.en, crystalCode);
   const roll = Math.random();
   const success = roll < chance;
   let shakes = 0;
@@ -4294,8 +4404,9 @@ function startCaptureAttempt() {
     shakes,
     done: false,
     crystalY: 106,
+    crystalCode,
   };
-  b.msg = '¡Lanzaste un Cristal Vínculo!';
+  b.msg = `¡Lanzaste un ${info.label}!`;
   b.ph = 'captureAnim';
   b.tm = 0;
   sfx.cap();
@@ -4464,7 +4575,7 @@ function uBattle() {
               b.mq = [];
             }
             break;
-          case 4: // Capturar
+          case 4: // Capturar — elegir rareza de cristal
             if (b.isMerch || b.isBoss || b.npcTeam) {
               b.msg = '¡No puedes capturar aquí!';
               b.ph = 'msg';
@@ -4472,14 +4583,7 @@ function uBattle() {
               b.mq = [];
               break;
             }
-            if (G.crv > 0) {
-              startCaptureAttempt();
-            } else {
-              b.msg = '¡Sin Cristales Vínculo!';
-              b.ph = 'msg';
-              b.tm = 0;
-              b.mq = [];
-            }
+            openCaptureSelect();
             break;
           case 5: // Huir
             if (b.isBoss) {
@@ -4506,6 +4610,34 @@ function uBattle() {
               b.mq = [{ a: 'eT' }];
             }
             break;
+        }
+      }
+      break;
+
+    // === SELECCIÓN DE CRISTAL PARA CAPTURA ===
+    case 'captureSelect':
+      {
+        const opts = b.capOpts || availableCaptureCrystals();
+        b.capOpts = opts;
+        if (!opts.length) {
+          b.ph = 'act';
+          break;
+        }
+        if (kp('ArrowUp') || kp('ArrowLeft')) {
+          b.capSel = (b.capSel + opts.length - 1) % opts.length;
+          sfx.sel();
+        }
+        if (kp('ArrowDown') || kp('ArrowRight')) {
+          b.capSel = (b.capSel + 1) % opts.length;
+          sfx.sel();
+        }
+        if (kp('x') || kp('Escape')) {
+          b.ph = 'act';
+          sfx.sel();
+        }
+        if (kp(' ') || kp('Enter')) {
+          const code = opts[b.capSel] || opts[0];
+          startCaptureAttempt(code);
         }
       }
       break;
@@ -6141,13 +6273,45 @@ function dBattle() {
 
     cx.fillStyle = '#555';
     cx.font = '5px "Press Start 2P"';
-    cx.fillText(`🧪${G.pot} ❤${G.rev} 💎${G.crv}`, 25, 456);
+    cx.fillText(
+      `🧪${G.pot} ❤${G.rev} 💎${G.crv || 0} 💠${G.crvC || 0} 🔶${G.crvO || 0}`,
+      25,
+      456
+    );
     if (b.ms === 4 && !(b.isMerch || b.isBoss || b.npcTeam)) {
-      const capChance = calcCaptureChance(b.en);
+      // Preview con el mejor cristal disponible
+      const opts = availableCaptureCrystals();
+      const best = opts.includes('o') ? 'o' : opts.includes('c') ? 'c' : opts[0] || 'p';
+      const capChance = calcCaptureChance(b.en, best);
       cx.fillStyle = capChance >= 0.65 ? '#30D848' : capChance >= 0.35 ? '#C89000' : '#D02020';
       cx.font = '6px "Press Start 2P"';
-      cx.fillText(`Captura mejorada: ${Math.round(capChance * 100)}%`, 300, 456);
+      cx.fillText(`Mejor captura: ${Math.round(capChance * 100)}%`, 340, 456);
     }
+  } else if (b.ph === 'captureSelect') {
+    dBox(10, 360, 620, 110, 'Elegir Cristal');
+    const opts = b.capOpts || availableCaptureCrystals();
+    opts.forEach((code, i) => {
+      const info = CRYSTAL_INFO[code];
+      const y = 388 + i * 22;
+      const selected = (b.capSel || 0) === i;
+      cx.fillStyle = selected ? '#ffd700' : '#ccc';
+      cx.font = '8px "Press Start 2P"';
+      const n = crystalCount(G, code);
+      const chance = calcCaptureChance(b.en, code);
+      cx.fillText(
+        `${selected ? '▶ ' : '  '}${info.label} x${n}  (~${Math.round(chance * 100)}%)`,
+        30,
+        y
+      );
+      // mini swatch
+      cx.fillStyle = info.color;
+      cx.fillRect(520, y - 10, 14, 12);
+      cx.fillStyle = info.colorLight;
+      cx.fillRect(523, y - 7, 4, 6);
+    });
+    cx.fillStyle = '#777';
+    cx.font = '5px "Press Start 2P"';
+    cx.fillText('X: cancelar', 30, 456);
   } else if (b.ph === 'move') {
     // Selección de movimientos: botones 2x2 con borde dinámico por tipo
     dBox(10, 356, 620, 114, 'Movimientos');
@@ -6400,6 +6564,14 @@ function saveGame() {
       pot: G.pot,
       rev: G.rev,
       crv: G.crv,
+      crvC: G.crvC || 0,
+      crvO: G.crvO || 0,
+      frag: G.frag || emptyFragments(),
+      scrolls: G.scrolls || 0,
+      fragrances: G.fragrances || emptyFragrances(),
+      incense: G.incense || emptyFragrances(),
+      activeIncense: G.activeIncense || null,
+      bagUpgrade: !!G.bagUpgrade,
 
       // Progreso
       talkedTo: G.talkedTo,
@@ -6464,6 +6636,15 @@ function loadGame() {
     G.pot = save.pot ?? 5;
     G.rev = save.rev ?? 2;
     G.crv = save.crv ?? 3;
+    G.crvC = save.crvC ?? 0;
+    G.crvO = save.crvO ?? 0;
+    G.frag = { ...emptyFragments(), ...(save.frag || {}) };
+    G.scrolls = save.scrolls ?? 0;
+    G.fragrances = { ...emptyFragrances(), ...(save.fragrances || {}) };
+    G.incense = { ...emptyFragrances(), ...(save.incense || {}) };
+    G.activeIncense = save.activeIncense || null;
+    G.bagUpgrade = !!save.bagUpgrade;
+    G.find = null;
 
     // Progreso
     G.talkedTo = save.talkedTo || {};
@@ -6603,17 +6784,24 @@ function enterBatalladorMode(selectedIds, opponent) {
     pot: G.pot,
     rev: G.rev,
     crv: G.crv,
+    crvC: G.crvC || 0,
+    crvO: G.crvO || 0,
+    frag: { ...(G.frag || emptyFragments()) },
+    scrolls: G.scrolls || 0,
     plX: G.pl.x,
     plY: G.pl.y,
     curMap: G.curMap,
   };
   // Reemplazar equipo con las 6 criaturas seleccionadas
   G.party = selectedIds.map((id) => createBatalladorCre(id));
-  // Dar objetos de prueba
+  // Dar objetos de prueba (incluye las 3 rarezas de cristal)
   G.gold = 9999;
   G.pot = 20;
   G.rev = 10;
   G.crv = 10;
+  G.crvC = 5;
+  G.crvO = 3;
+  G.scrolls = Math.max(G.scrolls || 0, 4);
   G.batallador = true;
   G.scr = 'world';
   aN('MODO BATALLADOR: equipo test cargado');
@@ -6639,6 +6827,10 @@ function exitBatalladorMode() {
   G.pot = batalladorSnapshot.pot;
   G.rev = batalladorSnapshot.rev;
   G.crv = batalladorSnapshot.crv;
+  G.crvC = batalladorSnapshot.crvC ?? 0;
+  G.crvO = batalladorSnapshot.crvO ?? 0;
+  G.frag = { ...emptyFragments(), ...(batalladorSnapshot.frag || {}) };
+  G.scrolls = batalladorSnapshot.scrolls ?? 0;
   G.pl.x = batalladorSnapshot.plX;
   G.pl.y = batalladorSnapshot.plY;
   G.curMap = batalladorSnapshot.curMap;
@@ -7090,10 +7282,10 @@ function uMenu() {
 
 function update() {
   tickFrame();
-  if (kp('y') && !['battle', 'dialog', '_dialogDone', 'starter', 'intro', 'confirmReset', 'vision', 'batalladorSelect'].includes(G.scr)) {
+  if (kp('y') && !['battle', 'dialog', '_dialogDone', 'starter', 'intro', 'confirmReset', 'vision', 'find', 'batalladorSelect'].includes(G.scr)) {
     toggleSupervisorMode();
   }
-  if (kp('p') && !['battle', 'dialog', '_dialogDone', 'starter', 'intro', 'confirmReset', 'vision', 'batalladorSelect'].includes(G.scr)) {
+  if (kp('p') && !['battle', 'dialog', '_dialogDone', 'starter', 'intro', 'confirmReset', 'vision', 'find', 'batalladorSelect'].includes(G.scr)) {
     toggleBatalladorMode();
   }
   // EMERGENCIA: si el jugador queda atascado en un lugar imposible
@@ -7180,6 +7372,9 @@ function update() {
     case 'vision':
       uVision();
       break;
+    case 'find':
+      uFind();
+      break;
     case 'chronicle':
       uChronicle();
       break;
@@ -7246,6 +7441,10 @@ function draw() {
     case 'vision':
       dVision();
       break;
+    case 'find':
+      drawMap();
+      dFind();
+      break;
     case 'chronicle':
       dChronicle();
       break;
@@ -7278,6 +7477,8 @@ function init() {
   // Torre: generada siempre (aunque solo esté "abierta" en post-game).
   // Modos supervisor/batallador permiten entrar aunque no esté abierta.
   genTower();
+  // pin-system necesita acceso al towerMap (vive en este archivo)
+  setTowerMapGetter(() => towerMap);
 
   // No autocargar: el título ahora permite Continuar o Nueva partida.
   G.hasSave = hasSaveGame();
