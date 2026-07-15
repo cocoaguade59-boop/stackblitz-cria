@@ -82,6 +82,7 @@ import {
   lootRarity,
 } from './src/data/pins.js';
 import { dFind } from './src/screens/find.js';
+import { dObjects, buildObjectRows } from './src/screens/objects.js';
 
 
 // [refactor-game-flags] flags mutables globales importadas
@@ -3475,6 +3476,17 @@ function checkForeignKey(npc) {
   return false;
 }
 
+// Limpia movimiento residual del jugador (evita caminar solo tras warp/batalla).
+function clearPlayerMotion() {
+  G.pl.x = Math.round(G.pl.x);
+  G.pl.y = Math.round(G.pl.y);
+  G.pl.stepTarget = null;
+  G.pl.stepFrom = null;
+  G.pl.lastStepFrom = null;
+  G.pl.moving = false;
+  G.pl.sprint = false;
+}
+
 // === INICIO BATALLA SALVAJE ===
 function startWild(forceType) {
   const types = forceType ? [forceType] : ['fire', 'water', 'plant'];
@@ -3484,6 +3496,9 @@ function startWild(forceType) {
   // En modo batallador el enemigo tambien es nivel 20 para pelea equilibrada
   const lv = G.batallador ? 20 : wildLv();
   const en = new Cre(id, lv);
+
+  // Congelar movimiento al entrar en batalla (evita stepTarget residual post-lucha)
+  clearPlayerMotion();
 
   G.bs = {
     pi: 0,
@@ -3519,6 +3534,7 @@ function startSerafoxBattle() {
   const lv = scaledLv();
   const en = new Cre('serafox', lv);
   G.party.forEach((c) => (c.fought = false));
+  clearPlayerMotion();
 
   G.bs = {
     pi: 0,
@@ -3569,6 +3585,9 @@ function startNPCBattle(npc) {
   const introLines = getNPCBattleIntro(npc);
   G.party.forEach((c) => (c.fought = false));
 
+  // Congelar movimiento al entrar en batalla (evita stepTarget residual post-lucha)
+  clearPlayerMotion();
+
   G.bs = {
     pi: 0,
     en: team[0],
@@ -3609,6 +3628,7 @@ function startNPCBattle(npc) {
 // Inicia batalla contra oponente del modo batallador (equipo real, nivel forzado a 20)
 function startBatalladorNPCBattle(opponent) {
   G.party.forEach((c) => (c.fought = false));
+  clearPlayerMotion();
   let team;
   if (opponent.fixedTeam) {
     team = opponent.fixedTeam.map((c) => new Cre(c.id, 20));
@@ -3637,6 +3657,7 @@ function startBatalladorNPCBattle(opponent) {
 // === INICIO BATALLA BOSS ===
 function startBoss() {
   const bossLv = Math.max(40, secondStrongestLv());
+  clearPlayerMotion();
 
   G.bossTeam = [
     new Cre('emberwing', bossLv),
@@ -4055,7 +4076,7 @@ function resetGame(startIntro = false) {
   // Reiniciar variables globales
   G.scr = 'title';
   G.curMap = 'world';
-  G.pl = { x: 20, y: 145, d: 0, f: 0, sprint: false };
+  G.pl = { x: 20, y: 145, d: 0, f: 0, sprint: false, stepTarget: null, moving: false };
   G.party = [];
   G.gold = 200;
   G.pot = 5;
@@ -4088,6 +4109,7 @@ function resetGame(startIntro = false) {
   G.ds = null;
   G.ms = null;
   G.ss = null;
+  G.os = null;
   G.talkedTo = {};
   G.allTalked = false;
   G.bossTeam = null;
@@ -4096,7 +4118,9 @@ function resetGame(startIntro = false) {
   G.prevPos = null;
   G.showMap = false;
   G.proaOpen = false;
+  G.showMissions = false;
   G.showDex = false;
+  G.showObjects = false;
   G.dexSel = 0;
   G.supervisor = false;
 
@@ -4594,6 +4618,7 @@ function uBattle() {
               break;
             }
             if (b.isMerch) {
+              clearPlayerMotion();
               G.scr = 'world';
               break;
             }
@@ -4767,10 +4792,12 @@ function uBattle() {
               resetRebattles();
             }
             resetBattleState();
+            clearPlayerMotion();
             G.scr = 'world';
           }
         } else {
           resetBattleState();
+          clearPlayerMotion();
           G.scr = 'world';
         }
       }
@@ -4868,10 +4895,25 @@ function uBattle() {
       if (b.tm > 50 || kp(' ') || kp('Enter')) {
         G.party.forEach((c) => c.full());
         resetBattleState();
-        // Volver al último curandero
-        G.pl.x = lastHealPos.x;
-        G.pl.y = lastHealPos.y;
+        // Warp al último curandero + RESET TOTAL de movimiento.
+        // Sin esto, un stepTarget residual (p.ej. pelear con Gabriela
+        // en medio de un paso) hace que el personaje camine solo en
+        // diagonal desde Pitch hasta el viejo destino (bug reportado).
+        G.pl.x = Math.round(lastHealPos.x);
+        G.pl.y = Math.round(lastHealPos.y);
         G.curMap = lastHealPos.map;
+        G.pl.stepTarget = null;
+        G.pl.stepFrom = null;
+        G.pl.lastStepFrom = null;
+        G.pl.moving = false;
+        G.pl.sprint = false;
+        G.pl.f = 0;
+        G.pl.d = 0;
+        // Limpiar teclas residuales (flechas/SPACE que quedaron held
+        // del combate o del mensaje de derrota).
+        G.keys = {};
+        G.held = {};
+        G.kcd = {};
         // Actualizar cámara según mapa
         if (G.curMap === 'world') updateCamera(WC, WR);
         else if (G.curMap.startsWith('cave')) updateCamera(CC, CR);
@@ -5633,6 +5675,7 @@ function procAct(act) {
       resetRebattles();
     }
     resetBattleState();
+    clearPlayerMotion();
     G.scr = 'world';
   }
 } // ============================================================
@@ -6625,6 +6668,10 @@ function loadGame() {
     G.pl.sprint = false;
     G.pl.moving = false;
     G.pl.stepTarget = null;
+    G.pl.stepFrom = null;
+    G.pl.lastStepFrom = null;
+    G.showObjects = false;
+    G.os = null;
     G.curMap = save.curMap ?? 'world';
 
     // Equipo
@@ -6722,6 +6769,8 @@ function toggleSupervisorMode() {
     G.proaOpen = false;
     G.showMissions = false;
     G.showDex = false;
+    G.showObjects = false;
+    G.os = null;
     aN('MODO SUPERVISOR: rutas libres, sin NPCs ni encuentros');
     aN('Puedes entrar al Castillo y a la Torre libremente');
   } else {
@@ -7259,10 +7308,13 @@ function uStarter() {
   }
 }
 
+// Menú: 10 opciones (Poción…Objetos…Reiniciar). Inline por bug double-G.
+const MENU_COUNT = 10;
+
 function uMenu() {
-  if (G.showMap || G.proaOpen || G.showMissions || G.showDex) return;
-  if (kp('ArrowUp') || kp('ArrowLeft')) { G.ms.s = (G.ms.s + 8) % 9; sfx.sel(); }
-  if (kp('ArrowDown') || kp('ArrowRight')) { G.ms.s = (G.ms.s + 1) % 9; sfx.sel(); }
+  if (G.showMap || G.proaOpen || G.showMissions || G.showDex || G.showObjects) return;
+  if (kp('ArrowUp') || kp('ArrowLeft')) { G.ms.s = (G.ms.s + MENU_COUNT - 1) % MENU_COUNT; sfx.sel(); }
+  if (kp('ArrowDown') || kp('ArrowRight')) { G.ms.s = (G.ms.s + 1) % MENU_COUNT; sfx.sel(); }
   if (kp(' ') || kp('Enter')) {
     sfx.sel();
     switch (G.ms.s) {
@@ -7272,12 +7324,72 @@ function uMenu() {
       case 3: G.showMap = true; break;
       case 4: G.showMissions = true; break;
       case 5: G.showDex = true; G.dexSel = 0; break;
-      case 6: if (G.batallador) { aN('Batallador: no se puede guardar en modo test.'); sfx.nef(); } else { if (window.__gameSaveGame) window.__gameSaveGame(); } break;
-      case 7: G.scr = 'world'; break;
-      case 8: if (G.batallador) { aN('Batallador: sal del modo test antes de reiniciar.'); sfx.nef(); } else { G.scr = 'confirmReset'; G.resetSel = 0; } break;
+      case 6:
+        // Inventario de objetos (fragmentos / fragancias / pergaminos / cristales)
+        G.showObjects = true;
+        G.os = { s: 0, scroll: 0 };
+        break;
+      case 7: if (G.batallador) { aN('Batallador: no se puede guardar en modo test.'); sfx.nef(); } else { if (window.__gameSaveGame) window.__gameSaveGame(); } break;
+      case 8: G.scr = 'world'; break;
+      case 9: if (G.batallador) { aN('Batallador: sal del modo test antes de reiniciar.'); sfx.nef(); } else { G.scr = 'confirmReset'; G.resetSel = 0; } break;
     }
   }
   if (kp('x') || kp('Escape')) G.scr = 'world';
+}
+
+/** Input de la pantalla Objetos (inline: toca G.scr / flags). */
+function uObjects() {
+  if (!G.os) G.os = { s: 0, scroll: 0 };
+  const rows = buildObjectRows();
+  const n = Math.max(1, rows.length);
+  const VISIBLE = 10;
+
+  if (kp('ArrowUp') || kp('ArrowLeft')) {
+    G.os.s = (G.os.s + n - 1) % n;
+    sfx.sel();
+  }
+  if (kp('ArrowDown') || kp('ArrowRight')) {
+    G.os.s = (G.os.s + 1) % n;
+    sfx.sel();
+  }
+  // Mantener selección visible
+  if (G.os.s < G.os.scroll) G.os.scroll = G.os.s;
+  if (G.os.s >= G.os.scroll + VISIBLE) G.os.scroll = G.os.s - VISIBLE + 1;
+
+  // SPACE: por ahora solo feedback (activar incienso llega en T6)
+  if (kp(' ') || kp('Enter')) {
+    const row = rows[G.os.s];
+    if (!row) {
+      aN('Sin objetos.');
+      sfx.nef();
+    } else if (row.kind === 'incense' && row.count > 0) {
+      // Prep T6: activar incienso (si no hay uno activo)
+      if (G.activeIncense) {
+        aN('Tranquilo, no queremos causar un delirio mortal.');
+        sfx.nef();
+      } else {
+        if (!G.incense) G.incense = emptyFragrances();
+        if ((G.incense[row.type] || 0) > 0) {
+          G.incense[row.type]--;
+          G.activeIncense = { type: row.type, stepsLeft: 200 };
+          aN(`Incienso ${row.type} activado (200 pasos).`);
+          sfx.sel();
+        }
+      }
+    } else if (row.count <= 0) {
+      aN('No tienes ese objeto.');
+      sfx.nef();
+    } else {
+      aN(row.desc || row.name);
+      sfx.sel();
+    }
+  }
+
+  if (kp('x') || kp('Escape')) {
+    G.showObjects = false;
+    G.os = null;
+    sfx.sel();
+  }
 }
 
 function update() {
@@ -7349,6 +7461,7 @@ function update() {
       if (G.proaOpen) { uProa(); break; }
       if (G.showMissions) { uMissions(); break; }
       if (G.showDex) { uDex(); break; }
+      if (G.showObjects) { uObjects(); break; }
       uMenu();
       break;
     case 'shop':
@@ -7415,6 +7528,7 @@ function draw() {
       if (G.proaOpen) { drawMap(); dProa(); break; }
       if (G.showMissions) { drawMap(); dMissions(); break; }
       if (G.showDex) { drawMap(); dDex(); break; }
+      if (G.showObjects) { drawMap(); dObjects(); break; }
       drawMap();
       dMenu();
       break;

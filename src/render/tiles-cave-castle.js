@@ -613,63 +613,65 @@ function dTileC(c, r, map) {
       }
       break;
 
-    case 28: // Pin de hallazgo en cueva/torre (negro/rojo) — gema baja, SIN asta/báculo
+    case 28: // Pin de hallazgo en cueva/torre — plato/gema pegado al suelo, SIN palo
       {
         // Suelo base
         const v = (c * 7 + r * 13) % 3;
         cx.fillStyle = ['#3D4455', '#3A4050', '#383E4C'][v];
         cx.fillRect(x, y, T, T);
 
-        // Montículo de piedra bajo el pin
+        // Montículo de piedra bajo el pin (suelo)
         cx.fillStyle = '#2A3038';
-        cx.fillRect(x + 8, y + 22, 16, 6);
+        cx.fillRect(x + 8, y + 24, 16, 5);
         cx.fillStyle = '#383E48';
-        cx.fillRect(x + 10, y + 21, 12, 4);
+        cx.fillRect(x + 10, y + 23, 12, 3);
 
-        // Sombra
+        // Sombra baja
         cx.fillStyle = 'rgba(0,0,0,0.35)';
-        cx.fillRect(x + 10, y + 26, 12, 3);
+        cx.fillRect(x + 9, y + 27, 14, 3);
 
-        // Base negra baja (engaste, no asta)
+        // Plato / engaste negro pegado al piso
         cx.fillStyle = '#08080C';
-        cx.fillRect(x + 10, y + 17, 12, 7);
+        cx.fillRect(x + 8, y + 21, 16, 5);
         cx.fillStyle = '#1A1214';
-        cx.fillRect(x + 11, y + 18, 10, 5);
+        cx.fillRect(x + 9, y + 20, 14, 4);
         cx.fillStyle = '#2A1818';
-        cx.fillRect(x + 12, y + 19, 8, 3);
+        cx.fillRect(x + 10, y + 21, 12, 2);
+        cx.fillStyle = '#08080C';
+        cx.fillRect(x + 9, y + 19, 14, 2);
 
-        // Gema roja compacta
+        // Gema roja compacta sentada en el plato (sin asta)
         const pulse = 0.82 + Math.sin(fr * 0.12) * 0.18;
         cx.globalAlpha = pulse;
         cx.fillStyle = '#100408';
-        cx.fillRect(x + 11, y + 9, 10, 10);
-        cx.fillRect(x + 12, y + 8, 8, 12);
+        cx.fillRect(x + 11, y + 13, 10, 8);
+        cx.fillRect(x + 12, y + 12, 8, 10);
         cx.fillStyle = '#8B1018';
-        cx.fillRect(x + 12, y + 10, 8, 8);
+        cx.fillRect(x + 12, y + 14, 8, 6);
         cx.fillStyle = '#C81828';
-        cx.fillRect(x + 13, y + 11, 6, 6);
+        cx.fillRect(x + 13, y + 15, 6, 4);
         cx.fillStyle = '#E83040';
-        cx.fillRect(x + 14, y + 12, 4, 4);
+        cx.fillRect(x + 14, y + 15, 4, 3);
         cx.fillStyle = '#FF6870';
-        cx.fillRect(x + 14, y + 11, 2, 2);
+        cx.fillRect(x + 14, y + 14, 2, 2);
         cx.globalAlpha = 1;
 
-        // Banda del engaste
+        // Anillo del engaste (no asta vertical)
         cx.fillStyle = '#08080C';
-        cx.fillRect(x + 11, y + 16, 10, 2);
+        cx.fillRect(x + 11, y + 19, 10, 2);
 
-        // Aura roja suave
+        // Aura roja suave y baja
         cx.globalAlpha = 0.08 + Math.sin(fr * 0.08) * 0.04;
         cx.fillStyle = '#C81828';
-        pixelGlow(x + 16, y + 14, 12, 10);
+        pixelGlow(x + 16, y + 17, 12, 8);
         cx.globalAlpha = 1;
 
-        // Destellos rojos
+        // Destellos rojos bajos
         if (fr % 22 < 11) {
           cx.globalAlpha = 0.65;
           cx.fillStyle = '#FF4050';
-          cx.fillRect(x + 8, y + 9, 2, 2);
-          cx.fillRect(x + 22, y + 13, 2, 2);
+          cx.fillRect(x + 8, y + 13, 2, 2);
+          cx.fillRect(x + 22, y + 16, 2, 2);
           cx.globalAlpha = 1;
         }
       }

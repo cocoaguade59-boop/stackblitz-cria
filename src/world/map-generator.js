@@ -373,9 +373,10 @@ function genWorld() {
   // Pines del mundo (antes cristales tile 10).
   // Se colocan aquí en la gen inicial; al reentrar el mapa se re-sortean
   // desde pin-system.respawnWorldPins().
+  // Cantidad: 35 (usuario bajó de 45 → 35).
   let cv2 = 0;
   let pinAttempts = 0;
-  while (cv2 < 45 && pinAttempts < 2000) {
+  while (cv2 < 35 && pinAttempts < 2000) {
     pinAttempts++;
     const c = 4 + Math.floor(Math.random() * (WC - 8));
     const r = 4 + Math.floor(Math.random() * (WR - 8));

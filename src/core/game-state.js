@@ -61,6 +61,9 @@ if (!window.__gs) {
     showMap: false,
     proaOpen: false,
     showMissions: false,
+    // Pantalla de inventario de objetos (menú → Objetos)
+    showObjects: false,
+    os: null, // { s: selection index, scroll }
   };
 }
 

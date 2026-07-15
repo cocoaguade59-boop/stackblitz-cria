@@ -5,7 +5,7 @@
 
 import { WC, WR, CC, CR, wMap, cave1, cave2 } from '../core/world-constants.js';
 
-const WORLD_PIN_COUNT = 45;
+const WORLD_PIN_COUNT = 35;
 const CAVE_PIN_COUNT = 5;
 const TOWER_PIN_COUNT = 5;
 
