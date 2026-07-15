@@ -587,53 +587,55 @@ function dTileW(c, r) {
       }
       break;
 
-    case 10: { // Pin de hallazgo (negro/rojo) — NO es cristal
+    case 10: { // Pin de hallazgo (negro/rojo) — gema baja, SIN asta/báculo
       const snow = Math.max(0, Math.min(1, (68 - r) / 46));
       cx.fillStyle = lerpColor('#3E8A2A', '#DCE8DC', snow);
       cx.fillRect(x, y, T, T);
       cx.fillStyle = lerpColor('#347A24', '#C8D4C8', snow);
       cx.fillRect(x, y + 24, T, 8);
 
-      // Sombra del pin en el suelo
-      cx.fillStyle = 'rgba(0,0,0,0.28)';
-      cx.fillRect(x + 10, y + 26, 12, 4);
+      // Sombra ovalada en el suelo
+      cx.fillStyle = 'rgba(0,0,0,0.30)';
+      cx.fillRect(x + 9, y + 24, 14, 4);
+      cx.fillRect(x + 11, y + 26, 10, 2);
 
-      // Asta negra
+      // Base negra baja (montículo / engaste)
       cx.fillStyle = '#0A0A0C';
-      cx.fillRect(x + 14, y + 10, 4, 18);
-      cx.fillStyle = '#1A1A20';
-      cx.fillRect(x + 15, y + 10, 2, 18);
-      // Punta clavada
-      cx.fillStyle = '#050508';
-      cx.fillRect(x + 14, y + 26, 4, 3);
-      cx.fillRect(x + 15, y + 28, 2, 2);
+      cx.fillRect(x + 10, y + 18, 12, 7);
+      cx.fillStyle = '#1A1214';
+      cx.fillRect(x + 11, y + 19, 10, 5);
+      cx.fillStyle = '#2A1818';
+      cx.fillRect(x + 12, y + 20, 8, 3);
 
-      // Cabeza del pin (rombo rojo oscuro / negro)
+      // Gema roja compacta (sin barra vertical)
       const pulse = 0.85 + Math.sin(fr * 0.12) * 0.15;
       cx.globalAlpha = pulse;
-      cx.fillStyle = '#1A0508';
-      cx.fillRect(x + 10, y + 6, 12, 10);
+      // contorno negro
+      cx.fillStyle = '#100408';
+      cx.fillRect(x + 11, y + 10, 10, 10);
+      cx.fillRect(x + 12, y + 9, 8, 12);
+      // cuerpo rojo
       cx.fillStyle = '#8B1018';
-      cx.fillRect(x + 11, y + 4, 10, 10);
+      cx.fillRect(x + 12, y + 11, 8, 8);
       cx.fillStyle = '#C81828';
-      cx.fillRect(x + 12, y + 5, 8, 8);
+      cx.fillRect(x + 13, y + 12, 6, 6);
       cx.fillStyle = '#E83040';
-      cx.fillRect(x + 13, y + 6, 6, 5);
-      // brillo rojo
+      cx.fillRect(x + 14, y + 13, 4, 4);
+      // brillo
       cx.fillStyle = '#FF6870';
-      cx.fillRect(x + 14, y + 7, 2, 2);
+      cx.fillRect(x + 14, y + 12, 2, 2);
       cx.globalAlpha = 1;
 
-      // Anillo negro inferior de la cabeza
+      // Banda negra del engaste (no asta)
       cx.fillStyle = '#0A0A0C';
-      cx.fillRect(x + 11, y + 12, 10, 2);
+      cx.fillRect(x + 11, y + 17, 10, 2);
 
-      // Destello rojo ocasional (no blanco/violeta de cristal)
+      // Destellos rojos
       if (Math.floor(fr / 18) % 2 === 0) {
         cx.globalAlpha = 0.7;
         cx.fillStyle = '#FF4050';
-        cx.fillRect(x + 8, y + 3, 2, 2);
-        cx.fillRect(x + 22, y + 8, 2, 2);
+        cx.fillRect(x + 9, y + 10, 2, 2);
+        cx.fillRect(x + 21, y + 14, 2, 2);
         cx.globalAlpha = 1;
       }
       break;
