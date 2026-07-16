@@ -1527,7 +1527,7 @@ function handleWin() {
   // === BOSS NAVARRETE ===
   if (b.isBoss) {
     G.bossIdx++;
-    if (G.bossDialogs < 5 && G.bossDialogs < bossDialogues.length) {
+    if (G.bossDialogs < 5 && G.bossDialogs < _bossDialogues.length) {
       const dlg = _bossDialogues[G.bossDialogs];
       G.bossDialogs++;
       b.mq.push({ a: 'bMsg', m: dlg[0] });
