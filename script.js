@@ -2897,7 +2897,7 @@ function uCave() {
     }
   }
 
-  if (kp(' ')) {
+  if (kp(' ') || kp('Enter')) {
     if (tryCollectPin()) return;
     if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.');
     else if (G.batallador) aN('Batallador: interacción con NPCs desactivada.');
@@ -2951,7 +2951,7 @@ function uCastle() {
     }
   }
 
-  if (kp(' ')) {
+  if (kp(' ') || kp('Enter')) {
     if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.');
     else if (G.batallador) aN('Batallador: interacción con NPCs desactivada.');
     else checkNPC(castNpcs);
@@ -2996,7 +2996,7 @@ function uTower() {
     }
   }
 
-  if (kp(' ')) {
+  if (kp(' ') || kp('Enter')) {
     if (tryCollectPin()) return;
   }
 
@@ -7639,8 +7639,26 @@ function update() {
         if (typeof d._onDialogFinish === 'function') { d._onDialogFinish(d); break; }
         // Fabiana crafting (backup si el callback no viajó)
         if (d.goto === 'fabianaChoice') {
-          G.scr = 'fabianaChoice';
-          G.fabSel = 0;
+          const frags = G.frag || { p: 0, c: 0, o: 0 };
+          const total = (frags.p || 0) + (frags.c || 0) + (frags.o || 0);
+          if (total > 0) {
+            G.scr = 'fabianaChoice';
+            G.fabSel = 0;
+          } else {
+            G.scr = 'dialog';
+            G.ds = {
+              npc: d.npc || { nm: 'Fabiana' },
+              dlgArr: [
+                'Cuando tengas fragmentos,',
+                'traéme 4 del mismo color',
+                'y hacemos arte juntos.',
+              ],
+              li: 0,
+              ci: 0,
+              tm: 0,
+              full: false,
+            };
+          }
           break;
         }
         // ¿Edison con opciones?
