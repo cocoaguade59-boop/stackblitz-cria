@@ -80,6 +80,8 @@ import {
   spendCrystal,
   applyLootToInventory,
   lootRarity,
+  FRAGRANCE_ENCOUNTER,
+  FRAGRANCE_TYPES,
 } from './src/data/pins.js';
 
 import {
@@ -1276,13 +1278,14 @@ function uWorld() {
   const mv = moveEntity((c, r) => solidW(c, r), WC, WR);
 
   if (mv) {
+    tickIncenseOnStep();
     const tc = Math.floor(G.pl.x),
       tr = Math.floor(G.pl.y);
     const tile = wMap[tr]?.[tc];
 
     // Encuentros en hierba alta
     if (!G.supervisor && tile === 5 && Math.random() < 0.018975) {
-      startWild();
+      startWild(null, ['fire', 'water', 'plant']);
     }
 
     // Encuentros cerca de agua (más agua)
@@ -1292,7 +1295,10 @@ function uWorld() {
         for (let dc = -1; dc <= 1; dc++) {
           if (wMap[tr + dr]?.[tc + dc] === 2) nearWater = true;
         }
-      if (!G.supervisor && nearWater && Math.random() < 0.0088) startWild('water');
+      // Con incienso activo, el sesgo manda; sin incienso, fuerza agua.
+      if (!G.supervisor && nearWater && Math.random() < 0.0088) {
+        startWild(G.activeIncense ? null : 'water', ['fire', 'water', 'plant']);
+      }
     }
 
     // (T3) Los pines ya NO se recogen al pisar: son sólidos y se abren con SPACE.
@@ -1407,6 +1413,7 @@ function uCave() {
   const mv = moveEntity(solidC, CC, CR, map);
 
   if (mv) {
+    tickIncenseOnStep();
     const from = G.pl.lastStepFrom || { x: oldX, y: oldY };
     const oldC = Math.floor(from.x);
     const oldR = Math.floor(from.y);
@@ -1452,10 +1459,11 @@ function uCave() {
           }
         }
 
-        if (nearLava && Math.random() < 0.5) {
-          startWild('fire');
+        // Sin incienso: lava puede forzar fuego. Con incienso: sesgo 75%.
+        if (!G.activeIncense && nearLava && Math.random() < 0.5) {
+          startWild('fire', types);
         } else {
-          startWild(types[Math.floor(Math.random() * types.length)]);
+          startWild(null, types);
         }
         updateCamera(CC, CR);
         return;
@@ -1508,6 +1516,7 @@ function uCastle() {
   const mv = moveEntity(solidC, KC, KR, castMap);
 
   if (mv) {
+    tickIncenseOnStep();
     const tile = castMap[Math.floor(G.pl.y)]?.[Math.floor(G.pl.x)];
     if (tile === 33) {
       const rx = G.prevPos ? G.prevPos.x : 20;
@@ -1536,6 +1545,7 @@ function uTower() {
   const mv = moveEntity(solidC, TWC, TWR, towerMap);
 
   if (mv) {
+    tickIncenseOnStep();
     const tc = Math.floor(G.pl.x),
       tr = Math.floor(G.pl.y);
     const tile = towerMap[tr]?.[tc];
@@ -1547,7 +1557,7 @@ function uTower() {
         startSerafoxBattle();
       } else {
         const types = ['fire', 'water', 'plant', 'dragon', 'fairy'];
-        startWild(types[Math.floor(Math.random() * types.length)]);
+        startWild(null, types);
       }
     }
 
@@ -2101,11 +2111,46 @@ function clearPlayerMotion() {
   G.pl.sprint = false;
 }
 
+// === INCIENSO ACTIVO (T6) ===
+// Cada casilla nueva consumida baja stepsLeft. Sin contador en HUD.
+// Al llegar a 0 se apaga solo.
+function tickIncenseOnStep() {
+  if (!G.activeIncense) return;
+  G.activeIncense.stepsLeft = (G.activeIncense.stepsLeft || 0) - 1;
+  if (G.activeIncense.stepsLeft <= 0) {
+    const t = G.activeIncense.type;
+    G.activeIncense = null;
+    aN(`El incienso ${t} se apagó.`);
+  }
+}
+
+/**
+ * Elige tipo de encuentro salvaje respetando incienso activo.
+ * 75% del tipo del incienso, 25% otro (del pool de fallback).
+ * forceType gana si no hay incienso (p.ej. agua cerca del lago).
+ */
+function pickWildType(forceType, fallbackTypes) {
+  const pool = fallbackTypes && fallbackTypes.length
+    ? fallbackTypes
+    : ['fire', 'water', 'plant'];
+  if (G.activeIncense?.type) {
+    const preferred = FRAGRANCE_ENCOUNTER[G.activeIncense.type];
+    if (preferred) {
+      if (Math.random() < 0.75) return preferred;
+      // 25%: otro tipo (no el preferido si se puede)
+      const others = pool.filter((t) => t !== preferred);
+      const alt = others.length ? others : pool;
+      return alt[Math.floor(Math.random() * alt.length)];
+    }
+  }
+  if (forceType) return forceType;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 // === INICIO BATALLA SALVAJE ===
-function startWild(forceType) {
-  const types = forceType ? [forceType] : ['fire', 'water', 'plant'];
-  const tp = types[Math.floor(Math.random() * types.length)];
-  const pool = POOLS[tp];
+function startWild(forceType, fallbackTypes) {
+  const tp = pickWildType(forceType, fallbackTypes);
+  const pool = POOLS[tp] || POOLS.fire || Object.values(POOLS)[0];
   const id = pool[Math.floor(Math.random() * pool.length)];
   // En modo batallador el enemigo tambien es nivel 20 para pelea equilibrada
   const lv = G.batallador ? 20 : wildLv();
