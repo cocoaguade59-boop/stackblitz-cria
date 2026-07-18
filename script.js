@@ -20,7 +20,17 @@ import { SONGS, playMusic, stopMusic } from './src/core/music.js';
 import { Cre } from './src/entities/creature.js';
 import { LEARN_POOL, checkLearnMove } from './src/entities/learn-pool.js';
 import { checkEvolution, evolveCre } from './src/entities/evolution.js';
-import { STATUS, battleState, resetBattleState, getModdedStat, cDmg } from './src/entities/battle-state.js';
+import {
+  STATUS,
+  battleState,
+  resetBattleState,
+  resetPlayerStatMods,
+  resetEnemyStatMods,
+  getModdedStat,
+  applyStatMod,
+  applyStatMods,
+  cDmg,
+} from './src/entities/battle-state.js';
 
 // [refactor-phase4a] fundaciones render importadas
 import { cv, cx } from './src/core/canvas.js';
@@ -3526,6 +3536,8 @@ function uBattle() {
       if (kp(' ') || kp('Enter')) {
         if (b.ss !== b.pi && G.party[b.ss].hp > 0) {
           b.pi = b.ss;
+          // T11b: la criatura nueva entra con mods en 0
+          resetPlayerStatMods();
           pCre().fought = true;
           if (!b.fought.includes(b.pi)) b.fought.push(b.pi);
           b.msg = `¡Adelante, ${pCre().nm}!`;
@@ -3580,11 +3592,15 @@ function uBattle() {
             b.tm = 0;
           } else if (n.a === 'bNext' && G.bossIdx < G.bossTeam.length) {
             b.en = G.bossTeam[G.bossIdx];
+            // T11b: mon enemigo nuevo entra en 0/0/0
+            resetEnemyStatMods();
             b.msg = `¡${b.en.nm} entra en batalla!`;
             b.ph = 'msg';
             b.tm = 0;
             b.mq = [];
           } else if (n.a === 'npcNext') {
+            // El mon ya se setea en handleWin; reset de mods al cambiar
+            resetEnemyStatMods();
             b.msg = n.m;
             b.ph = 'msg';
             b.tm = 0;
@@ -3738,13 +3754,49 @@ function execTurn(mv) {
   const b = G.bs,
     c = pCre();
   b.mq = [];
-  // El más rápido va primero
-  if (c.sp >= b.en.sp) {
+  // T11c: SPD modificada decide el orden de turno
+  const pSpd = getModdedStat(c.sp, battleState.playerStatMods.spd);
+  const eSpd = getModdedStat(b.en.sp, battleState.enemyStatMods.spd);
+  // Empate: el jugador va primero (como antes con >=)
+  if (pSpd >= eSpd) {
     b.mq.push({ a: 'pA', mv }, { a: 'cE' }, { a: 'eT' });
   } else {
     b.mq.push({ a: 'eT' }, { a: 'cP' }, { a: 'pA', mv });
   }
   procAct(b.mq.shift());
+}
+
+/** Une mensaje base de movimiento con textos de stats (T11). */
+function withStatMsgs(base, side, changes) {
+  const { text } = applyStatMods(side, changes);
+  if (!text) return base;
+  // Si todos fueron "no puede subir/bajar", igual mostrarlos
+  return base ? `${base} ${text}` : text;
+}
+
+/** Mini indicadores de stages ATK/DEF/SPD (solo si ≠ 0). */
+function dStatStages(x, y, mods, isPlayer) {
+  if (!mods) return;
+  const parts = [];
+  const push = (k, label, colUp, colDn) => {
+    const v = mods[k] || 0;
+    if (!v) return;
+    parts.push({
+      t: `${label}${v > 0 ? '+' : ''}${v}`,
+      c: v > 0 ? colUp : colDn,
+    });
+  };
+  push('atk', 'A', '#E85050', '#A060E0');
+  push('def', 'D', '#5090E8', '#A060E0');
+  push('spd', 'S', '#E8C840', '#A060E0');
+  if (!parts.length) return;
+  cx.font = '6px "Press Start 2P"';
+  let ox = x;
+  parts.forEach((p, i) => {
+    cx.fillStyle = p.c;
+    cx.fillText(p.t, ox, y);
+    ox += cx.measureText(p.t).width + 8;
+  });
 }
 
 function procAct(act) {
@@ -3819,44 +3871,34 @@ function procAct(act) {
       b.tm = 0;
       return;
     }
+    // T11a: mods con clamp ±6 + mensajes claros
     if (mv.ef === 'spdUp') {
-      battleState.playerStatMods.spd++;
       sfx.sel();
-      b.msg = `${c.nm}: ${mv.nm}! ¡Velocidad subió!`;
+      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['spd', 1]]);
     }
     if (mv.ef === 'atkUp2') {
-      battleState.playerStatMods.atk += 2;
       sfx.sel();
-      b.msg = `${c.nm}: ${mv.nm}! ¡Ataque subió mucho!`;
+      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['atk', 2]]);
     }
     if (mv.ef === 'spdUp2') {
-      battleState.playerStatMods.spd += 2;
       sfx.sel();
-      b.msg = `${c.nm}: ${mv.nm}! ¡Velocidad subió mucho!`;
+      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['spd', 2]]);
     }
     if (mv.ef === 'defUp2') {
-      battleState.playerStatMods.def += 2;
       sfx.sel();
-      b.msg = `${c.nm}: ${mv.nm}! ¡Defensa subió mucho!`;
+      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['def', 2]]);
     }
     if (mv.ef === 'atkSpdUp') {
-      battleState.playerStatMods.atk++;
-      battleState.playerStatMods.spd++;
       sfx.sel();
-      b.msg = `${c.nm}: ${mv.nm}! ¡ATK y SPD subieron!`;
+      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['atk', 1], ['spd', 1]]);
     }
     if (mv.ef === 'atkDefUp') {
-      battleState.playerStatMods.atk++;
-      battleState.playerStatMods.def++;
       sfx.sel();
-      b.msg = `${c.nm}: ${mv.nm}! ¡ATK y DEF subieron!`;
+      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['atk', 1], ['def', 1]]);
     }
     if (mv.ef === 'atkSpdUpDefDn') {
-      battleState.playerStatMods.atk++;
-      battleState.playerStatMods.spd++;
-      battleState.playerStatMods.def--;
       sfx.sel();
-      b.msg = `${c.nm}: ${mv.nm}! ¡ATK y SPD suben, DEF baja!`;
+      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['atk', 1], ['spd', 1], ['def', -1]]);
     }
     if (mv.ef === 'protect') {
       battleState.playerProtect = true;
@@ -3924,9 +3966,13 @@ function procAct(act) {
       b.msg = `${c.nm}: ${mv.nm}! ¡Sacrificó ${cost}HP para maldecir!`;
     }
     if (mv.ef === 'accDn') {
-      battleState.enemyStatMods.spd--;
+      // Usamos SPD como proxy de precisión (como el código original)
       sfx.sel();
-      b.msg = `${c.nm}: ${mv.nm}! ¡Precisión rival bajó!`;
+      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'enemy', [['spd', -1]]);
+      // Preferir wording de precisión si no chocó el tope
+      if (!b.msg.includes('no puede')) {
+        b.msg = `${c.nm}: ${mv.nm}! ¡Precisión rival bajó!`;
+      }
     }
 
     // Si es efecto puro sin daño, terminar
@@ -4020,36 +4066,29 @@ function procAct(act) {
       b.msg += ` ¡${b.en.nm} retrocedió!`;
     }
     if (mv.ef === 'spdDn30' && Math.random() < 0.3) {
-      battleState.enemyStatMods.spd--;
-      b.msg += ` ¡SPD rival bajó!`;
+      b.msg = withStatMsgs(b.msg, 'enemy', [['spd', -1]]);
     }
     if (mv.ef === 'atkDn30' && Math.random() < 0.3) {
-      battleState.enemyStatMods.atk--;
-      b.msg += ` ¡ATK rival bajó!`;
+      b.msg = withStatMsgs(b.msg, 'enemy', [['atk', -1]]);
     }
     if (mv.ef === 'atkDn50' && Math.random() < 0.5) {
-      battleState.enemyStatMods.atk--;
-      b.msg += ` ¡ATK rival bajó!`;
+      b.msg = withStatMsgs(b.msg, 'enemy', [['atk', -1]]);
     }
     if (mv.ef === 'defDn') {
-      battleState.enemyStatMods.def--;
-      b.msg += ` ¡DEF rival bajó!`;
+      b.msg = withStatMsgs(b.msg, 'enemy', [['def', -1]]);
     }
     if (mv.ef === 'atkDn') {
-      battleState.enemyStatMods.atk--;
-      b.msg += ` ¡ATK rival bajó!`;
+      b.msg = withStatMsgs(b.msg, 'enemy', [['atk', -1]]);
     }
     if (mv.ef === 'selfDefDn') {
-      battleState.playerStatMods.def--;
-      b.msg += ` ¡Tu DEF bajó!`;
+      b.msg = withStatMsgs(b.msg, 'player', [['def', -1]]);
     }
     if (mv.ef === 'selfSpdDn') {
-      battleState.playerStatMods.spd--;
-      b.msg += ` ¡Tu SPD bajó!`;
+      b.msg = withStatMsgs(b.msg, 'player', [['spd', -1]]);
     }
-    if (mv.ef === 'spdUp') {
-      battleState.playerStatMods.spd++;
-      b.msg += ` ¡Tu SPD subió!`;
+    // Nota: spdUp como soporte puro ya se maneja arriba; aquí solo si vino con daño
+    if (mv.ef === 'spdUp' && mv.pw > 0) {
+      b.msg = withStatMsgs(b.msg, 'player', [['spd', 1]]);
     }
     if (mv.ef === 'drain50') {
       const heal = Math.floor(dm * 0.5);
@@ -4309,32 +4348,30 @@ function procAct(act) {
         return;
       }
       if (mv.ef === 'atkUp2') {
-        battleState.enemyStatMods.atk += 2;
-        b.msg = `${b.en.nm}: ${mv.nm}! ¡ATK subió mucho!`;
+        b.msg = withStatMsgs(`${b.en.nm}: ${mv.nm}!`, 'enemy', [['atk', 2]]);
       }
       if (mv.ef === 'spdUp' || mv.ef === 'spdUp2') {
-        battleState.enemyStatMods.spd += mv.ef === 'spdUp2' ? 2 : 1;
-        b.msg = `${b.en.nm}: ${mv.nm}! ¡SPD subió!`;
+        b.msg = withStatMsgs(
+          `${b.en.nm}: ${mv.nm}!`,
+          'enemy',
+          [['spd', mv.ef === 'spdUp2' ? 2 : 1]]
+        );
       }
       if (mv.ef === 'defUp2') {
-        battleState.enemyStatMods.def += 2;
-        b.msg = `${b.en.nm}: ${mv.nm}! ¡DEF subió mucho!`;
+        b.msg = withStatMsgs(`${b.en.nm}: ${mv.nm}!`, 'enemy', [['def', 2]]);
       }
       if (mv.ef === 'atkSpdUp') {
-        battleState.enemyStatMods.atk++;
-        battleState.enemyStatMods.spd++;
-        b.msg = `${b.en.nm}: ${mv.nm}! ¡ATK y SPD subieron!`;
+        b.msg = withStatMsgs(`${b.en.nm}: ${mv.nm}!`, 'enemy', [['atk', 1], ['spd', 1]]);
       }
       if (mv.ef === 'atkDefUp') {
-        battleState.enemyStatMods.atk++;
-        battleState.enemyStatMods.def++;
-        b.msg = `${b.en.nm}: ${mv.nm}! ¡ATK y DEF subieron!`;
+        b.msg = withStatMsgs(`${b.en.nm}: ${mv.nm}!`, 'enemy', [['atk', 1], ['def', 1]]);
       }
       if (mv.ef === 'atkSpdUpDefDn') {
-        battleState.enemyStatMods.atk++;
-        battleState.enemyStatMods.spd++;
-        battleState.enemyStatMods.def--;
-        b.msg = `${b.en.nm}: ${mv.nm}! ¡ATK y SPD suben, DEF baja!`;
+        b.msg = withStatMsgs(
+          `${b.en.nm}: ${mv.nm}!`,
+          'enemy',
+          [['atk', 1], ['spd', 1], ['def', -1]]
+        );
       }
       if (mv.ef === 'protect') {
         battleState.enemyProtect = true;
@@ -4390,20 +4427,19 @@ function procAct(act) {
         b.msg = `${b.en.nm}: ${mv.nm}! ¡Te dormiste!`;
       }
       if (mv.ef === 'accDn') {
-        battleState.playerStatMods.spd--;
-        b.msg = `${b.en.nm}: ${mv.nm}! ¡Tu precisión bajó!`;
+        b.msg = withStatMsgs(`${b.en.nm}: ${mv.nm}!`, 'player', [['spd', -1]]);
+        if (!b.msg.includes('no puede')) {
+          b.msg = `${b.en.nm}: ${mv.nm}! ¡Tu precisión bajó!`;
+        }
       }
       if (mv.ef === 'atkDn') {
-        battleState.playerStatMods.atk--;
-        b.msg = `${b.en.nm}: ${mv.nm}! ¡Tu ATK bajó!`;
+        b.msg = withStatMsgs(`${b.en.nm}: ${mv.nm}!`, 'player', [['atk', -1]]);
       }
       if (mv.ef === 'atkDn50' && Math.random() < 0.5) {
-        battleState.playerStatMods.atk--;
-        b.msg = `${b.en.nm}: ${mv.nm}! ¡Tu ATK bajó!`;
+        b.msg = withStatMsgs(`${b.en.nm}: ${mv.nm}!`, 'player', [['atk', -1]]);
       }
       if (mv.ef === 'atkDn2') {
-        battleState.playerStatMods.atk -= 2;
-        b.msg = `${b.en.nm}: ${mv.nm}! ¡Tu ATK bajó mucho!`;
+        b.msg = withStatMsgs(`${b.en.nm}: ${mv.nm}!`, 'player', [['atk', -2]]);
       }
       if (mv.ef === 'wishHeal') {
         battleState.wishHealNext = true;
@@ -4587,6 +4623,7 @@ function handleWin() {
     if (ni < b.npcTeam.length) {
       b.npcIdx = ni;
       b.en = b.npcTeam[ni];
+      // T11b: mon enemigo nuevo (mods se resetean al mostrar npcNext)
       b.mq.push({ a: 'npcNext', m: `¡${b.npcName} envía a ${b.en.nm}!` });
       b.ph = 'win';
       b.tm = 0;
@@ -4644,6 +4681,8 @@ function handleFaint() {
   if (ai !== -1) {
     // Cambio automático
     b.pi = ai;
+    // T11b: la criatura nueva entra con mods en 0
+    resetPlayerStatMods();
     pCre().fought = true;
     if (!b.fought.includes(b.pi)) b.fought.push(b.pi);
     b.msg = `¡${pCre().nm} entra en batalla!`;
@@ -5000,6 +5039,8 @@ function dBattle() {
     isPlayer: false,
     status: battleState.enemyStatus,
   });
+  // Stages del rival (T11)
+  dStatStages(12, 78, battleState.enemyStatMods, false);
   // Cristal púrpura de captura junto al nombre del enemigo
   if (
     G.party.some((c) => c.id === b.en.id) ||
@@ -5020,6 +5061,8 @@ function dBattle() {
   });
   // Barra de EXP debajo del HUD
   dEXP(384, 318, 232, 4, c.ex, c.exTo);
+  // Stages del jugador (T11)
+  dStatStages(384, 328, battleState.playerStatMods, true);
 
   // === PANEL INFERIOR SEGÚN FASE ===
 

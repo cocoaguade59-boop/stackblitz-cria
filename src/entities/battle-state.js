@@ -1,19 +1,29 @@
-// Estados de batalla globales (STATUS, battleState) y helpers de daño.
+// Estados de batalla globales (STATUS, battleState) y helpers de daño/stats.
 // `battleState` se exporta como instancia mutable compartida.
 // Depende de tEff.
+//
+// T11a–c: clamp ±6, reset al switch, SPD en turn order (vía getModdedStat).
 
 import { tEff } from '../data/types.js';
 
 // === ESTADOS DE BATALLA ===
 const STATUS = {
-  burn:     { nm: 'Quemado',     icon: '🔥', dmg: 0.07, turns: 5 },
-  paralyze: { nm: 'Paralizado',  icon: '⚡', skipChance: 0.25 },
-  sleep:    { nm: 'Dormido',     icon: '💤', turns: 2 },
-  confuse:  { nm: 'Confuso',     icon: '💫', selfHitChance: 0.33, turns: 4 },
-  leech:    { nm: 'Drenadoras',  icon: '🌱', dmg: 0.05, turns: 5 },
-  curse:    { nm: 'Maldito',     icon: '💀', dmg: 0.12, turns: 5 },
-  poison:   { nm: 'Envenenado',  icon: '☠️', dmg: 0.06, turns: 5 },
+  burn: { nm: 'Quemado', icon: '🔥', dmg: 0.07, turns: 5 },
+  paralyze: { nm: 'Paralizado', icon: '⚡', skipChance: 0.25 },
+  sleep: { nm: 'Dormido', icon: '💤', turns: 2 },
+  confuse: { nm: 'Confuso', icon: '💫', selfHitChance: 0.33, turns: 4 },
+  leech: { nm: 'Drenadoras', icon: '🌱', dmg: 0.05, turns: 5 },
+  curse: { nm: 'Maldito', icon: '💀', dmg: 0.12, turns: 5 },
+  poison: { nm: 'Envenenado', icon: '☠️', dmg: 0.06, turns: 5 },
 };
+
+const STAT_LABEL = { atk: 'Ataque', def: 'Defensa', spd: 'Velocidad' };
+const STAT_KEYS = ['atk', 'def', 'spd'];
+const STAGE_MIN = -6;
+const STAGE_MAX = 6;
+
+// Multiplicadores por stage -6..+6 (índice = mod + 6)
+const STAGE_MULTS = [0.25, 0.28, 0.33, 0.4, 0.5, 0.66, 1, 1.5, 2, 2.5, 3, 3.5, 4];
 
 let battleState = {
   weather: null,
@@ -34,6 +44,10 @@ let battleState = {
   learnMoveQueue: null,
 };
 
+function freshMods() {
+  return { atk: 0, def: 0, spd: 0 };
+}
+
 function resetBattleState() {
   battleState = {
     weather: null,
@@ -42,8 +56,8 @@ function resetBattleState() {
     playerStatusTurns: 0,
     enemyStatus: null,
     enemyStatusTurns: 0,
-    playerStatMods: { atk: 0, def: 0, spd: 0 },
-    enemyStatMods: { atk: 0, def: 0, spd: 0 },
+    playerStatMods: freshMods(),
+    enemyStatMods: freshMods(),
     lastDmgToPlayer: 0,
     lastDmgToEnemy: 0,
     playerProtect: false,
@@ -55,10 +69,101 @@ function resetBattleState() {
   };
 }
 
+/** Reset mods del jugador al cambiar de criatura (entra en 0/0/0). */
+function resetPlayerStatMods() {
+  battleState.playerStatMods = freshMods();
+  // Escudos/protect son del mon activo
+  battleState.playerProtect = false;
+  battleState.playerShield = false;
+}
+
+/** Reset mods del enemigo al cambiar de mon del rival. */
+function resetEnemyStatMods() {
+  battleState.enemyStatMods = freshMods();
+  battleState.enemyProtect = false;
+  battleState.enemyShield = false;
+}
+
 function getModdedStat(base, mod) {
-  const mults = [0.25, 0.28, 0.33, 0.4, 0.5, 0.66, 1, 1.5, 2, 2.5, 3, 3.5, 4];
-  const idx = Math.max(0, Math.min(12, mod + 6));
-  return Math.floor(base * mults[idx]);
+  const idx = Math.max(0, Math.min(12, (mod || 0) + 6));
+  return Math.floor(base * STAGE_MULTS[idx]);
+}
+
+/**
+ * Aplica delta a un stat (atk|def|spd) de un lado.
+ * Clamp estricto a ±6.
+ *
+ * @param {'player'|'enemy'} side
+ * @param {'atk'|'def'|'spd'} stat
+ * @param {number} delta  +1, +2, -1, -2...
+ * @returns {{
+ *   applied: number,   // cuánto se aplicó de verdad
+ *   before: number,
+ *   after: number,
+ *   blocked: boolean,  // no se movió nada (ya en tope)
+ *   capped: boolean,   // se aplicó menos de lo pedido por el tope
+ *   msg: string,       // mensaje listo para UI
+ * }}
+ */
+function applyStatMod(side, stat, delta) {
+  const mods =
+    side === 'player' ? battleState.playerStatMods : battleState.enemyStatMods;
+  if (!mods || !STAT_KEYS.includes(stat) || !delta) {
+    return {
+      applied: 0,
+      before: 0,
+      after: 0,
+      blocked: true,
+      capped: false,
+      msg: '',
+    };
+  }
+
+  const before = mods[stat] || 0;
+  const raw = before + delta;
+  const after = Math.max(STAGE_MIN, Math.min(STAGE_MAX, raw));
+  const applied = after - before;
+  mods[stat] = after;
+
+  const label = STAT_LABEL[stat] || stat.toUpperCase();
+  const blocked = applied === 0;
+  const capped = !blocked && applied !== delta;
+
+  let msg = '';
+  if (blocked) {
+    msg =
+      delta > 0
+        ? `¡${label} no puede subir más!`
+        : `¡${label} no puede bajar más!`;
+  } else if (applied >= 2) {
+    msg = `¡${label} subió mucho!`;
+  } else if (applied === 1) {
+    msg = `¡${label} subió!`;
+  } else if (applied <= -2) {
+    msg = `¡${label} bajó mucho!`;
+  } else if (applied === -1) {
+    msg = `¡${label} bajó!`;
+  }
+  // Si se capó, añadir nota corta
+  if (capped && delta > 0) msg += ' (al máximo)';
+  if (capped && delta < 0) msg += ' (al mínimo)';
+
+  return { applied, before, after, blocked, capped, msg, stat, label };
+}
+
+/**
+ * Aplica varios cambios y devuelve los mensajes no vacíos.
+ * changes: Array<[stat, delta]>  ej. [['atk',1],['spd',1],['def',-1]]
+ */
+function applyStatMods(side, changes) {
+  const msgs = [];
+  const results = [];
+  for (const [stat, delta] of changes) {
+    const r = applyStatMod(side, stat, delta);
+    results.push(r);
+    if (r.msg) msgs.push(r.msg);
+  }
+  return { results, msgs, text: msgs.join(' ') };
 }
 
 function cDmg(a, d, m, isPlayer = true) {
@@ -118,5 +223,17 @@ function cDmg(a, d, m, isPlayer = true) {
   return { dmg, crit, eff: e };
 }
 
-
-export { STATUS, battleState, resetBattleState, getModdedStat, cDmg };
+export {
+  STATUS,
+  battleState,
+  resetBattleState,
+  resetPlayerStatMods,
+  resetEnemyStatMods,
+  getModdedStat,
+  applyStatMod,
+  applyStatMods,
+  cDmg,
+  STAT_LABEL,
+  STAGE_MIN,
+  STAGE_MAX,
+};
