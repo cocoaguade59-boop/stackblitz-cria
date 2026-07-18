@@ -123,7 +123,16 @@ import { dBattleHud } from './src/render/battle-hud.js';
 
 // [refactor-phase5a] input + camara + dex-order + screens importados
 import { kp, kh, normKey } from './src/core/input.js';
-import { updateCamera } from './src/core/camera.js';
+import {
+  updateCamera,
+  beginWorldCamera,
+  endWorldCamera,
+  worldCull,
+  VIEW_COLS,
+  VIEW_ROWS,
+  VIEW_W,
+  VIEW_H,
+} from './src/core/camera.js';
 import { DEX_ORDER, dexIds } from './src/data/dex-order.js';
 
 // [refactor-phase5b] sistema de dialogo importado
@@ -4519,18 +4528,22 @@ function activatePostGame() {
 // ============================================================
 
 function drawMap() {
+  // Mundo con FOV 15×9 + zoom uniforme (solo capa de exploración).
+  // HUD / labels de zona se dibujan DESPUÉS a escala 1:1.
+  beginWorldCamera(cx);
+
   if (G.curMap === 'world') {
     const sc = Math.max(0, Math.floor(cam.x / T) - 1),
-      ec = Math.min(WC, sc + 22);
+      ec = Math.min(WC, sc + VIEW_COLS + 2);
     const sr = Math.max(0, Math.floor(cam.y / T) - 1),
-      er = Math.min(WR, sr + 17);
+      er = Math.min(WR, sr + VIEW_ROWS + 2);
     for (let r = sr; r < er; r++) for (let c = sc; c < ec; c++) dTileW(c, r);
 
     // Carteles de ruta
     ROUTE_SIGNS.forEach((sg) => {
       const sx = sg.x * T - cam.x,
         sy = sg.y * T - cam.y;
-      if (sx > -40 && sx < 680 && sy > -40 && sy < 520) {
+      if (worldCull(sx, sy)) {
         dRouteSign(sx, sy, fr);
         if (nearRouteSign(sg)) {
           cx.fillStyle = '#ffd700';
@@ -4548,7 +4561,7 @@ function drawMap() {
       for (let dc = -Math.floor(g.w / 2); dc <= Math.floor(g.w / 2); dc++) {
         const sx = (g.x + dc) * T - cam.x;
         const sy = g.y * T - cam.y;
-        if (sx > -40 && sx < 680 && sy > -40 && sy < 520) {
+        if (worldCull(sx, sy)) {
           if (dc === 0) dRouteProa(sx, sy - 8, fr);
           else dRouteTree(sx, sy, fr);
         }
@@ -4556,26 +4569,23 @@ function drawMap() {
     });
 
     // Depth-sorted NPCs + player (mundo)
-    // Recolectar todos los NPCs visibles con su Y del mundo
     const renderList = [];
     npcs.forEach((n) => {
       if (!npcVisible(n)) return;
       const sx = n.x * T - cam.x, sy = n.y * T - cam.y;
-      if (sx > -40 && sx < 680 && sy > -40 && sy < 520) {
+      if (worldCull(sx, sy)) {
         renderList.push({ type: 'npc', y: n.y, sx, sy, n });
       }
     });
     if (postGame) {
       const ed = edisonNPC;
       const esx = ed.x * T - cam.x, esy = ed.y * T - cam.y;
-      if (esx > -40 && esx < 680 && esy > -40 && esy < 520) {
+      if (worldCull(esx, esy)) {
         renderList.push({ type: 'npc', y: ed.y, sx: esx, sy: esy, n: ed });
       }
     }
-    // Jugador
     const ppx = G.pl.x * T - cam.x, ppy = G.pl.y * T - cam.y;
     renderList.push({ type: 'player', y: G.pl.y, ppx, ppy });
-    // Ordenar: menor Y primero (norte arriba) → si igual Y, NPCs con +0.5 offset
     renderList.sort((a, b) => a.y - b.y);
 
     renderList.forEach((it) => {
@@ -4596,19 +4606,18 @@ function drawMap() {
   } else if (G.curMap.startsWith('cave')) {
     const map = G.curMap === 'cave1' ? cave1 : cave2;
     const sc = Math.max(0, Math.floor(cam.x / T) - 1),
-      ec = Math.min(CC, sc + 22);
+      ec = Math.min(CC, sc + VIEW_COLS + 2);
     const sr = Math.max(0, Math.floor(cam.y / T) - 1),
-      er = Math.min(CR, sr + 17);
+      er = Math.min(CR, sr + VIEW_ROWS + 2);
     for (let r = sr; r < er; r++)
       for (let c = sc; c < ec; c++) dTileC(c, r, map);
 
-    // NPCs cueva (depth-sorted)
     {
       const rlist = [];
       caveNpcs.forEach((n) => {
         if (!npcVisible(n)) return;
         const sx = n.x * T - cam.x, sy = n.y * T - cam.y;
-        if (sx > -40 && sx < 680) rlist.push({ y: n.y, sx, sy, n });
+        if (worldCull(sx, sy)) rlist.push({ y: n.y, sx, sy, n });
       });
       const ppx = G.pl.x * T - cam.x, ppy = G.pl.y * T - cam.y;
       rlist.push({ y: G.pl.y, ppx, ppy, isPlayer: true });
@@ -4622,8 +4631,77 @@ function drawMap() {
         }
       });
     }
+  } else if (G.curMap === 'castle') {
+    const sc = Math.max(0, Math.floor(cam.x / T) - 1),
+      ec = Math.min(KC, sc + VIEW_COLS + 2);
+    const sr = Math.max(0, Math.floor(cam.y / T) - 1),
+      er = Math.min(KR, sr + VIEW_ROWS + 2);
+    for (let r = sr; r < er; r++)
+      for (let c = sc; c < ec; c++) dTileC(c, r, castMap);
 
-    // Nombre de cueva
+    {
+      const rlist = [];
+      castNpcs.forEach((n) => {
+        if (!npcVisible(n)) return;
+        const sx = n.x * T - cam.x, sy = n.y * T - cam.y;
+        if (worldCull(sx, sy)) rlist.push({ y: n.y, sx, sy, n });
+      });
+      const ppx = G.pl.x * T - cam.x, ppy = G.pl.y * T - cam.y;
+      rlist.push({ y: G.pl.y, ppx, ppy, isPlayer: true });
+      rlist.sort((a, b) => a.y - b.y);
+      rlist.forEach((it) => {
+        if (it.isPlayer) { dPlayerGBA(it.ppx, it.ppy - 8, G.pl.d, G.pl.f); return; }
+        dNPC(it.sx, it.sy - 8, it.n.tp, fr);
+        if (nearNPC(it.n)) {
+          cx.fillStyle = '#ffd700'; cx.font = '7px "Press Start 2P"'; cx.textAlign = 'center';
+          cx.fillText(it.n.nm, it.sx + 16, it.sy - 18); cx.textAlign = 'left';
+        }
+      });
+    }
+  } else if (G.curMap === 'tower') {
+    const sc = Math.max(0, Math.floor(cam.x / T) - 1),
+      ec = Math.min(TWC, sc + VIEW_COLS + 2);
+    const sr = Math.max(0, Math.floor(cam.y / T) - 1),
+      er = Math.min(TWR, sr + VIEW_ROWS + 2);
+    for (let r = sr; r < er; r++)
+      for (let c = sc; c < ec; c++) dTileC(c, r, towerMap);
+
+    // Efecto mágico de la torre (en coords de mundo)
+    cx.globalAlpha = 0.03;
+    cx.fillStyle = '#F8E8A0';
+    cx.fillRect(0, 0, VIEW_W, VIEW_H);
+    cx.globalAlpha = 1;
+
+    for (let i = 0; i < 8; i++) {
+      cx.globalAlpha = Math.sin(fr * 0.03 + i) * 0.3 + 0.4;
+      cx.fillStyle = '#F8E868';
+      cx.fillRect(
+        (i * 97 + fr * 0.5) % VIEW_W,
+        (i * 63 + Math.sin(fr * 0.02 + i) * 20) % VIEW_H,
+        2,
+        2
+      );
+    }
+    cx.globalAlpha = 1;
+
+    if (G.party.length > 0) {
+      const fpos = getFollowerPos();
+      if (fpos) {
+        const fx = fpos.x * T - cam.x,
+          fy = fpos.y * T - cam.y;
+        dCre(fx, fy - 8, G.party[0].id, G.party[0].lv, fr);
+      }
+    }
+
+    const ppx = G.pl.x * T - cam.x,
+      ppy = G.pl.y * T - cam.y;
+    dPlayerGBA(ppx, ppy - 8, G.pl.d, G.pl.f);
+  }
+
+  endWorldCamera(cx);
+
+  // Labels de zona (HUD 1:1, no zoom)
+  if (G.curMap.startsWith('cave')) {
     dBox(230, 4, 180, 18);
     cx.fillStyle = '#ffd700';
     cx.font = '8px "Press Start 2P"';
@@ -4635,34 +4713,6 @@ function drawMap() {
     );
     cx.textAlign = 'left';
   } else if (G.curMap === 'castle') {
-    const sc = Math.max(0, Math.floor(cam.x / T) - 1),
-      ec = Math.min(KC, sc + 22);
-    const sr = Math.max(0, Math.floor(cam.y / T) - 1),
-      er = Math.min(KR, sr + 17);
-    for (let r = sr; r < er; r++)
-      for (let c = sc; c < ec; c++) dTileC(c, r, castMap);
-
-    // NPCs castillo (depth-sorted)
-    {
-      const rlist = [];
-      castNpcs.forEach((n) => {
-        if (!npcVisible(n)) return;
-        const sx = n.x * T - cam.x, sy = n.y * T - cam.y;
-        if (sx > -40 && sx < 680) rlist.push({ y: n.y, sx, sy, n });
-      });
-      const ppx = G.pl.x * T - cam.x, ppy = G.pl.y * T - cam.y;
-      rlist.push({ y: G.pl.y, ppx, ppy, isPlayer: true });
-      rlist.sort((a, b) => a.y - b.y);
-      rlist.forEach((it) => {
-        if (it.isPlayer) { dPlayerGBA(it.ppx, it.ppy - 8, G.pl.d, G.pl.f); return; }
-        dNPC(it.sx, it.sy - 8, it.n.tp, fr);
-        if (nearNPC(it.n)) {
-          cx.fillStyle = '#ffd700'; cx.font = '7px "Press Start 2P"'; cx.textAlign = 'center';
-          cx.fillText(it.n.nm, it.sx + 16, it.sy - 18); cx.textAlign = 'left';
-        }
-      });
-    }
-
     dBox(250, 4, 140, 18);
     cx.fillStyle = '#ffd700';
     cx.font = '8px "Press Start 2P"';
@@ -4670,55 +4720,12 @@ function drawMap() {
     cx.fillText('Castillo Real', 320, 16);
     cx.textAlign = 'left';
   } else if (G.curMap === 'tower') {
-    const sc = Math.max(0, Math.floor(cam.x / T) - 1),
-      ec = Math.min(TWC, sc + 22);
-    const sr = Math.max(0, Math.floor(cam.y / T) - 1),
-      er = Math.min(TWR, sr + 17);
-    for (let r = sr; r < er; r++)
-      for (let c = sc; c < ec; c++) dTileC(c, r, towerMap);
-
-    // Efecto mágico de la torre
-    cx.globalAlpha = 0.03;
-    cx.fillStyle = '#F8E8A0';
-    cx.fillRect(0, 0, 640, 480);
-    cx.globalAlpha = 1;
-
-    // Estrellas flotantes
-    for (let i = 0; i < 8; i++) {
-      cx.globalAlpha = Math.sin(fr * 0.03 + i) * 0.3 + 0.4;
-      cx.fillStyle = '#F8E868';
-      cx.fillRect(
-        (i * 97 + fr * 0.5) % 640,
-        (i * 63 + Math.sin(fr * 0.02 + i) * 20) % 480,
-        2,
-        2
-      );
-    }
-    cx.globalAlpha = 1;
-
-    // Primera criatura del equipo siguiendo al jugador
-    if (G.party.length > 0) {
-      const fpos = getFollowerPos();
-      if (fpos) {
-        const fx = fpos.x * T - cam.x,
-          fy = fpos.y * T - cam.y;
-        dCre(fx, fy - 8, G.party[0].id, G.party[0].lv, fr);
-      }
-    }
-
     dBox(220, 4, 200, 18);
     cx.fillStyle = '#D860A8';
     cx.font = '7px "Press Start 2P"';
     cx.textAlign = 'center';
     cx.fillText('Torre Presupuesto Aprobado', 320, 16);
     cx.textAlign = 'left';
-  }
-
-  // JUGADOR (mundo/cueva/castillo ya lo dibujaron en depth-sort; torre lo dibuja aquí)
-  if (G.curMap === 'tower') {
-    const ppx = G.pl.x * T - cam.x,
-      ppy = G.pl.y * T - cam.y;
-    dPlayerGBA(ppx, ppy - 8, G.pl.d, G.pl.f);
   }
 
   // === HUD SUPERIOR ===

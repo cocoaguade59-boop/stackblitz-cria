@@ -14,7 +14,8 @@ import { T, cam } from '../core/world-constants.js';
 function dTileC(c, r, map) {
   const x = c * T - cam.x,
     y = r * T - cam.y;
-  if (x < -T || x > 640 || y < -T || y > 480) return;
+  // FOV mundo 15×9 → VIEW_W/H = 480×288 (+ margen 1 tile)
+  if (x < -T || x > 480 + T || y < -T || y > 288 + T) return;
   const t = map[r]?.[c];
   if (t === undefined) return;
 
