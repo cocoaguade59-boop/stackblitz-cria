@@ -28,12 +28,13 @@ function dNPC(x, y, id, f) {
         const prevSmoothing = cx.imageSmoothingEnabled;
         cx.imageSmoothingEnabled = false;
         const img = SPRITE_LOADER.get('npcs/alessandro');
-        const targetH = 44;
-        const ratio = img.naturalWidth / img.naturalHeight;
+        const targetH = 40;
+        const ratio = img.naturalWidth / Math.max(1, img.naturalHeight);
         const targetW = targetH * ratio;
-        // Centrar horizontalmente en la casilla de 32px + leve ajuste a la derecha
-        const ox = x + 16 - targetW / 2 + 2;
-        cx.drawImage(img, ox, by + 30 - targetH, targetW, targetH);
+        // Pies sobre la sombra (dShadow en y+31). Bob suave sin despegarlos.
+        const feetY = y + 30 + bob * 0.35;
+        const ox = x + 16 - targetW / 2;
+        cx.drawImage(img, ox, feetY - targetH, targetW, targetH);
         cx.imageSmoothingEnabled = prevSmoothing;
         break;
       }
@@ -741,20 +742,16 @@ function dNPC(x, y, id, f) {
 
     case 'alejandro': // Si hay sprite PNG lo usa, si no dibuja pixel-art viejo
       if (SPRITE_LOADER.has('npcs/alejandro')) {
-        // Escalado nítido pixel-art
         const prevSmoothing = cx.imageSmoothingEnabled;
         cx.imageSmoothingEnabled = false;
         const img = SPRITE_LOADER.get('npcs/alejandro');
-        // El sprite mide ~104x205. Lo dibujamos a ~32x40 (tamaño NPC del mapa)
-        // manteniendo aspect ratio (más alto que ancho).
+        // Mismo anclaje que Alessandro: pies en y+30 (sombra y+31)
         const targetH = 40;
-        const ratio = img.naturalWidth / img.naturalHeight; // ~0.51
-        const targetW = targetH * ratio;                     // ~20
-        // Centrar horizontalmente sobre la casilla estándar (32 px de ancho)
-        // y anclar los pies al piso del tile (y+30 aprox)
+        const ratio = img.naturalWidth / Math.max(1, img.naturalHeight);
+        const targetW = targetH * ratio;
+        const feetY = y + 30 + bob * 0.35;
         const drawX = x + 16 - targetW / 2;
-        const drawY = by - 6;
-        cx.drawImage(img, drawX, drawY, targetW, targetH);
+        cx.drawImage(img, drawX, feetY - targetH, targetW, targetH);
         cx.imageSmoothingEnabled = prevSmoothing;
       } else {
         // Fallback pixel-art (mientras el PNG no está o carga)

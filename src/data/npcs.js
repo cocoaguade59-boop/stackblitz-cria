@@ -390,6 +390,11 @@ const npcs = [
         'pociones y cristales.',
         '¡En la tienda de David-O!',
       ],
+      [
+        'También puedo mejorar tu mochila.',
+        'Crafting portátil de cristales...',
+        '¡pero cuesta 2000G! Inversión seria.',
+      ],
     ],
     postDlg: [
       'N-no es que me alegre',

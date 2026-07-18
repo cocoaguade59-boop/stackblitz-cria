@@ -324,10 +324,43 @@ function dFabianaAnim() {
   cx.textAlign = 'left';
 }
 
+/** Oferta de Claudia: mochila mejorada (T7). */
+function dClaudiaChoice() {
+  cx.fillStyle = 'rgba(0,0,0,.55)';
+  cx.fillRect(0, 0, 640, 480);
+
+  const boxW = 480,
+    boxH = 170;
+  const boxX = (640 - boxW) / 2,
+    boxY = 145;
+  dDialogBox(boxX, boxY, boxW, boxH, 'Claudia');
+
+  cx.fillStyle = '#000';
+  cx.font = '8px "Press Start 2P"';
+  cx.fillText('Puedo mejorar tu mochila.', boxX + 18, boxY + 30);
+  cx.fillText('Crafting de cristales desde el menú.', boxX + 18, boxY + 48);
+  cx.fillStyle = '#6A4010';
+  cx.font = '7px "Press Start 2P"';
+  cx.fillText('Costo: 2000G  ·  compra única permanente', boxX + 18, boxY + 70);
+
+  const sel = G.claSel || 0;
+  cx.fillStyle = sel === 0 ? '#C83030' : '#505060';
+  cx.font = '9px "Press Start 2P"';
+  cx.fillText(`${sel === 0 ? '▶ ' : '  '}Sí, mejorar mochila`, boxX + 30, boxY + 105);
+
+  cx.fillStyle = sel === 1 ? '#C83030' : '#505060';
+  cx.fillText(`${sel === 1 ? '▶ ' : '  '}No, gracias`, boxX + 30, boxY + 130);
+
+  cx.fillStyle = '#808090';
+  cx.font = '6px "Press Start 2P"';
+  cx.fillText(`Tu oro: ${G.gold || 0}G   ↑↓ elegir   SPACE confirmar`, boxX + 18, boxY + 156);
+}
+
 export {
   dFabianaChoice,
   dFabianaCraft,
   dFabianaAnim,
+  dClaudiaChoice,
   craftOptions,
   drawMiniFragment,
   drawBigCrystal,

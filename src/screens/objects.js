@@ -395,11 +395,14 @@ function dObjects() {
   // Footer
   cx.fillStyle = '#666';
   cx.font = '5px "Press Start 2P"';
-  cx.fillText('↑↓ navegar   SPACE info/activar   X/Esc volver', 56, 440);
-
   if (G.bagUpgrade) {
+    cx.fillText('↑↓ navegar   SPACE: activar/armar   X volver', 56, 440);
     cx.fillStyle = '#7AC070';
-    cx.fillText('Mochila mejorada: crafting portátil ON', 340, 440);
+    cx.fillText('Mochila mejorada · SPACE en fragmento = craft', 56, 456);
+  } else {
+    cx.fillText('↑↓ navegar   SPACE info/activar   X/Esc volver', 56, 440);
+    cx.fillStyle = '#555';
+    cx.fillText('Claudia (Storyboard) mejora la mochila · 2000G', 56, 456);
   }
 }
 

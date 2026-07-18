@@ -102,8 +102,11 @@ import {
   dFabianaChoice,
   dFabianaCraft,
   dFabianaAnim,
+  dClaudiaChoice,
   craftOptions,
 } from './src/screens/craft.js';
+
+const BAG_UPGRADE_PRICE = 2000;
 
 
 // [refactor-game-flags] flags mutables globales importadas
@@ -1963,6 +1966,43 @@ function checkNPC(list) {
               tm: 0,
               full: false,
             };
+          }
+        },
+      };
+      sfx.sel();
+      return;
+    }
+
+    // Claudia (T7): diálogo → oferta de mochila mejorada (única)
+    if (n.flag === 'metCla') {
+      const dlgArr = getNPCDialog(n);
+      G.scr = 'dialog';
+      G.ds = {
+        npc: n,
+        dlgArr,
+        li: 0,
+        ci: 0,
+        tm: 0,
+        full: false,
+        goto: 'claudiaChoice',
+        _onDialogFinish: () => {
+          if (G.bagUpgrade) {
+            G.scr = 'dialog';
+            G.ds = {
+              npc: n,
+              dlgArr: [
+                'Tu mochila ya está mejorada.',
+                'Armá cristales desde Menú → Objetos.',
+                'Fabiana sigue ayudando si querés.',
+              ],
+              li: 0,
+              ci: 0,
+              tm: 0,
+              full: false,
+            };
+          } else {
+            G.scr = 'claudiaChoice';
+            G.claSel = 0;
           }
         },
       };
@@ -5993,6 +6033,7 @@ function uFabianaChoice() {
     sfx.sel();
     if (G.fabSel === 0) {
       // Sí → mini pantalla de crafting
+      G.craftFromBag = false;
       G.scr = 'fabianaCraft';
       G.craftSel = 0;
     } else {
@@ -6001,6 +6042,74 @@ function uFabianaChoice() {
       G.ds = {
         npc: { nm: 'Fabiana' },
         dlgArr: ['Está bien, cuando quieras', 'hacer arte, acá estoy.'],
+        li: 0,
+        ci: 0,
+        tm: 0,
+        full: false,
+      };
+    }
+  }
+  if (kp('x') || kp('Escape')) {
+    G.scr = 'world';
+    sfx.sel();
+  }
+}
+
+// ============================================================
+// T7: CLAUDIA — mochila mejorada (crafting portátil)
+// ============================================================
+
+function uClaudiaChoice() {
+  if (kp('ArrowUp') || kp('ArrowDown') || kp('ArrowLeft') || kp('ArrowRight')) {
+    G.claSel = (G.claSel + 1) % 2;
+    sfx.sel();
+  }
+  if (kp(' ') || kp('Enter')) {
+    sfx.sel();
+    if (G.claSel === 0) {
+      if (G.bagUpgrade) {
+        aN('Ya tenés la mochila mejorada.');
+        G.scr = 'world';
+      } else if ((G.gold || 0) < BAG_UPGRADE_PRICE) {
+        G.scr = 'dialog';
+        G.ds = {
+          npc: { nm: 'Claudia' },
+          dlgArr: [
+            `Te faltan ${BAG_UPGRADE_PRICE - (G.gold || 0)}G.`,
+            'Ahorrá un poco más y volvé.',
+            '¡Es una inversión permanente!',
+          ],
+          li: 0,
+          ci: 0,
+          tm: 0,
+          full: false,
+        };
+        sfx.nef();
+      } else {
+        G.gold -= BAG_UPGRADE_PRICE;
+        G.bagUpgrade = true;
+        sfx.cap();
+        aN('¡Mochila mejorada! Crafting en Objetos.');
+        G.scr = 'dialog';
+        G.ds = {
+          npc: { nm: 'Claudia' },
+          dlgArr: [
+            '¡Listo! Mochila reforzada.',
+            'En Menú → Objetos podés armar',
+            'cristales con 4 fragmentos.',
+            'Fabiana sigue si querés visitarla.',
+          ],
+          li: 0,
+          ci: 0,
+          tm: 0,
+          full: false,
+        };
+      }
+    } else {
+      G.scr = 'dialog';
+      G.ds = {
+        npc: { nm: 'Claudia' },
+        dlgArr: ['Está bien. Cuando juntes oro,', 'acá estoy. ¡Ahorrá!'],
         li: 0,
         ci: 0,
         tm: 0,
@@ -6048,15 +6157,33 @@ function uFabianaCraft() {
     }
   }
   if (kp('x') || kp('Escape')) {
-    G.scr = 'world';
+    // Si venía de la mochila, volver a Objetos
+    if (G.craftFromBag) {
+      G.scr = 'menu';
+      G.showObjects = true;
+      if (!G.os) G.os = { s: 0, scroll: 0 };
+    } else {
+      G.scr = 'world';
+    }
     sfx.sel();
+  }
+}
+
+function finishCraftToCaller() {
+  G.craft = null;
+  if (G.craftFromBag) {
+    G.scr = 'menu';
+    G.showObjects = true;
+    if (!G.os) G.os = { s: 0, scroll: 0 };
+  } else {
+    G.scr = 'world';
   }
 }
 
 function uFabianaAnim() {
   const c = G.craft;
   if (!c) {
-    G.scr = 'world';
+    finishCraftToCaller();
     return;
   }
   c.tm++;
@@ -6094,14 +6221,12 @@ function uFabianaAnim() {
   } else if (c.phase === 'reveal') {
     // SPACE para salir (o auto a ~4s total)
     if (c.tm > 40 && (kp(' ') || kp('Enter') || kp('x') || kp('Escape'))) {
-      G.craft = null;
-      G.scr = 'world';
+      finishCraftToCaller();
       sfx.sel();
     }
     // auto-close suave tras ~3s de reveal
     if (c.tm > 200) {
-      G.craft = null;
-      G.scr = 'world';
+      finishCraftToCaller();
     }
   }
 }
@@ -6187,8 +6312,22 @@ function uObjects() {
         }
       }
     } else if (row.kind === 'fragment') {
-      aN('Fabiana puede armar 4 fragmentos en 1 cristal.');
-      sfx.sel();
+      if (G.bagUpgrade) {
+        // T7: crafting portátil desde la mochila
+        G.craftFromBag = true;
+        G.craftSel = 0;
+        // Preseleccionar el color del fragmento tocado si tiene ≥4
+        const code = row.code;
+        const opts = craftOptions();
+        const idx = opts.findIndex((o) => o.code === code && o.can);
+        G.craftSel = idx >= 0 ? idx : Math.max(0, opts.findIndex((o) => o.can));
+        G.showObjects = false;
+        G.scr = 'fabianaCraft';
+        sfx.sel();
+      } else {
+        aN('Fabiana puede armar 4 fragmentos en 1 cristal.');
+        sfx.sel();
+      }
     } else {
       aN(row.desc || row.name);
       sfx.sel();
@@ -6255,6 +6394,16 @@ function update() {
         const d = G.ds || {};
         // ¿callback personalizado?
         if (typeof d._onDialogFinish === 'function') { d._onDialogFinish(d); break; }
+        // Claudia mochila (backup)
+        if (d.goto === 'claudiaChoice') {
+          if (G.bagUpgrade) {
+            G.scr = 'world';
+          } else {
+            G.scr = 'claudiaChoice';
+            G.claSel = 0;
+          }
+          break;
+        }
         // Fabiana crafting (backup si el callback no viajó)
         if (d.goto === 'fabianaChoice') {
           const frags = G.frag || { p: 0, c: 0, o: 0 };
@@ -6337,6 +6486,9 @@ function update() {
     case 'fabianaAnim':
       uFabianaAnim();
       break;
+    case 'claudiaChoice':
+      uClaudiaChoice();
+      break;
   }
 }
 
@@ -6418,6 +6570,10 @@ function draw() {
       break;
     case 'fabianaAnim':
       dFabianaAnim();
+      break;
+    case 'claudiaChoice':
+      drawMap();
+      dClaudiaChoice();
       break;
   }
 }
