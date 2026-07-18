@@ -1992,7 +1992,7 @@ function checkNPC(list) {
               npc: n,
               dlgArr: [
                 'Tu mochila ya está mejorada.',
-                'Armá cristales desde Menú → Objetos.',
+                'Usá Menú → LaFot para armar cristales.',
                 'Fabiana sigue ayudando si querés.',
               ],
               li: 0,
@@ -2786,7 +2786,7 @@ function resetGame(startIntro = false) {
   G.curMap = 'world';
   G.pl = { x: 20, y: 145, d: 0, f: 0, sprint: false, stepTarget: null, moving: false };
   G.party = [];
-  G.gold = 4000; // partida normal
+  G.gold = 200;
   G.pot = 5;
   G.rev = 2;
   G.crv = 3;
@@ -5389,7 +5389,7 @@ function loadGame() {
     setProa((save.proa || []).map((j) => Cre.fromJSON(j)));
 
     // Inventario
-    G.gold = save.gold ?? 4000;
+    G.gold = save.gold ?? 200;
     G.pot = save.pot ?? 5;
     G.rev = save.rev ?? 2;
     G.crv = save.crv ?? 3;
@@ -5909,7 +5909,7 @@ function startNewGameFlow() {
   G.pl.moving = false;
   // Inventario base de partida NORMAL (interactúa con ciudadanos)
   G.party = [];
-  G.gold = 4000;
+  G.gold = 200;
   G.pot = 5;
   G.rev = 2;
   G.crv = 3;
@@ -6106,15 +6106,15 @@ function uClaudiaChoice() {
         G.gold -= BAG_UPGRADE_PRICE;
         G.bagUpgrade = true;
         sfx.cap();
-        aN('¡Mochila mejorada! Crafting en Objetos.');
+        aN('¡Mochila mejorada! Slot LaFot desbloqueado.');
         G.scr = 'dialog';
         G.ds = {
           npc: { nm: 'Claudia' },
           dlgArr: [
             '¡Listo! Mochila reforzada.',
-            'En Menú → Objetos podés armar',
-            'cristales con 4 fragmentos.',
-            'Fabiana sigue si querés visitarla.',
+            'En el menú aparece LaFot:',
+            'Laboratorio de fotografía.',
+            'Ahí armás cristales con fragmentos.',
           ],
           li: 0,
           ci: 0,
@@ -6248,30 +6248,96 @@ function uFabianaAnim() {
   }
 }
 
-// Menú: 10 opciones (Poción…Objetos…Reiniciar). Inline por bug double-G.
-const MENU_COUNT = 10;
+// Menú inline (bug double-G). LaFot aparece solo con bagUpgrade.
+function getMenuOpts() {
+  const opts = [
+    'Poción',
+    'Revivir',
+    'Equipo',
+    'Mapa',
+    'Misiones',
+    'Criaturario',
+    'Objetos',
+  ];
+  if (G.bagUpgrade) opts.push('LaFot');
+  opts.push('Guardar', 'Volver', 'Reiniciar toda la partida');
+  return opts;
+}
 
 function uMenu() {
   if (G.showMap || G.proaOpen || G.showMissions || G.showDex || G.showObjects) return;
-  if (kp('ArrowUp') || kp('ArrowLeft')) { G.ms.s = (G.ms.s + MENU_COUNT - 1) % MENU_COUNT; sfx.sel(); }
-  if (kp('ArrowDown') || kp('ArrowRight')) { G.ms.s = (G.ms.s + 1) % MENU_COUNT; sfx.sel(); }
+  const opts = getMenuOpts();
+  const n = opts.length;
+  if (G.ms.s >= n) G.ms.s = 0;
+  if (kp('ArrowUp') || kp('ArrowLeft')) { G.ms.s = (G.ms.s + n - 1) % n; sfx.sel(); }
+  if (kp('ArrowDown') || kp('ArrowRight')) { G.ms.s = (G.ms.s + 1) % n; sfx.sel(); }
   if (kp(' ') || kp('Enter')) {
     sfx.sel();
-    switch (G.ms.s) {
-      case 0: if (G.pot > 0 && G.party.length > 0) { G.pot--; G.party[0].heal(Math.floor(G.party[0].mHp * 0.2)); sfx.heal(); aN('+HP!'); } else aN('¡Sin pociones!'); break;
-      case 1: { const f = G.party.find((c) => c.hp <= 0); if (f && G.rev > 0) { G.rev--; f.hp = Math.floor(f.mHp * 0.5); sfx.heal(); aN(`${f.nm} revivió!`); } else aN('Nadie caído o sin revivir.'); } break;
-      case 2: G.proaOpen = true; G.proaSel = 0; G.proaMode = 'view'; break;
-      case 3: G.showMap = true; break;
-      case 4: G.showMissions = true; break;
-      case 5: G.showDex = true; G.dexSel = 0; break;
-      case 6:
-        // Inventario de objetos (fragmentos / fragancias / pergaminos / cristales)
+    const label = opts[G.ms.s];
+    switch (label) {
+      case 'Poción':
+        if (G.pot > 0 && G.party.length > 0) {
+          G.pot--;
+          G.party[0].heal(Math.floor(G.party[0].mHp * 0.2));
+          sfx.heal();
+          aN('+HP!');
+        } else aN('¡Sin pociones!');
+        break;
+      case 'Revivir': {
+        const f = G.party.find((c) => c.hp <= 0);
+        if (f && G.rev > 0) {
+          G.rev--;
+          f.hp = Math.floor(f.mHp * 0.5);
+          sfx.heal();
+          aN(`${f.nm} revivió!`);
+        } else aN('Nadie caído o sin revivir.');
+        break;
+      }
+      case 'Equipo':
+        G.proaOpen = true;
+        G.proaSel = 0;
+        G.proaMode = 'view';
+        break;
+      case 'Mapa':
+        G.showMap = true;
+        break;
+      case 'Misiones':
+        G.showMissions = true;
+        break;
+      case 'Criaturario':
+        G.showDex = true;
+        G.dexSel = 0;
+        break;
+      case 'Objetos':
         G.showObjects = true;
         G.os = { s: 0, scroll: 0 };
         break;
-      case 7: if (G.batallador) { aN('Batallador: no se puede guardar en modo test.'); sfx.nef(); } else { if (window.__gameSaveGame) window.__gameSaveGame(); } break;
-      case 8: G.scr = 'world'; break;
-      case 9: if (G.batallador) { aN('Batallador: sal del modo test antes de reiniciar.'); sfx.nef(); } else { G.scr = 'confirmReset'; G.resetSel = 0; } break;
+      case 'LaFot':
+        // Laboratorio de fotografía (crafting portátil, mochila reforzada)
+        G.craftFromBag = true;
+        G.craftSel = 0;
+        G.scr = 'fabianaCraft';
+        break;
+      case 'Guardar':
+        if (G.batallador) {
+          aN('Batallador: no se puede guardar en modo test.');
+          sfx.nef();
+        } else if (window.__gameSaveGame) {
+          window.__gameSaveGame();
+        }
+        break;
+      case 'Volver':
+        G.scr = 'world';
+        break;
+      case 'Reiniciar toda la partida':
+        if (G.batallador) {
+          aN('Batallador: sal del modo test antes de reiniciar.');
+          sfx.nef();
+        } else {
+          G.scr = 'confirmReset';
+          G.resetSel = 0;
+        }
+        break;
     }
   }
   if (kp('x') || kp('Escape')) G.scr = 'world';
@@ -6330,19 +6396,10 @@ function uObjects() {
       }
     } else if (row.kind === 'fragment') {
       if (G.bagUpgrade) {
-        // T7: crafting portátil desde la mochila
-        G.craftFromBag = true;
-        G.craftSel = 0;
-        // Preseleccionar el color del fragmento tocado si tiene ≥4
-        const code = row.code;
-        const opts = craftOptions();
-        const idx = opts.findIndex((o) => o.code === code && o.can);
-        G.craftSel = idx >= 0 ? idx : Math.max(0, opts.findIndex((o) => o.can));
-        G.showObjects = false;
-        G.scr = 'fabianaCraft';
+        aN('Armá cristales en Menú → LaFot.');
         sfx.sel();
       } else {
-        aN('Fabiana puede armar 4 fragmentos en 1 cristal.');
+        aN('Fabiana o LaFot (Claudia, 2000G) arman cristales.');
         sfx.sel();
       }
     } else {
@@ -6379,6 +6436,12 @@ function update() {
     G.pl.moving = false;
     G.pl.stepTarget = null;
     aN('Respawn de emergencia: Aldea Pitch');
+    sfx.sel();
+  }
+  // Dev cheat: I = +2000G (partida normal; no se publicita en HUD)
+  if (kp('i') && !['title', 'intro', 'starter', 'battle'].includes(G.scr)) {
+    G.gold = (G.gold || 0) + 2000;
+    aN('+2000G');
     sfx.sel();
   }
   uP();

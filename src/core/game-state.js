@@ -9,7 +9,7 @@ if (!window.__gs) {
     curMap: 'world',
     pl: { x: 20, y: 145, d: 0, f: 0, sprint: false, stepTarget: null, moving: false },
     party: [],
-    gold: 4000, // partida normal (interactúa con NPCs)
+    gold: 200,
     pot: 5,
     rev: 2,
     // Cristales armados (morado / cian / naranja)

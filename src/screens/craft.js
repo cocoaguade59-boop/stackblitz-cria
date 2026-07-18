@@ -108,14 +108,21 @@ function dFabianaCraft() {
   cx.fillStyle = 'rgba(8,6,16,0.78)';
   cx.fillRect(0, 0, 640, 480);
 
-  dBoxMenu(70, 40, 500, 400, 'FABIANA · ARTE');
+  const craftTitle = G.craftFromBag ? 'LABORATORIO DE FOTOGRAFÍA' : 'FABIANA · ARTE';
+  dBoxMenu(70, 40, 500, 400, craftTitle);
 
   cx.fillStyle = '#C8A830';
   cx.font = '7px "Press Start 2P"';
   cx.fillText('Elige 4 fragmentos del mismo color', 90, 78);
   cx.fillStyle = '#888';
   cx.font = '5px "Press Start 2P"';
-  cx.fillText('4 fragmentos → 1 cristal armado', 90, 96);
+  cx.fillText(
+    G.craftFromBag
+      ? 'LaFot · 4 fragmentos → 1 cristal armado'
+      : '4 fragmentos → 1 cristal armado',
+    90,
+    96
+  );
 
   const opts = craftOptions();
   const sel = G.craftSel || 0;
@@ -320,7 +327,11 @@ function dFabianaAnim() {
   cx.fillStyle = '#C8A830';
   cx.font = '8px "Press Start 2P"';
   cx.textAlign = 'center';
-  cx.fillText('FABIANA · FABRICACIÓN', 320, 36);
+  cx.fillText(
+    G.craftFromBag ? 'LAFOT · FABRICACIÓN' : 'FABIANA · FABRICACIÓN',
+    320,
+    36
+  );
   cx.textAlign = 'left';
 }
 

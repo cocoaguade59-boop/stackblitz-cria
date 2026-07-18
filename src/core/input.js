@@ -42,6 +42,7 @@ document.addEventListener('keydown', (e) => {
       'x',
       'y',
       'p',
+      'i',
     ].includes(key)
   ) {
     e.preventDefault();

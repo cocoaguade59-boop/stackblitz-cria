@@ -396,13 +396,13 @@ function dObjects() {
   cx.fillStyle = '#666';
   cx.font = '5px "Press Start 2P"';
   if (G.bagUpgrade) {
-    cx.fillText('↑↓ navegar   SPACE: activar/armar   X volver', 56, 440);
-    cx.fillStyle = '#7AC070';
-    cx.fillText('Mochila mejorada · SPACE en fragmento = craft', 56, 456);
+    cx.fillText('↑↓ navegar   SPACE: activar   X volver', 56, 440);
+    cx.fillStyle = '#7AC0FF';
+    cx.fillText('Crafting: Menú → LaFot (laboratorio de fotografía)', 56, 456);
   } else {
     cx.fillText('↑↓ navegar   SPACE info/activar   X/Esc volver', 56, 440);
     cx.fillStyle = '#555';
-    cx.fillText('Claudia (Storyboard) mejora la mochila · 2000G', 56, 456);
+    cx.fillText('Claudia (Storyboard) desbloquea LaFot · 2000G', 56, 456);
   }
 }
 

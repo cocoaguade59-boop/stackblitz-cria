@@ -17,25 +17,44 @@ import { tCol, tEmo, tNam } from '../data/types.js';
 import { aN } from '../utils/particles.js';
 import { proa } from '../core/game-flags.js';
 
-// 10 opciones: Poción, Revivir, Equipo, Mapa, Misiones, Criaturario, Objetos, Guardar, Volver, Reiniciar
-const MENU_COUNT = 10;
+// Opciones fijas + LaFot solo si bagUpgrade (Claudia).
+// Índices dinámicos: LaFot se inserta después de Objetos.
+function getMenuOpts() {
+  const opts = [
+    'Poción',
+    'Revivir',
+    'Equipo',
+    'Mapa',
+    'Misiones',
+    'Criaturario',
+    'Objetos',
+  ];
+  if (G.bagUpgrade) opts.push('LaFot');
+  opts.push('Guardar', 'Volver', 'Reiniciar toda la partida');
+  return opts;
+}
 
 function uMenu() {
   // Sub-pantallas despachadas por script.js (no aquí)
   if (G.showMap || G.proaOpen || G.showMissions || G.showDex || G.showObjects) return;
 
+  const opts = getMenuOpts();
+  const n = opts.length;
+  if (G.ms.s >= n) G.ms.s = 0;
+
   if (kp('ArrowUp') || kp('ArrowLeft')) {
-    G.ms.s = (G.ms.s + MENU_COUNT - 1) % MENU_COUNT;
+    G.ms.s = (G.ms.s + n - 1) % n;
     sfx.sel();
   }
   if (kp('ArrowDown') || kp('ArrowRight')) {
-    G.ms.s = (G.ms.s + 1) % MENU_COUNT;
+    G.ms.s = (G.ms.s + 1) % n;
     sfx.sel();
   }
   if (kp(' ') || kp('Enter')) {
     sfx.sel();
-    switch (G.ms.s) {
-      case 0:
+    const label = opts[G.ms.s];
+    switch (label) {
+      case 'Poción':
         if (G.pot > 0 && G.party.length > 0) {
           G.pot--;
           G.party[0].heal(Math.floor(G.party[0].mHp * 0.2));
@@ -43,49 +62,53 @@ function uMenu() {
           aN('+HP!');
         } else aN('¡Sin pociones!');
         break;
-      case 1:
-        {
-          const f = G.party.find((c) => c.hp <= 0);
-          if (f && G.rev > 0) {
-            G.rev--;
-            f.hp = Math.floor(f.mHp * 0.5);
-            sfx.heal();
-            aN(`${f.nm} revivió!`);
-          } else aN('Nadie caído o sin revivir.');
-        }
+      case 'Revivir': {
+        const f = G.party.find((c) => c.hp <= 0);
+        if (f && G.rev > 0) {
+          G.rev--;
+          f.hp = Math.floor(f.mHp * 0.5);
+          sfx.heal();
+          aN(`${f.nm} revivió!`);
+        } else aN('Nadie caído o sin revivir.');
         break;
-      case 2:
+      }
+      case 'Equipo':
         G.proaOpen = true;
         G.proaSel = 0;
         G.proaMode = 'view';
         break;
-      case 3:
+      case 'Mapa':
         G.showMap = true;
         break;
-      case 4:
+      case 'Misiones':
         G.showMissions = true;
         break;
-      case 5:
+      case 'Criaturario':
         G.showDex = true;
         G.dexSel = 0;
         break;
-      case 6:
-        // Objetos (fragmentos / fragancias / pergaminos / cristales)
+      case 'Objetos':
         G.showObjects = true;
         G.os = { s: 0, scroll: 0 };
         break;
-      case 7:
+      case 'LaFot':
+        // Laboratorio de fotografía (crafting portátil)
+        G.craftFromBag = true;
+        G.craftSel = 0;
+        G.scr = 'fabianaCraft';
+        break;
+      case 'Guardar':
         if (G.batallador) {
           aN('Batallador: no se puede guardar en modo test.');
           sfx.nef();
-        } else {
-          if (window.__gameSaveGame) window.__gameSaveGame();
+        } else if (window.__gameSaveGame) {
+          window.__gameSaveGame();
         }
         break;
-      case 8:
+      case 'Volver':
         G.scr = 'world';
         break;
-      case 9:
+      case 'Reiniciar toda la partida':
         if (G.batallador) {
           aN('Batallador: sal del modo test antes de reiniciar.');
           sfx.nef();
@@ -106,35 +129,27 @@ function dMenu() {
   cx.fillStyle = 'rgba(0,0,0,.6)';
   cx.fillRect(0, 0, 640, 480);
 
-  dBoxMenu(16, 16, 200, 360, G.batallador ? 'MENÚ ⚔️ BATALLADOR' : 'MENÚ');
-  const opts = [
-    'Poción',
-    'Revivir',
-    'Equipo',
-    'Mapa',
-    'Misiones',
-    'Criaturario',
-    'Objetos',
-    'Guardar',
-    'Volver',
-    'Reiniciar toda la partida',
-  ];
+  const opts = getMenuOpts();
+  const boxH = Math.min(400, 48 + opts.length * 26 + 70);
+  dBoxMenu(16, 16, 200, boxH, G.batallador ? 'MENÚ ⚔️ BATALLADOR' : 'MENÚ');
   opts.forEach((o, i) => {
-    cx.fillStyle = G.ms.s === i ? '#ffd700' : '#fff';
-    cx.font = i === 9 ? '6px "Press Start 2P"' : '8px "Press Start 2P"';
+    const isReset = o.startsWith('Reiniciar');
+    cx.fillStyle = G.ms.s === i ? '#ffd700' : o === 'LaFot' ? '#7AC0FF' : '#fff';
+    cx.font = isReset ? '6px "Press Start 2P"' : '8px "Press Start 2P"';
     cx.fillText(`${G.ms.s === i ? '▶ ' : '  '}${o}`, 34, 46 + i * 26);
   });
+  const footY = 46 + opts.length * 26 + 10;
   cx.fillStyle = '#aaa';
   cx.font = '5px "Press Start 2P"';
-  cx.fillText(`🧪${G.pot} ❤${G.rev} 💰${G.gold}`, 34, 318);
+  cx.fillText(`🧪${G.pot} ❤${G.rev} 💰${G.gold}`, 34, footY);
   cx.fillText(
     `💎${G.crv || 0} 💠${G.crvC || 0} 🔶${G.crvO || 0} 📜${G.scrolls || 0}`,
     34,
-    332
+    footY + 14
   );
   const frg = G.frag || { p: 0, c: 0, o: 0 };
   cx.fillStyle = '#777';
-  cx.fillText(`Frag ${frg.p}/${frg.c}/${frg.o}`, 34, 346);
+  cx.fillText(`Frag ${frg.p}/${frg.c}/${frg.o}`, 34, footY + 28);
 
   dBoxMenu(230, 16, 400, 450, 'EQUIPO');
   if (G.party.length === 0) {
@@ -183,4 +198,4 @@ function dMenu() {
   }
 }
 
-export { uMenu, dMenu, MENU_COUNT };
+export { uMenu, dMenu, getMenuOpts };

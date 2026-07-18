@@ -38,36 +38,51 @@ function lootSubtitle(loot) {
   return '';
 }
 
+/** Fragmento: astilla irregular (NO el cristal completo). */
 function drawFragmentIcon(cx0, cy0, colorCode, scale = 1) {
   const info = CRYSTAL_INFO[colorCode] || CRYSTAL_INFO.p;
   const s = scale;
-  // pedestal
-  cx.fillStyle = '#404858';
-  cx.fillRect(cx0 - 28 * s, cy0 + 30 * s, 56 * s, 10 * s);
-  cx.fillStyle = '#505868';
-  cx.fillRect(cx0 - 22 * s, cy0 + 24 * s, 44 * s, 8 * s);
 
-  const gl = 0.75 + Math.sin(fr * 0.14) * 0.25;
+  // pedestal bajo
+  cx.fillStyle = '#404858';
+  cx.fillRect(cx0 - 22 * s, cy0 + 28 * s, 44 * s, 8 * s);
+  cx.fillStyle = '#505868';
+  cx.fillRect(cx0 - 16 * s, cy0 + 24 * s, 32 * s, 6 * s);
+
+  const gl = 0.78 + Math.sin(fr * 0.14) * 0.22;
   cx.globalAlpha = gl;
-  // cristal principal
+
+  // astilla principal (romboide chico, irregular)
   cx.fillStyle = info.colorDark;
-  cx.fillRect(cx0 - 14 * s, cy0 - 28 * s, 28 * s, 52 * s);
+  cx.fillRect(cx0 - 10 * s, cy0 - 8 * s, 18 * s, 28 * s);
+  cx.fillRect(cx0 - 14 * s, cy0 + 0 * s, 10 * s, 16 * s);
+  cx.fillRect(cx0 + 6 * s, cy0 - 4 * s, 10 * s, 18 * s);
+  // punta superior irregular
+  cx.fillRect(cx0 - 4 * s, cy0 - 18 * s, 10 * s, 12 * s);
+  cx.fillRect(cx0 + 2 * s, cy0 - 22 * s, 6 * s, 8 * s);
+
   cx.fillStyle = info.color;
-  cx.fillRect(cx0 - 10 * s, cy0 - 22 * s, 20 * s, 42 * s);
+  cx.fillRect(cx0 - 6 * s, cy0 - 4 * s, 12 * s, 20 * s);
+  cx.fillRect(cx0 - 10 * s, cy0 + 4 * s, 6 * s, 10 * s);
+  cx.fillRect(cx0 + 4 * s, cy0 + 0 * s, 6 * s, 12 * s);
+  cx.fillRect(cx0 - 2 * s, cy0 - 14 * s, 6 * s, 10 * s);
+
   cx.fillStyle = info.colorLight;
-  cx.fillRect(cx0 - 4 * s, cy0 - 14 * s, 8 * s, 24 * s);
+  cx.fillRect(cx0 - 2 * s, cy0 - 2 * s, 5 * s, 12 * s);
+  cx.fillRect(cx0 + 0 * s, cy0 - 12 * s, 3 * s, 6 * s);
+
   // brillo
   cx.fillStyle = '#fff';
-  cx.fillRect(cx0 - 2 * s, cy0 - 8 * s, 3 * s, 10 * s);
+  cx.fillRect(cx0 - 1 * s, cy0 + 2 * s, 2 * s, 6 * s);
   cx.globalAlpha = 1;
 
-  // facetas laterales
+  // astillas sueltas alrededor (refuerza que es un pedazo)
   cx.fillStyle = info.colorDark;
-  cx.fillRect(cx0 - 24 * s, cy0 - 4 * s, 10 * s, 22 * s);
-  cx.fillRect(cx0 + 14 * s, cy0 - 8 * s, 10 * s, 26 * s);
+  cx.fillRect(cx0 - 26 * s, cy0 + 10 * s, 8 * s, 6 * s);
+  cx.fillRect(cx0 + 18 * s, cy0 + 6 * s, 7 * s, 8 * s);
   cx.fillStyle = info.color;
-  cx.fillRect(cx0 - 22 * s, cy0, 6 * s, 14 * s);
-  cx.fillRect(cx0 + 16 * s, cy0 - 4 * s, 6 * s, 16 * s);
+  cx.fillRect(cx0 - 24 * s, cy0 + 12 * s, 4 * s, 3 * s);
+  cx.fillRect(cx0 + 20 * s, cy0 + 8 * s, 4 * s, 4 * s);
 }
 
 function drawFragranceIcon(cx0, cy0, type) {
