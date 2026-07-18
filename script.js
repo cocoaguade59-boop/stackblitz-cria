@@ -2786,7 +2786,7 @@ function resetGame(startIntro = false) {
   G.curMap = 'world';
   G.pl = { x: 20, y: 145, d: 0, f: 0, sprint: false, stepTarget: null, moving: false };
   G.party = [];
-  G.gold = 200;
+  G.gold = 4000; // partida normal
   G.pot = 5;
   G.rev = 2;
   G.crv = 3;
@@ -4821,7 +4821,8 @@ function drawMap() {
   cx.fillRect(4, 462, 400, 16);
   cx.fillStyle = '#666';
   cx.font = '5px "Press Start 2P"';
-  cx.fillText('Flechas:Mover Z:Sprint SPACE:Acción X:Menú Y:Supervisor P:Batallador', 8, 473);
+  // No publicitar Y/P (modos de prueba) en el HUD: se descubren por error y se abusan.
+  cx.fillText('Flechas:Mover  Z:Sprint  SPACE:Acción  X:Menú', 8, 473);
 
   // === PARTÍCULAS Y NOTIFICACIONES ===
   drawParticles();
@@ -5388,7 +5389,7 @@ function loadGame() {
     setProa((save.proa || []).map((j) => Cre.fromJSON(j)));
 
     // Inventario
-    G.gold = save.gold ?? 200;
+    G.gold = save.gold ?? 4000;
     G.pot = save.pot ?? 5;
     G.rev = save.rev ?? 2;
     G.crv = save.crv ?? 3;
