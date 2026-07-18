@@ -109,7 +109,6 @@ function addRouteDecorations() {
 function polishVillageLayout(sx, sy, id) {
   const set = (c, r, t) => {
     if (r < 2 || r >= WR - 2 || c < 2 || c >= WC - 2) return;
-    // Nunca pisar una casa ya colocada
     if (wMap[r][c] === 4 && t !== 4) return;
     wMap[r][c] = t;
   };
@@ -118,17 +117,18 @@ function polishVillageLayout(sx, sy, id) {
   };
   const house = (c, r) => {
     if (c < 2 || r < 2 || c + 4 >= WC - 2 || r + 3 >= WR - 2) return false;
-    // Forzar casa completa (sí puede sobrescribir camino)
     for (let rr = r; rr <= r + 3; rr++)
       for (let cc = c; cc <= c + 4; cc++) wMap[rr][cc] = 4;
     return true;
   };
 
-  const base = id === 'rodaje' ? 26 : 0;
-  fill(sx - 6, sy - 5, sx + 16, sy + 14, base);
+  // Suelo del pueblo (camino) — amplio
+  const ground = id === 'rodaje' ? 26 : 1;
+  fill(sx - 6, sy - 5, sx + 16, sy + 14, ground === 26 ? 26 : 0);
   fill(sx - 4, sy - 3, sx + 14, sy + 12, 1);
   fill(sx + 1, sy + 1, sx + 10, sy + 8, 1);
 
+  // Calles en cruz
   for (let r = sy - 5; r <= sy + 14; r++) {
     set(sx + 5, r, 1);
     set(sx + 6, r, 1);
@@ -138,22 +138,15 @@ function polishVillageLayout(sx, sy, id) {
     set(c, sy + 5, 1);
   }
 
-  // Bordillos ANTES de las casas
-  for (let c = sx - 5; c <= sx + 15; c++) {
-    if (c === sx + 5 || c === sx + 6) continue;
-    set(c, sy - 5, id === 'rodaje' ? 27 : 20);
-    set(c, sy + 13, id === 'rodaje' ? 27 : 20);
-  }
-
-  // Casas 5×4 al FINAL (no se pisan)
-  // Arriba: sy-4 .. sy-1 | Abajo: sy+9 .. sy+12 (clamp al mapa)
+  // Casas 5×4. Abajo: dejar SIEMPRE ≥2 filas de camino delante de la puerta
+  // (puerta en botR+3; camino en botR+4 y botR+5).
   const topR = Math.max(2, sy - 4);
-  let botR = sy + 9;
-  if (botR + 3 >= WR - 2) botR = WR - 6;
-  // Separar de la plaza: bottom no debe solaparse con sy+8
-  if (botR < sy + 9) {
-    // mapa chico: empujar bottom lo más abajo posible sin solapar top
-  }
+  // Prefer botR = sy+8 → base sy+11, patio sy+12..sy+13
+  let botR = sy + 8;
+  if (botR + 3 >= WR - 3) botR = WR - 7; // base ≤ WR-4, patio WR-3
+  // No solapar con casas de arriba (topR+3)
+  if (botR <= topR + 3) botR = topR + 5;
+
   const leftC = Math.max(2, sx - 5);
   const rightC = Math.min(WC - 7, sx + 10);
 
@@ -162,18 +155,54 @@ function polishVillageLayout(sx, sy, id) {
   house(leftC, botR);
   house(rightC, botR);
 
-  // Reabrir calles centrales por si alguna casa quedó mal (no deberían)
+  // Patio / acceso delante de CADA casa (3 tiles de profundidad × ancho de casa)
+  const clearFront = (hc, hr) => {
+    const doorRow = hr + 4; // primera fila bajo la base
+    for (let r = doorRow; r <= doorRow + 2; r++) {
+      for (let c = hc - 1; c <= hc + 5; c++) {
+        if (r < 2 || r >= WR - 2 || c < 2 || c >= WC - 2) continue;
+        if (wMap[r][c] === 4) continue;
+        wMap[r][c] = 1;
+      }
+    }
+  };
+  clearFront(leftC, topR);
+  clearFront(rightC, topR);
+  clearFront(leftC, botR);
+  clearFront(rightC, botR);
+
+  // Reabrir calles centrales
   for (let r = sy - 5; r <= sy + 14; r++) {
-    if (wMap[r]?.[sx + 5] === 4 || wMap[r]?.[sx + 6] === 4) continue;
-    set(sx + 5, r, 1);
-    set(sx + 6, r, 1);
+    if (wMap[r]?.[sx + 5] !== 4) set(sx + 5, r, 1);
+    if (wMap[r]?.[sx + 6] !== 4) set(sx + 6, r, 1);
+  }
+  for (let c = sx - 6; c <= sx + 16; c++) {
+    if (wMap[sy + 4]?.[c] !== 4) set(c, sy + 4, 1);
+    if (wMap[sy + 5]?.[c] !== 4) set(c, sy + 5, 1);
   }
 
-  // Entradas
+  // Entradas N/S del pueblo
   if (wMap[sy - 5]?.[sx + 5] !== 4) set(sx + 5, sy - 5, 14);
   if (wMap[sy - 5]?.[sx + 6] !== 4) set(sx + 6, sy - 5, 1);
   if (wMap[sy + 14]?.[sx + 5] !== 4) set(sx + 5, sy + 14, 14);
   if (wMap[sy + 14]?.[sx + 6] !== 4) set(sx + 6, sy + 14, 1);
+
+  // Bordillos SOLO en el perímetro exterior, NUNCA delante de puertas
+  for (let c = sx - 5; c <= sx + 15; c++) {
+    if (c === sx + 5 || c === sx + 6) continue;
+    // norte: solo si no es patio de casa superior
+    const northR = sy - 5;
+    if (wMap[northR]?.[c] !== 4 && wMap[northR + 1]?.[c] !== 4) {
+      // no poner bordillo si está justo bajo una puerta (base de casa arriba)
+      if (wMap[northR - 1]?.[c] !== 4) set(c, northR, id === 'rodaje' ? 27 : 20);
+    }
+  }
+  // Sur: bordillo más abajo que el patio de las casas inferiores
+  const southFence = Math.min(WR - 3, botR + 7);
+  for (let c = sx - 5; c <= sx + 15; c++) {
+    if (c === sx + 5 || c === sx + 6) continue;
+    if (wMap[southFence]?.[c] !== 4) set(c, southFence, id === 'rodaje' ? 27 : 20);
+  }
 
   const deco = (c, r, t) => {
     if (r >= 2 && r < WR - 2 && c >= 2 && c < WC - 2 && wMap[r][c] === 1) wMap[r][c] = t;
@@ -207,11 +236,14 @@ function polishVillageLayout(sx, sy, id) {
         else if (wMap[r][c] !== 1) wMap[r][c] = 26;
       }
     }
-    // casas de nuevo al final
     house(leftC, topR);
     house(rightC, topR);
     house(leftC, botR);
     house(rightC, botR);
+    clearFront(leftC, topR);
+    clearFront(rightC, topR);
+    clearFront(leftC, botR);
+    clearFront(rightC, botR);
     deco(sx + 5, sy + 3, 25);
     deco(sx + 7, sy + 5, 25);
     deco(sx + 3, sy + 3, 15);
@@ -232,11 +264,14 @@ function polishVillageLayout(sx, sy, id) {
   } else if (id === 'montaje') {
     fill(sx + 2, sy - 3, sx + 9, sy - 1, 26);
     set(sx + 5, sy - 4, 14);
-    // reponer casas por si el mirador las tocó
     house(leftC, topR);
     house(rightC, topR);
     house(leftC, botR);
     house(rightC, botR);
+    clearFront(leftC, topR);
+    clearFront(rightC, topR);
+    clearFront(leftC, botR);
+    clearFront(rightC, botR);
     deco(sx + 5, sy + 4, 19);
     deco(sx + 8, sy + 4, 19);
     deco(sx + 3, sy + 3, 15);
@@ -357,7 +392,7 @@ function genWorld() {
   });
 
   // Aldeas, Cuevas y Castillo
-  buildVillage(18, 140, 'pitch');
+  buildVillage(18, 134, 'pitch');
   buildVillage(38, 107, 'storyboard');
   buildVillage(52, 79, 'rodaje');
   buildVillage(28, 49, 'ultimatoma');

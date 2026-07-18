@@ -167,15 +167,14 @@ function dTileW(c, r) {
       }
       break;
     }
-    case 4: // Casa multi-tile (5×4 típica). Auto-tile por vecinos.
+    case 4: // Casa multi-tile (5×4). Auto-tile continuo — SIN franjas de césped entre tiles.
       {
-        // Vecinos del bloque de casa
         const up = wMap[r - 1]?.[c] === 4;
         const dn = wMap[r + 1]?.[c] === 4;
         const lf = wMap[r]?.[c - 1] === 4;
         const rt = wMap[r]?.[c + 1] === 4;
 
-        // Ancla de color: esquina NW del bloque (misma casa = mismo techo)
+        // Ancla NW del bloque → color de techo estable por casa
         let ac = c;
         let ar = r;
         while (wMap[ar]?.[ac - 1] === 4) ac--;
@@ -189,73 +188,54 @@ function dTileW(c, r) {
         ];
         const rp = roofPalette[(ac * 5 + ar * 11) % roofPalette.length];
 
-        // Rol vertical del tile dentro de la casa:
-        //  - techo (no hay vecino arriba): fila de cumbrera / pendiente
-        //  - alero (hay arriba y abajo, o es 2ª fila de techo): franja de techo+inicio pared
-        //  - pared media / base
-        const isRoofTop = !up; // primera fila del bloque
-        // 2ª fila del bloque (hay casa arriba pero no dos filas arriba)
+        // Filas del bloque 5×4: 0 techo alto, 1 techo bajo+alero, 2 pared, 3 base/puerta
+        const isRoofTop = !up;
         const isRoofLower = up && wMap[r - 2]?.[c] !== 4;
-        // Casa 4 de alto: filas 0-1 techo, 2 pared, 3 base con puerta.
-        const isWallMid = up && dn && !isRoofLower;
         const isBase = up && !dn;
+        const isWallMid = up && dn && !isRoofLower;
 
-        // Suelo bajo (por si el techo sobresale visualmente no tapa el césped alrededor
-        // — el tile sigue siendo sólido completo).
-        const snow = Math.max(0, Math.min(1, (68 - r) / 46));
-        cx.fillStyle = lerpColor('#58A830', '#F2F8F4', snow);
-        cx.fillRect(x, y, T, T);
+        // Fondo SIEMPRE material de casa (nunca césped) → sin franjas verdes
+        const wallBase = '#E0D8C8';
+        const wallMid = '#E8E0D0';
+        const wallDark = '#C8C0B0';
 
-        // ---- TECHO (filas superiores) ----
         if (isRoofTop) {
-          // Cumbrera triangular / trapecio pixel (más alto al centro del bloque)
-          // Sombra del techo
-          cx.fillStyle = 'rgba(0,0,0,0.25)';
-          cx.fillRect(x - 2, y + 26, T + 4, 4);
-
-          // Cuerpo del techo (ocupa casi todo el tile)
+          // Tile entero = techo (continúa hacia abajo con el tile isRoofLower)
           cx.fillStyle = rp.d;
-          cx.fillRect(x - 3, y + 10, T + 6, 18);
+          cx.fillRect(x, y, T, T);
           cx.fillStyle = rp.m;
-          cx.fillRect(x - 2, y + 8, T + 4, 16);
+          cx.fillRect(x, y + 2, T, T - 2);
           cx.fillStyle = rp.l;
-          cx.fillRect(x, y + 6, T, 10);
-
-          // Pendiente: escalones hacia el centro si es borde L/R
+          cx.fillRect(x + 1, y + 4, T - 2, 10);
+          // cumbrera
+          cx.fillStyle = rp.e;
+          cx.fillRect(x, y, T, 4);
+          cx.fillStyle = rp.l;
+          cx.fillRect(x + 1, y + 1, T - 2, 2);
+          // tejas continuas (sin gaps en bordes L/R internos)
+          cx.fillStyle = rp.e;
+          for (let i = 0; i < 4; i++) {
+            cx.fillRect(x + i * 8, y + 14, 7, 1);
+            cx.fillRect(x + 2 + i * 8, y + 20, 7, 1);
+            cx.fillRect(x + i * 8, y + 26, 7, 1);
+          }
+          // borde exterior L/R del bloque
           if (!lf) {
             cx.fillStyle = rp.e;
-            cx.fillRect(x - 3, y + 14, 4, 14);
-            cx.fillStyle = rp.d;
-            cx.fillRect(x - 1, y + 10, 3, 10);
+            cx.fillRect(x, y, 2, T);
           }
           if (!rt) {
             cx.fillStyle = rp.e;
-            cx.fillRect(x + T - 1, y + 14, 4, 14);
-            cx.fillStyle = rp.d;
-            cx.fillRect(x + T - 2, y + 10, 3, 10);
+            cx.fillRect(x + T - 2, y, 2, T);
           }
-
-          // Cumbrera horizontal
-          cx.fillStyle = rp.e;
-          cx.fillRect(x - 2, y + 4, T + 4, 4);
-          cx.fillStyle = rp.l;
-          cx.fillRect(x, y + 4, T, 2);
-
-          // Tejas (rayitas)
-          cx.fillStyle = rp.e;
-          for (let i = 0; i < 4; i++) {
-            cx.fillRect(x + 2 + i * 8, y + 12, 5, 1);
-            cx.fillRect(x + 4 + i * 8, y + 18, 5, 1);
-          }
-          // Chimenea solo en tile izquierdo del techo (una por casa)
+          // chimenea una sola vez (tile NW del techo)
           if (!lf && rt) {
             cx.fillStyle = '#5A5048';
-            cx.fillRect(x + 6, y - 2, 8, 10);
+            cx.fillRect(x + 6, y - 2, 8, 12);
             cx.fillStyle = '#7A7068';
-            cx.fillRect(x + 7, y - 1, 6, 8);
+            cx.fillRect(x + 7, y - 1, 6, 10);
             cx.fillStyle = '#3A3028';
             cx.fillRect(x + 5, y - 4, 10, 3);
-            // humo suave
             if (Math.floor(fr / 20) % 2 === 0) {
               cx.fillStyle = 'rgba(200,200,210,0.45)';
               cx.fillRect(x + 8, y - 10, 3, 3);
@@ -263,109 +243,112 @@ function dTileW(c, r) {
             }
           }
         } else if (isRoofLower) {
-          // Segunda fila: parte baja del techo + alero + arranque de pared
-          // Techo inferior (ocupa ~ mitad superior del tile)
+          // Mitad superior techo (empalme con fila de arriba), mitad inferior pared
+          // Techo: y+0..15
           cx.fillStyle = rp.d;
-          cx.fillRect(x - 3, y, T + 6, 14);
+          cx.fillRect(x, y, T, 16);
           cx.fillStyle = rp.m;
-          cx.fillRect(x - 2, y, T + 4, 12);
+          cx.fillRect(x, y, T, 14);
           cx.fillStyle = rp.l;
-          cx.fillRect(x, y + 2, T, 6);
-          // Alero / sombra
+          cx.fillRect(x + 1, y + 2, T - 2, 6);
+          // tejas
           cx.fillStyle = rp.e;
-          cx.fillRect(x - 4, y + 12, T + 8, 4);
-          cx.fillStyle = 'rgba(0,0,0,0.3)';
-          cx.fillRect(x - 3, y + 15, T + 6, 2);
-
-          // Arranque de pared (mitad inferior)
-          cx.fillStyle = '#D8D0C0';
-          cx.fillRect(x, y + 16, T, 16);
-          cx.fillStyle = '#E8E0D0';
-          cx.fillRect(x + 1, y + 17, T - 2, 14);
-          // ladrillos
-          cx.fillStyle = '#C8C0B0';
-          cx.fillRect(x + 2, y + 20, 12, 5);
-          cx.fillRect(x + 18, y + 26, 12, 5);
-          // viga de madera bajo alero
-          cx.fillStyle = '#6A4A28';
-          cx.fillRect(x, y + 16, T, 3);
-          cx.fillStyle = '#8A6A40';
-          cx.fillRect(x, y + 16, T, 1);
-        } else {
-          // ---- PAREDES ----
-          cx.fillStyle = '#C8C0B0';
-          cx.fillRect(x, y, T, T);
-          cx.fillStyle = '#E8E0D0';
-          cx.fillRect(x + 1, y, T - 2, T - 1);
-          cx.fillStyle = '#F0E8D8';
-          cx.fillRect(x + 2, y + 1, T - 4, T - 3);
-
-          // Ladrillos / sillares
-          cx.fillStyle = '#D0C8B8';
-          for (let by = 2; by < T - 4; by += 8) {
-            const off = ((by / 8) | 0) % 2 === 0 ? 0 : 8;
-            for (let bx = 2 + off; bx < T - 6; bx += 16) {
-              cx.fillRect(x + bx, y + by, 12, 5);
-            }
+          for (let i = 0; i < 4; i++) {
+            cx.fillRect(x + i * 8, y + 4, 7, 1);
+            cx.fillRect(x + 2 + i * 8, y + 10, 7, 1);
           }
-
-          // Bordes laterales de la casa
+          // alero continuo a lo ancho del bloque
+          cx.fillStyle = rp.e;
+          cx.fillRect(x, y + 14, T, 4);
+          cx.fillStyle = '#5A3A18';
+          cx.fillRect(x, y + 16, T, 2);
+          // Pared desde y+18 hasta fondo (empalme con fila de pared de abajo)
+          cx.fillStyle = wallDark;
+          cx.fillRect(x, y + 18, T, T - 18);
+          cx.fillStyle = wallMid;
+          cx.fillRect(x, y + 18, T, T - 18);
+          cx.fillStyle = wallBase;
+          cx.fillRect(x + 1, y + 19, T - 2, T - 20);
+          // viga
+          cx.fillStyle = '#6A4A28';
+          cx.fillRect(x, y + 18, T, 2);
           if (!lf) {
             cx.fillStyle = '#B0A898';
-            cx.fillRect(x, y, 2, T);
-            cx.fillStyle = '#908878';
-            cx.fillRect(x, y, 1, T);
+            cx.fillRect(x, y + 18, 2, T - 18);
           }
           if (!rt) {
             cx.fillStyle = '#B0A898';
-            cx.fillRect(x + T - 2, y, 2, T);
-            cx.fillStyle = '#908878';
-            cx.fillRect(x + T - 1, y, 1, T);
+            cx.fillRect(x + T - 2, y + 18, 2, T - 18);
           }
+        } else {
+          // Pared / base: tile entero de muro (sin césped)
+          cx.fillStyle = wallDark;
+          cx.fillRect(x, y, T, T);
+          cx.fillStyle = wallMid;
+          cx.fillRect(x, y, T, T);
+          cx.fillStyle = wallBase;
+          cx.fillRect(x + 1, y, T - 2, T);
 
-          // Ventanas en pared media (no base) y no en el centro de la fila base
-          if (isWallMid || (!isBase && up)) {
-            // ventana izquierda del tile
-            const drawWin = (wx) => {
-              cx.fillStyle = '#2A3038';
-              cx.fillRect(x + wx, y + 6, 10, 12);
-              cx.fillStyle = '#78B8E8';
-              cx.fillRect(x + wx + 1, y + 7, 8, 10);
-              cx.fillStyle = '#A8D8F8';
-              cx.fillRect(x + wx + 1, y + 7, 4, 4);
-              cx.fillStyle = '#1A2028';
-              cx.fillRect(x + wx + 5, y + 7, 1, 10);
-              cx.fillRect(x + wx + 1, y + 12, 8, 1);
-              // marco
-              cx.fillStyle = '#5A4030';
-              cx.fillRect(x + wx, y + 6, 10, 1);
-              cx.fillRect(x + wx, y + 17, 10, 1);
-            };
-            // En bordes del bloque, una ventana; en medio, dos
-            if (lf && rt) {
-              drawWin(4);
-              drawWin(18);
-            } else if (!lf && rt) {
-              drawWin(18);
-            } else if (lf && !rt) {
-              drawWin(4);
-            } else {
-              drawWin(11);
+          // ladrillos (patrones que continúan entre tiles vecinos)
+          cx.fillStyle = '#D0C8B8';
+          const brickOff = (c - ac) * T; // continuidad horizontal
+          for (let by = 2; by < T - 2; by += 8) {
+            const rowOff = ((by / 8) | 0) % 2 === 0 ? 0 : 8;
+            for (let bx = -brickOff + rowOff; bx < T + 16; bx += 16) {
+              const drawX = bx;
+              if (drawX > -12 && drawX < T) {
+                const w = Math.min(12, T - Math.max(0, drawX));
+                const sx0 = x + Math.max(0, drawX);
+                if (w > 2) cx.fillRect(sx0, y + by, w, 5);
+              }
             }
           }
 
-          // Base: puerta centrada en el tile del medio del bloque
+          if (!lf) {
+            cx.fillStyle = '#A09888';
+            cx.fillRect(x, y, 2, T);
+          }
+          if (!rt) {
+            cx.fillStyle = '#A09888';
+            cx.fillRect(x + T - 2, y, 2, T);
+          }
+          // línea superior suave solo si no hay casa arriba (no debería pasar en mid/base)
+          if (!up) {
+            cx.fillStyle = '#6A4A28';
+            cx.fillRect(x, y, T, 2);
+          }
+
+          // Ventanas en pared media
+          if (isWallMid) {
+            const drawWin = (wx) => {
+              cx.fillStyle = '#2A3038';
+              cx.fillRect(x + wx, y + 8, 10, 14);
+              cx.fillStyle = '#78B8E8';
+              cx.fillRect(x + wx + 1, y + 9, 8, 12);
+              cx.fillStyle = '#A8D8F8';
+              cx.fillRect(x + wx + 1, y + 9, 4, 5);
+              cx.fillStyle = '#1A2028';
+              cx.fillRect(x + wx + 5, y + 9, 1, 12);
+              cx.fillRect(x + wx + 1, y + 15, 8, 1);
+              cx.fillStyle = '#5A4030';
+              cx.fillRect(x + wx, y + 8, 10, 1);
+              cx.fillRect(x + wx, y + 21, 10, 1);
+            };
+            if (lf && rt) {
+              drawWin(4);
+              drawWin(18);
+            } else if (!lf && rt) drawWin(18);
+            else if (lf && !rt) drawWin(4);
+            else drawWin(11);
+          }
+
           if (isBase) {
-            // zócalo
+            // zócalo continuo
             cx.fillStyle = '#8A8070';
             cx.fillRect(x, y + T - 6, T, 6);
-            cx.fillStyle = '#7A7060';
-            cx.fillRect(x, y + T - 4, T, 2);
+            cx.fillStyle = '#706858';
+            cx.fillRect(x, y + T - 3, T, 3);
 
-            // ¿es el tile central de la fachada? (ni lf-only ni rt-only extremos)
-            // Centro del bloque de 5: el tile con 2 vecinos a cada lado idealmente.
-            // Heurística: tiene vecinos L y R → parte media; puerta solo si
-            // (c - ac) === 2 dentro de un bloque de ancho 5.
             let leftExtent = 0;
             let cc = c;
             while (wMap[r]?.[cc - 1] === 4) {
@@ -379,48 +362,37 @@ function dTileW(c, r) {
               width++;
             }
             width += leftExtent;
-            const localX = leftExtent;
-            const isDoorTile = localX === Math.floor((width - 1) / 2);
+            const isDoorTile = leftExtent === Math.floor((width - 1) / 2);
 
             if (isDoorTile) {
-              // escalón
-              cx.fillStyle = '#6A6050';
-              cx.fillRect(x + 8, y + T - 4, 16, 4);
-              // puerta
+              cx.fillStyle = '#5A4030';
+              cx.fillRect(x + 8, y + 2, 16, 3);
               cx.fillStyle = '#3A2410';
-              cx.fillRect(x + 10, y + 4, 12, 24);
+              cx.fillRect(x + 10, y + 4, 12, T - 8);
               cx.fillStyle = '#5A3820';
-              cx.fillRect(x + 11, y + 5, 10, 22);
+              cx.fillRect(x + 11, y + 5, 10, T - 10);
               cx.fillStyle = '#6A4830';
               cx.fillRect(x + 12, y + 6, 8, 10);
-              // tablones
               cx.fillStyle = '#4A2C18';
               cx.fillRect(x + 12, y + 16, 8, 1);
               cx.fillRect(x + 12, y + 20, 8, 1);
-              // pomo
               cx.fillStyle = '#D8B840';
               cx.fillRect(x + 19, y + 15, 2, 2);
-              // dintel
-              cx.fillStyle = '#5A4030';
-              cx.fillRect(x + 8, y + 2, 16, 3);
+              // umbral (parte del tile de la casa, no del camino)
+              cx.fillStyle = '#6A6050';
+              cx.fillRect(x + 8, y + T - 4, 16, 4);
             } else {
-              // ventana baja en base lateral
               cx.fillStyle = '#2A3038';
-              cx.fillRect(x + 10, y + 8, 12, 10);
+              cx.fillRect(x + 10, y + 8, 12, 12);
               cx.fillStyle = '#68A8D8';
-              cx.fillRect(x + 11, y + 9, 10, 8);
+              cx.fillRect(x + 11, y + 9, 10, 10);
               cx.fillStyle = '#1A2028';
-              cx.fillRect(x + 16, y + 9, 1, 8);
-              cx.fillRect(x + 11, y + 13, 10, 1);
+              cx.fillRect(x + 16, y + 9, 1, 10);
+              cx.fillRect(x + 11, y + 14, 10, 1);
               cx.fillStyle = '#5A4030';
               cx.fillRect(x + 10, y + 8, 12, 1);
-              cx.fillRect(x + 10, y + 17, 12, 1);
+              cx.fillRect(x + 10, y + 19, 12, 1);
             }
-
-            // hierba al pie
-            cx.fillStyle = lerpColor('#3A8A28', '#D0DCD0', snow);
-            cx.fillRect(x + 1, y + T - 2, 4, 2);
-            cx.fillRect(x + T - 6, y + T - 2, 5, 2);
           }
         }
       }
