@@ -5907,6 +5907,22 @@ function startNewGameFlow() {
   G.pl.d = 3;
   G.pl.stepTarget = null;
   G.pl.moving = false;
+  // Inventario base de partida NORMAL (interactúa con ciudadanos)
+  G.party = [];
+  G.gold = 4000;
+  G.pot = 5;
+  G.rev = 2;
+  G.crv = 3;
+  G.crvC = 0;
+  G.crvO = 0;
+  G.frag = emptyFragments();
+  G.scrolls = 0;
+  G.fragrances = emptyFragrances();
+  G.incense = emptyFragrances();
+  G.activeIncense = null;
+  G.bagUpgrade = false;
+  G.supervisor = false;
+  G.batallador = false;
   G.scr = 'intro';
   G.intro = { phase: 0, y: 82, li: 0, ci: 0, tm: 0, full: false };
 }
