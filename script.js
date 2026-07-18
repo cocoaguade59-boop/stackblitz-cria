@@ -113,6 +113,8 @@ import {
   getTutorMoves,
   TUTOR_COST,
 } from './src/screens/tutor.js';
+import { dTheater } from './src/screens/theater.js';
+import { PACHI_BILL, ANDRE_BILL } from './src/data/theater.js';
 
 const BAG_UPGRADE_PRICE = 2000;
 
@@ -648,6 +650,8 @@ function canRebattle(npc) {
 }
 
 function markNPCDefeated(npc) {
+  // Teatro / ensayos: no marcan historia ni abren puertas
+  if (npc?.isTheater) return;
   if (npc?.flag) {
     npcDefeats[npc.flag] = true;
     // Si derrotaste a Yam, se abre la puerta del trono (34 → 30)
@@ -2019,9 +2023,6 @@ function checkNPC(list) {
     }
 
     // Hernán (T8): tutor de movimientos (2 pergaminos).
-    // La pelea queda disponible con un 2º diálogo vía afterBattle solo si el
-    // jugador rechaza el tutor y vuelve a hablar... Por ahora el flujo principal
-    // es siempre la oferta de enseñanza (diseño cerrado T8).
     if (n.flag === 'metHer') {
       const dlgArr = getNPCDialog(n);
       G.scr = 'dialog';
@@ -2038,6 +2039,40 @@ function checkNPC(list) {
           G.scr = 'hernanChoice';
           G.herSel = 0;
         },
+      };
+      sfx.sel();
+      return;
+    }
+
+    // Pachi / André (T9): Teatro del Reino
+    if (n.theaterHost === 'pachi' || n.flag === 'metPac') {
+      const dlgArr = getNPCDialog(n);
+      G.scr = 'dialog';
+      G.ds = {
+        npc: n,
+        dlgArr,
+        li: 0,
+        ci: 0,
+        tm: 0,
+        full: false,
+        goto: 'theaterPachi',
+        _onDialogFinish: () => openTheater('pachi'),
+      };
+      sfx.sel();
+      return;
+    }
+    if (n.theaterHost === 'andre' || n.flag === 'metAnd') {
+      const dlgArr = getNPCDialog(n);
+      G.scr = 'dialog';
+      G.ds = {
+        npc: n,
+        dlgArr,
+        li: 0,
+        ci: 0,
+        tm: 0,
+        full: false,
+        goto: 'theaterAndre',
+        _onDialogFinish: () => openTheater('andre'),
       };
       sfx.sel();
       return;
@@ -4545,13 +4580,26 @@ function handleWin() {
   // === VICTORIA FINAL ===
   G.bWon++;
   // Entregar diploma automaticamente al vencer a un lider de gimnasio
-  if (b.npcData && b.npcData.isLeader && !hasDiploma(b.npcData.leaderKey)) {
+  // (nunca en batallas de teatro / ensayo)
+  if (
+    b.npcData &&
+    b.npcData.isLeader &&
+    !b.npcData.isTheater &&
+    !b.isTheater &&
+    !hasDiploma(b.npcData.leaderKey)
+  ) {
     giveDiploma(b.npcData.leaderKey);
     const LVM = LEADER_MISSIONS[b.npcData.leaderKey];
     (LVM.dlgVictory || []).forEach((ln) => b.mq.push({ a: 'npcMsg', m: ln }));
   }
   if (!exp) {
-    b.msg = '¡Ganaste!';
+    b.msg = b.isTheater ? '¡Fin de la escena!' : '¡Ganaste!';
+  } else if (b.isTheater) {
+    // Añadir sabor de teatro al mensaje de victoria con EXP
+    // (el mensaje base de EXP/oro ya se setea arriba)
+    if (b.msg && !b.msg.includes('escena')) {
+      b.msg = b.msg.replace('derrotado!', 'derrotado en escena!');
+    }
   }
   b.mq.push({ a: 'end' });
   b.ph = 'win';
@@ -5669,6 +5717,25 @@ function buildBatalladorOpponentList() {
   if (edisonNPC && edisonNPC.battle) {
     list.push({ nm: edisonNPC.nm, tp: edisonNPC.tp, fixedTeam: edisonNPC.fixedTeam, isMerch: false });
   }
+  // Pachi / André aunque battle:false en mundo (teatro); en batallador pelean directo
+  const pachi = npcs.find((n) => n.flag === 'metPac');
+  if (pachi && !list.some((o) => o.nm === pachi.nm)) {
+    list.push({
+      nm: pachi.nm,
+      tp: pachi.tp,
+      fixedTeam: pachi.fixedTeam,
+      battleIntro: pachi.battleIntro,
+    });
+  }
+  const andreTown = npcs.find((n) => n.flag === 'metAnd');
+  if (andreTown && !list.some((o) => o.nm === andreTown.nm)) {
+    list.push({
+      nm: andreTown.nm,
+      tp: andreTown.tp,
+      fixedTeam: andreTown.fixedTeam,
+      battleIntro: andreTown.battleIntro,
+    });
+  }
   // Agregar combates en pareja
   pairBattleData.forEach((pair) => {
     list.push({ nm: pair.nm, isPair: true, team: [...pair.t1.map((c) => ({ id: c.id, lv: 20 })), ...pair.t2.map((c) => ({ id: c.id, lv: 20 }))] });
@@ -6108,6 +6175,141 @@ function uFabianaChoice() {
 // ============================================================
 // T7: CLAUDIA — mochila mejorada (crafting portátil)
 // ============================================================
+
+// ============================================================
+// T9: TEATRO — Pachi (representaciones) / André (jefes pre-game)
+// ============================================================
+
+function openTheater(host) {
+  const bill = host === 'andre' ? ANDRE_BILL.slice() : PACHI_BILL.slice();
+  // André solo post-game (ya está postOnly en el NPC)
+  if (host === 'andre' && !postGame) {
+    aN('André aún no está en el pueblo.');
+    G.scr = 'world';
+    return;
+  }
+  G.theater = { host, bill, sel: 0, scroll: 0 };
+  G.scr = 'theater';
+  sfx.sel();
+}
+
+function uTheater() {
+  const t = G.theater;
+  if (!t) {
+    G.scr = 'world';
+    return;
+  }
+  const bill = t.bill || [];
+  const n = bill.length;
+  const VIS = 7;
+  if (!n) {
+    if (kp('x') || kp('Escape') || kp(' ') || kp('Enter')) {
+      G.theater = null;
+      G.scr = 'world';
+    }
+    return;
+  }
+  if (t.sel >= n) t.sel = n - 1;
+  if (kp('ArrowUp') || kp('ArrowLeft')) {
+    t.sel = (t.sel + n - 1) % n;
+    sfx.sel();
+  }
+  if (kp('ArrowDown') || kp('ArrowRight')) {
+    t.sel = (t.sel + 1) % n;
+    sfx.sel();
+  }
+  if (t.sel < (t.scroll || 0)) t.scroll = t.sel;
+  if (t.sel >= (t.scroll || 0) + VIS) t.scroll = t.sel - VIS + 1;
+
+  if (kp(' ') || kp('Enter')) {
+    const act = bill[t.sel];
+    if (act) startTheaterBattle(act, t.host);
+  }
+  if (kp('x') || kp('Escape')) {
+    G.theater = null;
+    G.scr = 'world';
+    sfx.sel();
+  }
+}
+
+/**
+ * Batalla de teatro / ensayo.
+ * - Da EXP y oro como pelea normal (diseño cerrado T9).
+ * - NO marca npcDefeats, NO da diplomas, NO abre torre/post-game.
+ * - Sprites: usa tp del acto (pre-game look cuando haya PNG).
+ */
+function startTheaterBattle(act, host) {
+  if (!act || !G.party.length) {
+    aN('Sin equipo para el escenario.');
+    sfx.nef();
+    return;
+  }
+  clearPlayerMotion();
+  G.party.forEach((c) => (c.fought = false));
+
+  let team;
+  if (act.bossLv) {
+    const bossLv = Math.max(40, secondStrongestLv());
+    team = (act.team || []).map((c) => new Cre(c.id, bossLv));
+  } else {
+    const lv = Math.max(5, scaledLv());
+    team = (act.team || []).map((c) => new Cre(c.id, lv));
+  }
+  if (!team.length) {
+    aN('Escena incompleta.');
+    sfx.nef();
+    return;
+  }
+
+  const hostNm = host === 'andre' ? 'André' : 'Pachi';
+  const intro = act.intro || [`¡${act.nm} entra en escena!`];
+
+  G.bs = {
+    pi: 0,
+    en: team[0],
+    ph: 'npcIntro',
+    ms: 0,
+    mvs: 0,
+    ss: 0,
+    msg: `${hostNm} presenta: ¡${act.nm}!`,
+    mq: [],
+    tm: 0,
+    af: 0,
+    ps: 0,
+    es: 0,
+    noExp: false, // SÍ dan EXP y oro
+    isMerch: false,
+    isBoss: false, // no es el boss real (no diálogos de Navarrete / post-game)
+    expMult: host === 'andre' ? 1.15 : 1.05,
+    fought: [0],
+    npcTeam: team,
+    npcIdx: 0,
+    npcName: act.nm,
+    // npcData sin flag/isLeader → no diplomas ni markNPCDefeated útil
+    npcData: {
+      nm: act.nm,
+      tp: act.tp,
+      isTheater: true,
+      theaterHost: host,
+      // sin flag / sin isLeader
+    },
+    isAngelly: false,
+    isPunk: false,
+    isNPC: true,
+    npcSprite: act.tp || null, // aspecto del personaje representado
+    npcIntro: intro,
+    introPhase: 0,
+    introLine: 0,
+    introCi: 0,
+    introFull: false,
+    introTm: 0,
+    isTheater: true,
+  };
+  G.theater = null;
+  G.scr = 'battle';
+  sfx.bat();
+  aN(host === 'andre' ? 'Ensayo de jefes…' : '¡Se alza el telón!');
+}
 
 // ============================================================
 // T8: HERNÁN — tutor (2 Pergaminos de Batalla)
@@ -6721,6 +6923,15 @@ function update() {
           G.herSel = 0;
           break;
         }
+        // Teatro Pachi / André
+        if (d.goto === 'theaterPachi') {
+          openTheater('pachi');
+          break;
+        }
+        if (d.goto === 'theaterAndre') {
+          openTheater('andre');
+          break;
+        }
         // Fabiana crafting (backup si el callback no viajó)
         if (d.goto === 'fabianaChoice') {
           const frags = G.frag || { p: 0, c: 0, o: 0 };
@@ -6817,6 +7028,9 @@ function update() {
       break;
     case 'hernanPickSlot':
       uHernanPickSlot();
+      break;
+    case 'theater':
+      uTheater();
       break;
   }
 }
@@ -6919,6 +7133,10 @@ function draw() {
     case 'hernanPickSlot':
       drawMap();
       dHernanPickSlot();
+      break;
+    case 'theater':
+      drawMap();
+      dTheater();
       break;
   }
 }

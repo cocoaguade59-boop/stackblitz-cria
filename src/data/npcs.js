@@ -483,26 +483,33 @@ const npcs = [
     nm: 'Pachi',
     dlg: [
       [
-        'Soy actor de profesión.',
-        'Mi hermano André está',
-        'afuera esperando...',
+        'Tenía un espectáculo preparado...',
+        'pero me hace falta mi compañero.',
+        'Aun así... ¿ensayamos una escena?',
+      ],
+      [
+        'Puedo representar combates',
+        'que no verás en el mapa:',
+        'Alessandro, Fabiana, SaloGon...',
       ],
       [
         'André es el hombre más',
         'hermoso de su pueblo.',
         '¡Y le pusieron una máscara!',
       ],
-      ['Algún día actuaré con él.', 'Pero primero... ¡ESCENA 3!'],
     ],
     postDlg: [
-      '¡Mi hermano André es libre!',
-      '¡Ahora actuamos juntos!',
-      '¡ESCENA FINAL!',
+      '¡Todo listo para ver el espectáculo!',
+      'Mi hermano André es libre...',
+      '¡Y la cartelera está completa!',
     ],
     flag: 'metPac',
-    battle: true,
+    // Combate directo desactivado: el flujo es el Teatro (T9).
+    // Sigue en batallador vía fixedTeam.
+    battle: false,
     battleIntro: ['¡ACTO TERCERO!', '¡La batalla comienza!'],
     fixedTeam: [{ id: 'eastern' }, { id: 'pixie' }],
+    theaterHost: 'pachi',
   },
   {
     x: 56,
@@ -601,34 +608,26 @@ const npcs = [
     y: 80,
     tp: 'andre',
     nm: 'André',
-    postOnly: true,
+    postOnly: true, // solo en Rodaje tras el rescate (post-game)
     dlg: [
       [
-        '...Esta máscara pesa.',
-        'Quiero ser actor, como Pachi.',
-        'Pero esta máscara...',
-      ],
-      [
-        'Dicen que soy hermoso.',
-        'Yo no lo sé. No me veo.',
-        'Solo siento el hierro frío.',
-      ],
-      [
-        'Las chicas aquí son amables.',
-        'Pero extraño mi libertad.',
-        'Algún día...',
+        'La máscara sigue aquí...',
+        'Pero el peso se siente distinto.',
+        '¿Querés ver un ensayo de jefes?',
       ],
     ],
     postDlg: [
-      'La máscara sigue aquí...',
-      'Pero el peso se siente',
-      'diferente ahora.',
-      'Como si importara menos.',
+      'Puedo simular a los Proas',
+      'y al Rey... como eran antes.',
+      'Aspecto pre-game. Sin diplomas.',
+      '¿Subís al escenario?',
     ],
     flag: 'metAnd',
-    battle: true,
+    // Teatro de jefes (T9). Pelea directa en batallador.
+    battle: false,
     battleIntro: ['Esta máscara pesa...', 'Pero mis criaturas no.'],
     fixedTeam: [{ id: 'serpentdrg' }, { id: 'gorilan' }],
+    theaterHost: 'andre',
   },
 
   // ==========================================
