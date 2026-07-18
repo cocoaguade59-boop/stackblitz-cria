@@ -843,6 +843,11 @@ const npcs = [
         'cruza cualquier distancia.',
       ],
       [
+        'Puedo enseñarle movimientos',
+        'a tus criaturas. Traé',
+        '2 Pergaminos de Batalla.',
+      ],
+      [
         'La edad te enseña',
         'a amar mejor. Con paciencia.',
         'Con el corazón abierto.',
@@ -856,6 +861,7 @@ const npcs = [
       'El mundo es hermoso.',
     ],
     flag: 'metHer',
+    // Tutor T8: la pelea queda disponible en batallador; en mundo el flujo es enseñanza.
     battle: true,
     battleIntro: ['Pelear me recuerda', 'que sigo aquí...'],
     fixedTeam: [{ id: 'wyvern' }, { id: 'glaciolote' }],

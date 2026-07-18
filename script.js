@@ -105,6 +105,14 @@ import {
   dClaudiaChoice,
   craftOptions,
 } from './src/screens/craft.js';
+import {
+  dHernanChoice,
+  dHernanPickCre,
+  dHernanPickMove,
+  dHernanPickSlot,
+  getTutorMoves,
+  TUTOR_COST,
+} from './src/screens/tutor.js';
 
 const BAG_UPGRADE_PRICE = 2000;
 
@@ -2004,6 +2012,31 @@ function checkNPC(list) {
             G.scr = 'claudiaChoice';
             G.claSel = 0;
           }
+        },
+      };
+      sfx.sel();
+      return;
+    }
+
+    // Hernán (T8): tutor de movimientos (2 pergaminos).
+    // La pelea queda disponible con un 2º diálogo vía afterBattle solo si el
+    // jugador rechaza el tutor y vuelve a hablar... Por ahora el flujo principal
+    // es siempre la oferta de enseñanza (diseño cerrado T8).
+    if (n.flag === 'metHer') {
+      const dlgArr = getNPCDialog(n);
+      G.scr = 'dialog';
+      G.ds = {
+        npc: n,
+        dlgArr,
+        li: 0,
+        ci: 0,
+        tm: 0,
+        full: false,
+        afterBattle: false,
+        goto: 'hernanChoice',
+        _onDialogFinish: () => {
+          G.scr = 'hernanChoice';
+          G.herSel = 0;
         },
       };
       sfx.sel();
@@ -6076,6 +6109,204 @@ function uFabianaChoice() {
 // T7: CLAUDIA — mochila mejorada (crafting portátil)
 // ============================================================
 
+// ============================================================
+// T8: HERNÁN — tutor (2 Pergaminos de Batalla)
+// ============================================================
+
+const HERNAN_TISHE_LINES = [
+  'Tishe estaría orgullosa.',
+  'Hey a Tishe también le gusta ese movimiento.',
+];
+
+function hernanFlavorForMove(mv) {
+  if (mv && mv.tp === 'water') {
+    return 'A Tishe no le gusta que comparta mis bebidas... solo no le digas jeje';
+  }
+  return HERNAN_TISHE_LINES[Math.floor(Math.random() * HERNAN_TISHE_LINES.length)];
+}
+
+function uHernanChoice() {
+  if (kp('ArrowUp') || kp('ArrowDown') || kp('ArrowLeft') || kp('ArrowRight')) {
+    G.herSel = (G.herSel + 1) % 2;
+    sfx.sel();
+  }
+  if (kp(' ') || kp('Enter')) {
+    sfx.sel();
+    if (G.herSel === 0) {
+      if ((G.scrolls || 0) < TUTOR_COST) {
+        G.scr = 'dialog';
+        G.ds = {
+          npc: { nm: 'Hernán' },
+          dlgArr: [
+            `Necesito ${TUTOR_COST} Pergaminos de Batalla.`,
+            `Solo tenés ${G.scrolls || 0}.`,
+            'Buscá pines en el mapa: a veces sueltan uno.',
+          ],
+          li: 0,
+          ci: 0,
+          tm: 0,
+          full: false,
+        };
+        sfx.nef();
+      } else if (!G.party.length) {
+        aN('No tenés criaturas.');
+        sfx.nef();
+        G.scr = 'world';
+      } else {
+        G.herCreSel = 0;
+        G.scr = 'hernanPickCre';
+      }
+    } else {
+      G.scr = 'dialog';
+      G.ds = {
+        npc: { nm: 'Hernán' },
+        dlgArr: ['Cuando quieras aprender algo,', 'traé pergaminos. Tishe... estaría contenta.'],
+        li: 0,
+        ci: 0,
+        tm: 0,
+        full: false,
+      };
+    }
+  }
+  if (kp('x') || kp('Escape')) {
+    G.scr = 'world';
+    sfx.sel();
+  }
+}
+
+function uHernanPickCre() {
+  const n = G.party.length;
+  if (!n) {
+    G.scr = 'world';
+    return;
+  }
+  if (kp('ArrowUp') || kp('ArrowLeft')) {
+    G.herCreSel = (G.herCreSel + n - 1) % n;
+    sfx.sel();
+  }
+  if (kp('ArrowDown') || kp('ArrowRight')) {
+    G.herCreSel = (G.herCreSel + 1) % n;
+    sfx.sel();
+  }
+  if (kp(' ') || kp('Enter')) {
+    const cre = G.party[G.herCreSel];
+    const moves = getTutorMoves(cre);
+    if (!moves.length) {
+      aN('Esa criatura no tiene pool de tutor.');
+      sfx.nef();
+    } else {
+      G.herMoveSel = 0;
+      G.herMoveScroll = 0;
+      G.scr = 'hernanPickMove';
+      sfx.sel();
+    }
+  }
+  if (kp('x') || kp('Escape')) {
+    G.scr = 'hernanChoice';
+    sfx.sel();
+  }
+}
+
+function uHernanPickMove() {
+  const cre = G.party[G.herCreSel || 0];
+  const moves = getTutorMoves(cre);
+  const n = moves.length;
+  const VIS = 8;
+  if (!n) {
+    G.scr = 'hernanPickCre';
+    return;
+  }
+  if (G.herMoveSel >= n) G.herMoveSel = n - 1;
+  if (kp('ArrowUp') || kp('ArrowLeft')) {
+    G.herMoveSel = (G.herMoveSel + n - 1) % n;
+    sfx.sel();
+  }
+  if (kp('ArrowDown') || kp('ArrowRight')) {
+    G.herMoveSel = (G.herMoveSel + 1) % n;
+    sfx.sel();
+  }
+  if (G.herMoveSel < (G.herMoveScroll || 0)) G.herMoveScroll = G.herMoveSel;
+  if (G.herMoveSel >= (G.herMoveScroll || 0) + VIS) {
+    G.herMoveScroll = G.herMoveSel - VIS + 1;
+  }
+  if (kp(' ') || kp('Enter')) {
+    const row = moves[G.herMoveSel];
+    if (!row) return;
+    if (row.known) {
+      aN(`${cre.nm} ya sabe ${row.mv.nm}.`);
+      sfx.nef();
+    } else {
+      G.herSlotSel = 0;
+      G.scr = 'hernanPickSlot';
+      sfx.sel();
+    }
+  }
+  if (kp('x') || kp('Escape')) {
+    G.scr = 'hernanPickCre';
+    sfx.sel();
+  }
+}
+
+function uHernanPickSlot() {
+  const cre = G.party[G.herCreSel || 0];
+  const moves = getTutorMoves(cre);
+  const moveRow = moves[G.herMoveSel || 0];
+  if (!cre || !moveRow) {
+    G.scr = 'hernanPickMove';
+    return;
+  }
+  const slots = cre.mv.length; // 0..slots-1 replace, slots = cancel
+  const total = slots + 1;
+  if (kp('ArrowUp') || kp('ArrowLeft')) {
+    G.herSlotSel = (G.herSlotSel + total - 1) % total;
+    sfx.sel();
+  }
+  if (kp('ArrowDown') || kp('ArrowRight')) {
+    G.herSlotSel = (G.herSlotSel + 1) % total;
+    sfx.sel();
+  }
+  if (kp(' ') || kp('Enter')) {
+    if (G.herSlotSel >= slots) {
+      // cancelar
+      G.scr = 'hernanPickMove';
+      sfx.sel();
+      return;
+    }
+    if ((G.scrolls || 0) < TUTOR_COST) {
+      aN('Sin pergaminos suficientes.');
+      sfx.nef();
+      G.scr = 'world';
+      return;
+    }
+    // Cobrar y enseñar
+    G.scrolls -= TUTOR_COST;
+    const oldName = cre.mv[G.herSlotSel].nm;
+    const newMove = { ...moveRow.mv, pp: moveRow.mv.mp };
+    cre.mv[G.herSlotSel] = newMove;
+    const flavor = hernanFlavorForMove(newMove);
+    sfx.lvl();
+    aN(`¡${cre.nm} aprendió ${newMove.nm}!`);
+    G.scr = 'dialog';
+    G.ds = {
+      npc: { nm: 'Hernán' },
+      dlgArr: [
+        `¡${cre.nm} olvidó ${oldName}!`,
+        `Ahora sabe ${newMove.nm}.`,
+        flavor,
+        `(-${TUTOR_COST} pergaminos)`,
+      ],
+      li: 0,
+      ci: 0,
+      tm: 0,
+      full: false,
+    };
+  }
+  if (kp('x') || kp('Escape')) {
+    G.scr = 'hernanPickMove';
+    sfx.sel();
+  }
+}
+
 function uClaudiaChoice() {
   if (kp('ArrowUp') || kp('ArrowDown') || kp('ArrowLeft') || kp('ArrowRight')) {
     G.claSel = (G.claSel + 1) % 2;
@@ -6484,6 +6715,12 @@ function update() {
           }
           break;
         }
+        // Hernán tutor (backup)
+        if (d.goto === 'hernanChoice') {
+          G.scr = 'hernanChoice';
+          G.herSel = 0;
+          break;
+        }
         // Fabiana crafting (backup si el callback no viajó)
         if (d.goto === 'fabianaChoice') {
           const frags = G.frag || { p: 0, c: 0, o: 0 };
@@ -6568,6 +6805,18 @@ function update() {
       break;
     case 'claudiaChoice':
       uClaudiaChoice();
+      break;
+    case 'hernanChoice':
+      uHernanChoice();
+      break;
+    case 'hernanPickCre':
+      uHernanPickCre();
+      break;
+    case 'hernanPickMove':
+      uHernanPickMove();
+      break;
+    case 'hernanPickSlot':
+      uHernanPickSlot();
       break;
   }
 }
@@ -6654,6 +6903,22 @@ function draw() {
     case 'claudiaChoice':
       drawMap();
       dClaudiaChoice();
+      break;
+    case 'hernanChoice':
+      drawMap();
+      dHernanChoice();
+      break;
+    case 'hernanPickCre':
+      drawMap();
+      dHernanPickCre();
+      break;
+    case 'hernanPickMove':
+      drawMap();
+      dHernanPickMove();
+      break;
+    case 'hernanPickSlot':
+      drawMap();
+      dHernanPickSlot();
       break;
   }
 }
