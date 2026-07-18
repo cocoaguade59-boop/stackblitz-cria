@@ -548,7 +548,16 @@ const npcs = [
     nm: 'Gonchi',
     dlg: [
       [
-        '¡Hola! Toma esto.',
+        '¡Correo del Reino!',
+        'Entregá 2 objetos y te mando',
+        '1 al azar... ¿suerte?',
+      ],
+      [
+        'Puede salir mejor o peor.',
+        'Así es el correo, amigo.',
+        '¡Nada de reclamos!',
+      ],
+      [
         'Ten cuidado con la chica',
         'de harapos en Aldea Pitch.',
         'Esa mujer me da miedo.',
@@ -557,13 +566,14 @@ const npcs = [
     postDlg: [
       '¿La chica de harapos?',
       'Ahora está... peor.',
-      'No quiero saber más.',
+      'El correo sigue abierto.',
     ],
     flag: 'metGon',
-    givesItem: true,
+    // T10: trueque random (ya no givesItem gratis)
+    trade: true,
     battle: true,
     exterior: true,
-    battleIntro: ['Toma esto primero...', '¡Ahora sí, luchemos!'],
+    battleIntro: ['¡Primero el correo!', '¡Ahora sí, luchemos!'],
     fixedTeam: [{ id: 'peztronauta' }, { id: 'gorilan' }],
   },
   {

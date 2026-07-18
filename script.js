@@ -115,6 +115,13 @@ import {
 } from './src/screens/tutor.js';
 import { dTheater } from './src/screens/theater.js';
 import { PACHI_BILL, ANDRE_BILL } from './src/data/theater.js';
+import {
+  dGonchiTrade,
+  buildTradeInventory,
+  rollTradeReward,
+  applyTradeItem,
+  countOwned,
+} from './src/screens/trade.js';
 
 const BAG_UPGRADE_PRICE = 2000;
 
@@ -1905,12 +1912,33 @@ function checkNPC(list) {
       return;
     }
 
-    // Dar item
-    if (n.givesItem) {
+    // Dar item (NPCs genéricos; Gonchi usa trade)
+    if (n.givesItem && !n.trade) {
       const items = ['pot', 'crv'];
       const it = items[Math.floor(Math.random() * 2)];
       G[it]++;
       aN(`¡Recibiste ${it === 'pot' ? 'poción' : 'cristal'}!`);
+    }
+
+    // Gonchi (T10): Correo del Reino — trueque 2→1 random
+    if (n.trade || n.flag === 'metGon') {
+      const dlgArr = getNPCDialog(n);
+      G.scr = 'dialog';
+      G.ds = {
+        npc: n,
+        dlgArr,
+        li: 0,
+        ci: 0,
+        tm: 0,
+        full: false,
+        // Pelea opcional: si el jugador cancela el trueque puede pelear
+        // en otra charla; aquí el flujo principal es el correo.
+        afterBattle: false,
+        goto: 'gonchiTrade',
+        _onDialogFinish: () => openGonchiTrade(),
+      };
+      sfx.sel();
+      return;
     }
 
     // Tienda
@@ -6177,6 +6205,151 @@ function uFabianaChoice() {
 // ============================================================
 
 // ============================================================
+// T10: GONCHI — Correo del Reino (trueque 2 objetos → 1 random)
+// ============================================================
+
+function openGonchiTrade() {
+  G.trade = {
+    phase: 'pick', // pick | result
+    sel: 0,
+    scroll: 0,
+    picked: [], // [{id, label}]
+    paidLabels: null,
+    rewardLabel: null,
+  };
+  G.scr = 'gonchiTrade';
+  sfx.sel();
+}
+
+function uGonchiTrade() {
+  const t = G.trade;
+  if (!t) {
+    G.scr = 'world';
+    return;
+  }
+
+  if (t.phase === 'result') {
+    if (kp(' ') || kp('Enter') || kp('x') || kp('Escape')) {
+      G.trade = null;
+      G.scr = 'world';
+      sfx.sel();
+    }
+    return;
+  }
+
+  const rows = buildTradeInventory();
+  const n = rows.length;
+  const VIS = 9;
+
+  if (!n) {
+    if (kp('x') || kp('Escape') || kp(' ') || kp('Enter')) {
+      G.trade = null;
+      G.scr = 'dialog';
+      G.ds = {
+        npc: { nm: 'Gonchi' },
+        dlgArr: [
+          'No traés nada para el correo.',
+          'Volvé cuando tengas objetos.',
+        ],
+        li: 0,
+        ci: 0,
+        tm: 0,
+        full: false,
+      };
+      sfx.nef();
+    }
+    return;
+  }
+
+  if (t.sel >= n) t.sel = n - 1;
+  if (kp('ArrowUp') || kp('ArrowLeft')) {
+    t.sel = (t.sel + n - 1) % n;
+    sfx.sel();
+  }
+  if (kp('ArrowDown') || kp('ArrowRight')) {
+    t.sel = (t.sel + 1) % n;
+    sfx.sel();
+  }
+  if (t.sel < (t.scroll || 0)) t.scroll = t.sel;
+  if (t.sel >= (t.scroll || 0) + VIS) t.scroll = t.sel - VIS + 1;
+
+  // SPACE: agregar 1 unidad del objeto (máx 2 total; mismo id 2× si hay stock).
+  // Si no se puede agregar y este id ya está marcado → quitar 1.
+  if (kp(' ')) {
+    const row = rows[t.sel];
+    if (!row) return;
+    if (!t.picked) t.picked = [];
+    const markedOf = t.picked.filter((p) => p.id === row.id).length;
+    const canAdd = t.picked.length < 2 && markedOf < row.count;
+    if (canAdd) {
+      t.picked.push({ id: row.id, label: row.label });
+      sfx.sel();
+      return;
+    }
+    // Quitar una marca de este id si existe
+    for (let i = t.picked.length - 1; i >= 0; i--) {
+      if (t.picked[i].id === row.id) {
+        t.picked.splice(i, 1);
+        sfx.sel();
+        return;
+      }
+    }
+    aN(t.picked.length >= 2 ? 'Ya hay 2. ENTER envía o quitá uno.' : 'Sin stock.');
+    sfx.nef();
+  }
+
+  // ENTER: confirmar trueque
+  if (kp('Enter')) {
+    if ((t.picked || []).length < 2) {
+      aN('Elegí 2 objetos (SPACE).');
+      sfx.nef();
+      return;
+    }
+    // Validar stock real (por si hay 2 del mismo)
+    const need = {};
+    t.picked.forEach((p) => {
+      need[p.id] = (need[p.id] || 0) + 1;
+    });
+    for (const id of Object.keys(need)) {
+      if (countOwned(id) < need[id]) {
+        aN('Stock insuficiente.');
+        sfx.nef();
+        t.picked = [];
+        return;
+      }
+    }
+    // Cobrar
+    for (const id of Object.keys(need)) {
+      if (!applyTradeItem(id, -need[id])) {
+        aN('Error al entregar.');
+        sfx.nef();
+        return;
+      }
+    }
+    // Premio random (puede ser upgrade o downgrade)
+    let reward = rollTradeReward();
+    // Evitar devolver exactamente lo mismo que pagaste si hay alternativas
+    // (suave: solo re-roll 1 vez)
+    const paidSet = new Set(t.picked.map((p) => p.id));
+    if (paidSet.has(reward.id) && paidSet.size === 1) {
+      reward = rollTradeReward();
+    }
+    applyTradeItem(reward.id, 1);
+    t.paidLabels = t.picked.map((p) => p.label);
+    t.rewardLabel = reward.label;
+    t.phase = 'result';
+    sfx.cap();
+    aN(`Correo: +${reward.label}`);
+  }
+
+  if (kp('x') || kp('Escape')) {
+    G.trade = null;
+    G.scr = 'world';
+    sfx.sel();
+  }
+}
+
+// ============================================================
 // T9: TEATRO — Pachi (representaciones) / André (jefes pre-game)
 // ============================================================
 
@@ -6932,6 +7105,11 @@ function update() {
           openTheater('andre');
           break;
         }
+        // Gonchi trueque
+        if (d.goto === 'gonchiTrade') {
+          openGonchiTrade();
+          break;
+        }
         // Fabiana crafting (backup si el callback no viajó)
         if (d.goto === 'fabianaChoice') {
           const frags = G.frag || { p: 0, c: 0, o: 0 };
@@ -7031,6 +7209,9 @@ function update() {
       break;
     case 'theater':
       uTheater();
+      break;
+    case 'gonchiTrade':
+      uGonchiTrade();
       break;
   }
 }
@@ -7137,6 +7318,10 @@ function draw() {
     case 'theater':
       drawMap();
       dTheater();
+      break;
+    case 'gonchiTrade':
+      drawMap();
+      dGonchiTrade();
       break;
   }
 }
