@@ -108,141 +108,143 @@ function addRouteDecorations() {
 }
 function polishVillageLayout(sx, sy, id) {
   const set = (c, r, t) => {
-    if (r >= 2 && r < WR - 2 && c >= 2 && c < WC - 2) wMap[r][c] = t;
+    if (r < 2 || r >= WR - 2 || c < 2 || c >= WC - 2) return;
+    // Nunca pisar una casa ya colocada
+    if (wMap[r][c] === 4 && t !== 4) return;
+    wMap[r][c] = t;
   };
   const fill = (x1, y1, x2, y2, t) => {
     for (let r = y1; r <= y2; r++) for (let c = x1; c <= x2; c++) set(c, r, t);
   };
-  const house = (c, r) => fill(c, r, c + 1, r + 1, 4);
-
-  // Layout base grande y ordenado: borde natural + plaza central + calles claras.
-  const base = id === 'rodaje' ? 26 : 0;
-  fill(sx - 4, sy - 3, sx + 12, sy + 10, base);
-  fill(sx - 2, sy - 1, sx + 10, sy + 8, 1);
-  fill(sx + 2, sy + 1, sx + 7, sy + 6, 1); // plaza
-  // cruces principales no perfectamente rectangulares, pero ordenados
-  for (let r = sy - 3; r <= sy + 10; r++) { set(sx + 4, r, 1); set(sx + 5, r, 1); }
-  for (let c = sx - 4; c <= sx + 12; c++) { set(c, sy + 3, 1); set(c, sy + 4, 1); }
-  // senderos escalonados/diagonales simulados
-  for (let k = 0; k < 5; k++) { set(sx - 3 + k, sy + 8 - k, 1); set(sx + 11 - k, sy + 8 - k, 1); }
-
-  // casas ordenadas fuera de la plaza
-  house(sx - 1, sy); house(sx + 8, sy); house(sx - 1, sy + 6); house(sx + 8, sy + 6);
-
-  // entradas/salidas claras
-  set(sx + 4, sy - 3, 14); set(sx + 5, sy - 3, 1);
-  set(sx + 4, sy + 10, 14); set(sx + 5, sy + 10, 1);
-
-  // bordes con desniveles/cercas, sin cerrar caminos
-  for (let c = sx - 3; c <= sx + 11; c++) {
-    if (c !== sx + 4 && c !== sx + 5) set(c, sy - 2, id === 'rodaje' ? 27 : 20);
-    if (c !== sx + 4 && c !== sx + 5) set(c, sy + 9, id === 'rodaje' ? 27 : 20);
-  }
-
-  // Decoración por identidad de pueblo, ordenada alrededor de la plaza.
-  if (id === 'pitch') {
-    // Plaza inicial: pozo, entrenamiento, cajas, huellas y flores.
-    set(sx + 4, sy + 3, 22);
-    set(sx + 1, sy + 2, 23); set(sx + 2, sy + 2, 23);
-    set(sx + 8, sy + 3, 21); set(sx + 8, sy + 4, 21);
-    [[sx + 1, sy + 5], [sx + 2, sy + 6], [sx + 6, sy + 5], [sx + 7, sy + 2]].forEach(([c,r]) => set(c,r,24));
-    [[sx + 1, sy + 1], [sx + 7, sy + 1], [sx + 1, sy + 7], [sx + 7, sy + 7], [sx + 3, sy + 6], [sx + 6, sy + 2]].forEach(([c,r]) => set(c,r,6));
-    set(sx + 3, sy + 2, 15); set(sx + 6, sy + 2, 15);
-  } else if (id === 'storyboard') {
-    // Villa Storyboard/Tamara: orden en paneles alrededor de un mural central.
-    fill(sx + 1, sy + 1, sx + 8, sy + 6, 1);
-    set(sx + 3, sy + 2, 17); set(sx + 4, sy + 2, 17); set(sx + 5, sy + 2, 17);
-    set(sx + 3, sy + 5, 17); set(sx + 4, sy + 5, 17); set(sx + 5, sy + 5, 17);
-    set(sx + 6, sy + 4, 19); // estatua/figura artística
-    set(sx + 2, sy + 4, 16); set(sx + 8, sy + 4, 16);
-    set(sx + 1, sy + 1, 15); set(sx + 8, sy + 1, 15);
-  } else if (id === 'rodaje') {
-    // Cantera Rodaje: plaza de cantera ordenada con set/cámara central.
-    fill(sx - 3, sy - 2, sx + 11, sy + 9, 26);
-    for (let r = sy - 2; r <= sy + 9; r++) { set(sx + 4, r, 1); set(sx + 5, r, 1); }
-    for (let c = sx - 3; c <= sx + 11; c++) { set(c, sy + 3, 1); set(c, sy + 4, 1); }
-    house(sx - 1, sy); house(sx + 8, sy); house(sx - 1, sy + 6); house(sx + 8, sy + 6);
-    set(sx + 4, sy + 2, 25); set(sx + 6, sy + 4, 25);
-    set(sx + 2, sy + 2, 15); set(sx + 8, sy + 2, 15);
-    set(sx + 2, sy + 6, 16); set(sx + 7, sy + 6, 16);
-    // terrazas/desniveles de cantera
-    for (let c = sx - 3; c <= sx + 11; c++) { if (c < sx + 3 || c > sx + 6) set(c, sy - 2, 27); if (c < sx + 2 || c > sx + 8) set(c, sy + 9, 27); }
-    for (let r = sy - 1; r <= sy + 8; r++) { if (r !== sy + 3 && r !== sy + 4) { set(sx - 3, r, 27); set(sx + 11, r, 27); } }
-  } else if (id === 'ultimatoma') {
-    // Feria Última Toma: puestos simétricos pero plaza irregular con flores.
-    set(sx + 2, sy + 2, 18); set(sx + 7, sy + 2, 18); set(sx + 2, sy + 6, 18); set(sx + 7, sy + 6, 18);
-    set(sx + 4, sy + 4, 19);
-    set(sx + 2, sy + 4, 15); set(sx + 7, sy + 4, 15);
-    set(sx + 3, sy + 5, 16); set(sx + 6, sy + 5, 16);
-    [[sx+1,sy+1],[sx+8,sy+1],[sx+1,sy+7],[sx+8,sy+7]].forEach(([c,r])=>set(c,r,6));
-  } else if (id === 'montaje') {
-    // Prados Montaje: mirador ordenado, frío y ceremonial.
-    fill(sx + 1, sy - 1, sx + 8, sy, 26);
-    set(sx + 4, sy - 2, 14); set(sx + 5, sy - 2, 1);
-    set(sx + 4, sy + 3, 19); set(sx + 8, sy + 3, 19);
-    set(sx + 2, sy + 2, 15); set(sx + 7, sy + 2, 15);
-    set(sx + 3, sy + 6, 16); set(sx + 6, sy + 6, 16);
-    set(sx + 1, sy + 2, 20); set(sx + 9, sy + 2, 20);
-  }
-}
-
-function applyVillageIrregularShape(sx, sy, id) {
-  const set = (c, r, t) => {
-    if (r >= 2 && r < WR - 2 && c >= 2 && c < WC - 2 && wMap[r][c] !== 4) wMap[r][c] = t;
+  const house = (c, r) => {
+    if (c < 2 || r < 2 || c + 4 >= WC - 2 || r + 3 >= WR - 2) return false;
+    // Forzar casa completa (sí puede sobrescribir camino)
+    for (let rr = r; rr <= r + 3; rr++)
+      for (let cc = c; cc <= c + 4; cc++) wMap[rr][cc] = 4;
+    return true;
   };
-  // Romper rectángulo perfecto: esquinas con césped/flores y bordes menos rígidos.
-  const cornerTiles = [
-    [sx - 2, sy - 2], [sx - 1, sy - 2], [sx + 8, sy - 2], [sx + 9, sy - 2],
-    [sx - 2, sy + 7], [sx - 1, sy + 7], [sx + 8, sy + 7], [sx + 9, sy + 7],
-    [sx - 2, sy - 1], [sx + 9, sy - 1], [sx - 2, sy + 6], [sx + 9, sy + 6],
-  ];
-  cornerTiles.forEach(([c, r], i) => set(c, r, i % 3 === 0 ? 6 : 0));
 
-  // Caminos escalonados secundarios: simulan diagonales sin curvas.
-  for (let k = 0; k < 5; k++) {
-    set(sx - 2 + k, sy + 7 - k, 1);
-    if (k < 4) set(sx - 1 + k, sy + 7 - k, 1);
-    set(sx + 9 - k, sy + 7 - k, 1);
+  const base = id === 'rodaje' ? 26 : 0;
+  fill(sx - 6, sy - 5, sx + 16, sy + 14, base);
+  fill(sx - 4, sy - 3, sx + 14, sy + 12, 1);
+  fill(sx + 1, sy + 1, sx + 10, sy + 8, 1);
+
+  for (let r = sy - 5; r <= sy + 14; r++) {
+    set(sx + 5, r, 1);
+    set(sx + 6, r, 1);
   }
-  // Callejón angosto entre casas superiores e inferiores.
-  for (let r = sy + 1; r <= sy + 5; r++) set(sx + 4, r, 1);
-  for (let c = sx + 2; c <= sx + 7; c++) set(c, sy + 3, 1);
+  for (let c = sx - 6; c <= sx + 16; c++) {
+    set(c, sy + 4, 1);
+    set(c, sy + 5, 1);
+  }
 
-  // Desniveles visuales: bordes elevados que rompen la planicie.
-  [
-    [sx - 2, sy + 1], [sx - 1, sy + 1], [sx + 8, sy + 1], [sx + 9, sy + 1],
-    [sx + 1, sy + 7], [sx + 2, sy + 7], [sx + 6, sy + 7], [sx + 7, sy + 7],
-  ].forEach(([c, r]) => set(c, r, 27));
+  // Bordillos ANTES de las casas
+  for (let c = sx - 5; c <= sx + 15; c++) {
+    if (c === sx + 5 || c === sx + 6) continue;
+    set(c, sy - 5, id === 'rodaje' ? 27 : 20);
+    set(c, sy + 13, id === 'rodaje' ? 27 : 20);
+  }
 
-  // Toques temáticos por pueblo sobre la forma irregular.
+  // Casas 5×4 al FINAL (no se pisan)
+  // Arriba: sy-4 .. sy-1 | Abajo: sy+9 .. sy+12 (clamp al mapa)
+  const topR = Math.max(2, sy - 4);
+  let botR = sy + 9;
+  if (botR + 3 >= WR - 2) botR = WR - 6;
+  // Separar de la plaza: bottom no debe solaparse con sy+8
+  if (botR < sy + 9) {
+    // mapa chico: empujar bottom lo más abajo posible sin solapar top
+  }
+  const leftC = Math.max(2, sx - 5);
+  const rightC = Math.min(WC - 7, sx + 10);
+
+  house(leftC, topR);
+  house(rightC, topR);
+  house(leftC, botR);
+  house(rightC, botR);
+
+  // Reabrir calles centrales por si alguna casa quedó mal (no deberían)
+  for (let r = sy - 5; r <= sy + 14; r++) {
+    if (wMap[r]?.[sx + 5] === 4 || wMap[r]?.[sx + 6] === 4) continue;
+    set(sx + 5, r, 1);
+    set(sx + 6, r, 1);
+  }
+
+  // Entradas
+  if (wMap[sy - 5]?.[sx + 5] !== 4) set(sx + 5, sy - 5, 14);
+  if (wMap[sy - 5]?.[sx + 6] !== 4) set(sx + 6, sy - 5, 1);
+  if (wMap[sy + 14]?.[sx + 5] !== 4) set(sx + 5, sy + 14, 14);
+  if (wMap[sy + 14]?.[sx + 6] !== 4) set(sx + 6, sy + 14, 1);
+
+  const deco = (c, r, t) => {
+    if (r >= 2 && r < WR - 2 && c >= 2 && c < WC - 2 && wMap[r][c] === 1) wMap[r][c] = t;
+  };
+
   if (id === 'pitch') {
-    // Más flores normales alrededor de la plaza inicial.
-    [[sx + 1, sy + 2], [sx + 6, sy + 2], [sx + 1, sy + 5], [sx + 7, sy + 5], [sx + 5, sy + 6]].forEach(([c, r]) => set(c, r, 6));
-  }
-  if (id === 'storyboard') {
-    // Pequeño pasaje en zigzag hacia el mural.
-    for (let k = 0; k < 4; k++) set(sx + 1 + k, sy + 1 + k, 1);
-  }
-  if (id === 'rodaje') {
-    // Cantera con terrazas/desniveles rocosos más obvios.
-    for (let c = sx - 3; c <= sx + 11; c++) {
-      if (c < sx + 2 || c > sx + 6) set(c, sy - 3, 27);
-      if (c < sx + 1 || c > sx + 8) set(c, sy + 9, 27);
+    deco(sx + 5, sy + 4, 22);
+    deco(sx + 3, sy + 2, 23);
+    deco(sx + 8, sy + 2, 23);
+    deco(sx + 3, sy + 7, 21);
+    deco(sx + 8, sy + 7, 21);
+    [[sx + 2, sy + 2], [sx + 9, sy + 2], [sx + 2, sy + 8], [sx + 9, sy + 8], [sx + 4, sy + 3], [sx + 7, sy + 3]].forEach(([c, r]) => deco(c, r, 6));
+    deco(sx + 4, sy + 2, 15);
+    deco(sx + 7, sy + 2, 15);
+  } else if (id === 'storyboard') {
+    for (let c = sx + 3; c <= sx + 8; c++) {
+      deco(c, sy + 2, 17);
+      deco(c, sy + 7, 17);
     }
-    for (let r = sy - 2; r <= sy + 8; r++) {
-      if (r !== sy + 3) set(sx - 3, r, 27);
-      if (r !== sy + 3) set(sx + 11, r, 27);
+    deco(sx + 7, sy + 5, 19);
+    deco(sx + 3, sy + 5, 16);
+    deco(sx + 8, sy + 5, 16);
+    deco(sx + 2, sy + 2, 15);
+    deco(sx + 9, sy + 2, 15);
+  } else if (id === 'rodaje') {
+    for (let r = sy - 4; r <= sy + 13; r++) {
+      for (let c = sx - 5; c <= sx + 15; c++) {
+        if (r < 2 || r >= WR - 2 || c < 2 || c >= WC - 2) continue;
+        if (wMap[r][c] === 4 || wMap[r][c] === 14) continue;
+        if (c === sx + 5 || c === sx + 6 || r === sy + 4 || r === sy + 5) wMap[r][c] = 1;
+        else if (wMap[r][c] !== 1) wMap[r][c] = 26;
+      }
     }
-  }
-  if (id === 'ultimatoma') {
-    // Feria con entradas diagonales y puestos alrededor.
-    set(sx + 1, sy + 1, 18); set(sx + 7, sy + 1, 18);
-    set(sx + 1, sy + 6, 18); set(sx + 7, sy + 6, 18);
-  }
-  if (id === 'montaje') {
-    // Mirador escalonado al norte.
-    for (let c = sx; c <= sx + 8; c++) if (c !== sx + 4 && c !== sx + 5) set(c, sy - 1, 27);
-    set(sx + 1, sy + 2, 19); set(sx + 8, sy + 2, 19);
+    // casas de nuevo al final
+    house(leftC, topR);
+    house(rightC, topR);
+    house(leftC, botR);
+    house(rightC, botR);
+    deco(sx + 5, sy + 3, 25);
+    deco(sx + 7, sy + 5, 25);
+    deco(sx + 3, sy + 3, 15);
+    deco(sx + 8, sy + 3, 15);
+    deco(sx + 3, sy + 8, 16);
+    deco(sx + 8, sy + 8, 16);
+  } else if (id === 'ultimatoma') {
+    deco(sx + 3, sy + 3, 18);
+    deco(sx + 8, sy + 3, 18);
+    deco(sx + 3, sy + 7, 18);
+    deco(sx + 8, sy + 7, 18);
+    deco(sx + 5, sy + 5, 19);
+    deco(sx + 3, sy + 5, 15);
+    deco(sx + 8, sy + 5, 15);
+    deco(sx + 4, sy + 6, 16);
+    deco(sx + 7, sy + 6, 16);
+    [[sx + 2, sy + 2], [sx + 9, sy + 2], [sx + 2, sy + 8], [sx + 9, sy + 8]].forEach(([c, r]) => deco(c, r, 6));
+  } else if (id === 'montaje') {
+    fill(sx + 2, sy - 3, sx + 9, sy - 1, 26);
+    set(sx + 5, sy - 4, 14);
+    // reponer casas por si el mirador las tocó
+    house(leftC, topR);
+    house(rightC, topR);
+    house(leftC, botR);
+    house(rightC, botR);
+    deco(sx + 5, sy + 4, 19);
+    deco(sx + 8, sy + 4, 19);
+    deco(sx + 3, sy + 3, 15);
+    deco(sx + 8, sy + 3, 15);
+    deco(sx + 4, sy + 7, 16);
+    deco(sx + 7, sy + 7, 16);
+    deco(sx + 2, sy + 3, 20);
+    deco(sx + 9, sy + 3, 20);
   }
 }
 
@@ -387,161 +389,26 @@ function genWorld() {
   }
 }
 function buildVillage(sx, sy, id) {
-  // Área amplia de caminos
-  for (let r = sy - 2; r < sy + 8; r++)
-    for (let c = sx - 2; c < sx + 10; c++) {
-      if (r >= 2 && r < WR - 2 && c >= 2 && c < WC - 2) wMap[r][c] = 1;
-    }
-
-  // Edificio arriba izquierda
-  for (let r = sy; r < sy + 2; r++)
-    for (let c = sx; c < sx + 2; c++)
-      if (r < WR - 2 && c < WC - 2) wMap[r][c] = 4;
-  // Edificio arriba derecha
-  for (let r = sy; r < sy + 2; r++)
-    for (let c = sx + 6; c < sx + 8; c++)
-      if (r < WR - 2 && c < WC - 2) wMap[r][c] = 4;
-  // Edificio abajo izquierda
-  for (let r = sy + 5; r < sy + 7; r++)
-    for (let c = sx; c < sx + 2; c++)
-      if (r < WR - 2 && c < WC - 2) wMap[r][c] = 4;
-  // Edificio abajo derecha
-  for (let r = sy + 5; r < sy + 7; r++)
-    for (let c = sx + 6; c < sx + 8; c++)
-      if (r < WR - 2 && c < WC - 2) wMap[r][c] = 4;
-
-  // Flores decorativas
-  for (let c = sx - 2; c < sx + 10; c++) {
-    if (sy - 2 >= 2 && c >= 2 && c < WC - 2 && wMap[sy - 2][c] === 1)
-      if (Math.random() < 0.3) wMap[sy - 2][c] = 6;
-  }
-
-  // Entradas/salidas: arco norte y salida sur clara para todos los pueblos.
-  const archX = sx + 4;
-  if (sy - 3 >= 2 && archX >= 2 && archX < WC - 2) wMap[sy - 3][archX] = 14;
-  if (sy + 8 < WR - 2 && archX >= 2 && archX < WC - 2) wMap[sy + 8][archX] = 14;
-  for (let rr = sy - 3; rr <= sy + 8; rr++) {
-    if (rr >= 2 && rr < WR - 2) {
-      if (wMap[rr][archX] !== 14) wMap[rr][archX] = 1;
-      if (archX + 1 < WC - 2 && wMap[rr][archX + 1] !== 14) wMap[rr][archX + 1] = 1;
-    }
-  }
-
-  // Forma irregular, senderos escalonados, callejones y desniveles.
-  applyVillageIrregularShape(sx, sy, id);
-
-  // Identidad visual por pueblo: forma + decoración.
-  if (id === 'storyboard') {
-    // Paneles de storyboard y mural abierto.
-    for (let r = sy - 1; r <= sy + 7; r++)
-      for (let c = sx - 1; c <= sx + 9; c++)
-        if (r >= 2 && r < WR - 2 && c >= 2 && c < WC - 2 && wMap[r][c] === 1 && (r + c) % 4 === 0) wMap[r][c] = 17;
-    wMap[sy + 3][sx + 4] = 17;
-    wMap[sy + 3][sx + 5] = 17;
-    wMap[sy + 4][sx + 4] = 19; // estatua de criatura pintora
-    wMap[sy + 6][sx + 3] = 16;
-    wMap[sy + 6][sx + 5] = 16;
-    wMap[sy - 1][sx + 2] = 15;
-    wMap[sy - 1][sx + 7] = 15;
-  }
-
-  if (id === 'rodaje') {
-    // Cantera Rodaje: área irregular de piedra, rocas y set simbólico de rodaje.
-    for (let r = sy - 4; r <= sy + 10; r++) {
-      for (let c = sx - 4; c <= sx + 12; c++) {
-        if (r < 2 || r >= WR - 2 || c < 2 || c >= WC - 2) continue;
-        const edge = r === sy - 4 || r === sy + 10 || c === sx - 4 || c === sx + 12;
-        const t = wMap[r][c];
-        if (edge && t !== 4 && t !== 11 && t !== 12) wMap[r][c] = Math.random() < 0.65 ? 7 : 26;
-        else if (t !== 4 && t !== 11 && t !== 12) wMap[r][c] = 26;
+  // Suelo base del pueblo (amplio). Las casas grandes y la identidad
+  // las pone polishVillageLayout (5×4 tiles por casa).
+  for (let r = sy - 4; r <= sy + 13; r++) {
+    for (let c = sx - 5; c <= sx + 15; c++) {
+      if (r >= 2 && r < WR - 2 && c >= 2 && c < WC - 2) {
+        if (wMap[r][c] !== 2 && wMap[r][c] !== 9 && wMap[r][c] !== 11 && wMap[r][c] !== 12) {
+          wMap[r][c] = 1;
+        }
       }
     }
-    // Caminos internos tallados en la cantera para no bloquear NPCs.
-    for (let c = sx - 3; c <= sx + 11; c++) wMap[sy + 3][c] = 1;
-    for (let r = sy - 3; r <= sy + 9; r++) wMap[r][sx + 4] = 1;
-    // Set de rodaje simbólico y luces.
-    wMap[sy + 2][sx + 4] = 25;
-    wMap[sy + 4][sx + 6] = 25;
-    wMap[sy + 1][sx + 2] = 15;
-    wMap[sy + 1][sx + 8] = 15;
-    wMap[sy + 6][sx + 2] = 16;
-    wMap[sy + 6][sx + 7] = 16;
-    // Reubicar visualmente algunos edificios como casetas de producción.
-    for (const [bc, br] of [[sx, sy], [sx + 6, sy], [sx, sy + 5], [sx + 6, sy + 5]]) {
-      if (wMap[br]?.[bc] !== undefined) wMap[br][bc] = 4;
-      if (wMap[br]?.[bc + 1] !== undefined) wMap[br][bc + 1] = 4;
-      if (wMap[br + 1]?.[bc] !== undefined) wMap[br + 1][bc] = 4;
-      if (wMap[br + 1]?.[bc + 1] !== undefined) wMap[br + 1][bc + 1] = 4;
+  }
+
+  // Flores de borde suaves
+  for (let c = sx - 4; c <= sx + 14; c++) {
+    if (sy - 4 >= 2 && c >= 2 && c < WC - 2 && wMap[sy - 4][c] === 1 && Math.random() < 0.25) {
+      wMap[sy - 4][c] = 6;
     }
   }
 
-  if (id === 'ultimatoma') {
-    // Feria: plaza más abierta, faroles y bancas.
-    for (let r = sy + 1; r <= sy + 6; r++)
-      for (let c = sx; c <= sx + 7; c++)
-        if (wMap[r]?.[c] === 1 || wMap[r]?.[c] === 0) wMap[r][c] = (r === sy + 3 || c === sx + 4) ? 1 : 6;
-    wMap[sy + 2][sx + 2] = 15;
-    wMap[sy + 2][sx + 7] = 15;
-    wMap[sy + 3][sx + 4] = 18;
-    wMap[sy + 3][sx + 5] = 18;
-    wMap[sy + 6][sx + 2] = 16;
-    wMap[sy + 6][sx + 6] = 16;
-    wMap[sy + 4][sx + 4] = 19;
-  }
-
-  if (id === 'montaje') {
-    // Pueblo final: mirador frío hacia castillo, faroles y bancos.
-    for (let c = sx - 1; c <= sx + 9; c++) if (wMap[sy - 1]?.[c] !== undefined) wMap[sy - 1][c] = 26;
-    wMap[sy - 2][sx + 4] = 14;
-    wMap[sy + 1][sx + 2] = 15;
-    wMap[sy + 1][sx + 7] = 15;
-    wMap[sy + 6][sx + 3] = 16;
-    wMap[sy + 6][sx + 6] = 16;
-    wMap[sy + 3][sx + 8] = 19; // estatua/mirador del pueblo final
-    wMap[sy + 2][sx + 1] = 20;
-    wMap[sy + 2][sx + 9] = 20;
-  }
-
-  // Aldea Pitch recibe una primera zona más clara y acogedora para tutorial.
-  if (id === 'pitch') {
-    // plaza central y caminos limpios hacia Alexandro/Luis/Alessandro
-    for (let r = sy + 1; r <= sy + 6; r++)
-      for (let c = sx - 1; c <= sx + 8; c++)
-        if (r >= 2 && r < WR - 2 && c >= 2 && c < WC - 2 && wMap[r][c] !== 4) wMap[r][c] = 1;
-
-    // jardineras y árboles de borde sin cerrar el paso
-    const flowers = [
-      [sx - 1, sy], [sx + 3, sy], [sx + 8, sy],
-      [sx - 1, sy + 7], [sx + 3, sy + 7], [sx + 8, sy + 7],
-      [sx + 3, sy + 2], [sx + 4, sy + 2], [sx + 3, sy + 5], [sx + 4, sy + 5],
-    ];
-    flowers.forEach(([c, r]) => { if (wMap[r]?.[c] === 1 || wMap[r]?.[c] === 0) wMap[r][c] = 6; });
-    const trees = [[sx - 3, sy - 1], [sx + 10, sy - 1], [sx - 3, sy + 8], [sx + 10, sy + 8]];
-    trees.forEach(([c, r]) => { if (r >= 2 && r < WR - 2 && c >= 2 && c < WC - 2) wMap[r][c] = 3; });
-
-    // sendero extra hasta el cartel de salida norte
-    for (let r = sy - 2; r <= sy + 7; r++)
-      if (r >= 2 && r < WR - 2) {
-        wMap[r][sx + 2] = 1;
-        wMap[r][sx + 3] = 1;
-      }
-    // Plaza central, zona tutorial y elementos únicos visibles.
-    wMap[sy + 3][sx + 4] = 22; // pozo de plaza
-    wMap[sy + 2][sx + 1] = 21; // cajas
-    wMap[sy + 6][sx + 7] = 21;
-    wMap[sy + 1][sx + 3] = 23; // muñecos de entrenamiento
-    wMap[sy + 1][sx + 5] = 23;
-    wMap[sy + 4][sx + 2] = 24; // huellas cerca del jugador
-    wMap[sy + 5][sx + 4] = 24;
-    wMap[sy + 6][sx + 5] = 24;
-    // cerca baja para encuadrar zona de entrenamiento sin encerrar al jugador
-    wMap[sy][sx + 2] = 20;
-    wMap[sy][sx + 6] = 20;
-    wMap[sy + 1][sx + 7] = 20;
-    wMap[sy + 2][sx + 7] = 20;
-  }
-
-  // Pasada final: ordena la aldea para que la personalidad sea clara sin verse caótica.
+  // Layout final: casas 5×4 + plaza + identidad
   polishVillageLayout(sx, sy, id);
 }
 
