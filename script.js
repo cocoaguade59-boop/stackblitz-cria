@@ -39,7 +39,18 @@ import { px, pixelGlow, pixelDiamond } from './src/render/render-utils.js';
 
 // [refactor-phase4b] UI y utilidades importadas
 import { fr, tickFrame } from './src/core/frame.js';
-import { aP, aN, uP } from './src/utils/particles.js';
+import {
+  aP,
+  aN,
+  uP,
+  vfxFromStatResults,
+  vfxBurn,
+  vfxSleep,
+  vfxParalyze,
+  vfxLeech,
+  vfxTypeHit,
+  vfxHeal,
+} from './src/utils/particles.js';
 import { dBox, dBoxMenu, dDialogBox, dDialogAdaptive, wrapText, dMenuOption, dArrow } from './src/render/ui-boxes.js';
 import { dHP, dEXP, dBattlePanel } from './src/render/ui-bars.js';
 import { dTypeIcon, moveUiCol, movePpColor, dMoveButton } from './src/render/ui-type-icons.js';
@@ -3766,11 +3777,12 @@ function execTurn(mv) {
   procAct(b.mq.shift());
 }
 
-/** Une mensaje base de movimiento con textos de stats (T11). */
+/** Une mensaje base de movimiento con textos de stats + VFX (T11). */
 function withStatMsgs(base, side, changes) {
-  const { text } = applyStatMods(side, changes);
+  const { text, results } = applyStatMods(side, changes);
+  // VFX de subida/bajada (solo si algo se aplicó)
+  vfxFromStatResults(side, results);
   if (!text) return base;
-  // Si todos fueron "no puede subir/bajar", igual mostrarlos
   return base ? `${base} ${text}` : text;
 }
 
@@ -3799,6 +3811,64 @@ function dStatStages(x, y, mods, isPlayer) {
   });
 }
 
+/**
+ * Overlay continuo de estado sobre el sprite (T11d–f).
+ * cx0,cy0 = centro aprox. del mon.
+ */
+function dStatusOverlay(cx0, cy0, status, f) {
+  if (!status) return;
+  if (status === 'burn') {
+    // llamitas bajo los pies
+    for (let i = 0; i < 3; i++) {
+      const ox = cx0 - 10 + i * 10 + Math.sin(f * 0.25 + i) * 2;
+      const oy = cy0 + 18 + Math.sin(f * 0.3 + i * 1.3) * 2;
+      cx.globalAlpha = 0.55 + Math.sin(f * 0.2 + i) * 0.25;
+      cx.fillStyle = i % 2 ? '#F0A030' : '#E05020';
+      cx.fillRect(ox, oy, 3, 5);
+      cx.fillStyle = '#F8E060';
+      cx.fillRect(ox + 1, oy + 1, 1, 2);
+    }
+    cx.globalAlpha = 1;
+  } else if (status === 'sleep') {
+    const bob = Math.sin(f * 0.12) * 2;
+    cx.globalAlpha = 0.85;
+    cx.fillStyle = '#D0D8F0';
+    cx.font = '8px "Press Start 2P"';
+    cx.fillText('Z', cx0 + 14, cy0 - 18 + bob);
+    cx.font = '10px "Press Start 2P"';
+    cx.fillText('z', cx0 + 24, cy0 - 28 + bob);
+    cx.globalAlpha = 1;
+  } else if (status === 'paralyze') {
+    // chispas en el borde
+    cx.globalAlpha = 0.5 + Math.sin(f * 0.4) * 0.3;
+    cx.fillStyle = '#F0E040';
+    for (let i = 0; i < 4; i++) {
+      const a = f * 0.15 + i * 1.6;
+      cx.fillRect(cx0 + Math.cos(a) * 22 - 1, cy0 + Math.sin(a) * 14 - 1, 2, 2);
+    }
+    cx.globalAlpha = 1;
+  } else if (status === 'leech') {
+    cx.globalAlpha = 0.45 + Math.sin(f * 0.15) * 0.2;
+    cx.fillStyle = '#40C060';
+    for (let i = 0; i < 3; i++) {
+      cx.fillRect(cx0 - 12 + i * 10, cy0 + 16 + Math.sin(f * 0.2 + i) * 2, 2, 6);
+    }
+    cx.globalAlpha = 1;
+  } else if (status === 'poison' || status === 'curse') {
+    cx.globalAlpha = 0.4 + Math.sin(f * 0.18) * 0.2;
+    cx.fillStyle = status === 'poison' ? '#A060E0' : '#603080';
+    for (let i = 0; i < 4; i++) {
+      cx.fillRect(
+        cx0 - 14 + (i % 2) * 20 + Math.sin(f * 0.1 + i) * 3,
+        cy0 - 8 + Math.floor(i / 2) * 16,
+        3,
+        3
+      );
+    }
+    cx.globalAlpha = 1;
+  }
+}
+
 function procAct(act) {
   const b = G.bs,
     c = pCre();
@@ -3820,6 +3890,7 @@ function procAct(act) {
     // Parálisis check
     if (battleState.playerStatus === 'paralyze' && Math.random() < 0.25) {
       b.msg = `¡${c.nm} está paralizado y no puede moverse!`;
+      vfxParalyze('player');
       b.ph = 'msg';
       b.tm = 0;
       return;
@@ -3829,6 +3900,7 @@ function procAct(act) {
       if (battleState.playerStatusTurns > 0) {
         battleState.playerStatusTurns--;
         b.msg = `¡${c.nm} está dormido!`;
+        vfxSleep('player');
         b.ph = 'msg';
         b.tm = 0;
         return;
@@ -3856,6 +3928,7 @@ function procAct(act) {
       const h = Math.floor(c.mHp * 0.35);
       c.heal(h);
       sfx.heal();
+      vfxHeal('player');
       b.msg = `${c.nm}: ${mv.nm}! +${h}HP`;
       b.ph = 'msg';
       b.tm = 0;
@@ -3866,6 +3939,7 @@ function procAct(act) {
         if (p.hp > 0) p.heal(Math.floor(p.mHp * 0.2));
       });
       sfx.heal();
+      vfxHeal('player');
       b.msg = `${c.nm}: ${mv.nm}! ¡Equipo curado!`;
       b.ph = 'msg';
       b.tm = 0;
@@ -3939,12 +4013,14 @@ function procAct(act) {
       battleState.enemyStatusTurns = 5;
       sfx.sel();
       b.msg = `¡${b.en.nm} ha sido infectada con Drenadoras!`;
+      vfxLeech('enemy', 'player');
     }
     if (mv.ef === 'sleep2') {
       battleState.enemyStatus = 'sleep';
       battleState.enemyStatusTurns = 2;
       sfx.sel();
       b.msg = `${c.nm}: ${mv.nm}! ¡${b.en.nm} se durmió!`;
+      vfxSleep('enemy');
     }
     if (mv.ef === 'clearStatus') {
       battleState.playerStatus = null;
@@ -4032,14 +4108,15 @@ function procAct(act) {
     b.en.hp = Math.max(0, b.en.hp - dm);
     b.es = 10;
     battleState.lastDmgToEnemy = dm;
-    for (let i = 0; i < 5; i++)
-      aP(380 + Math.random() * 40, 100 + Math.random() * 40, tCol(mv.tp));
+    // T11d–f: VFX de golpe por tipo sobre el rival
+    vfxTypeHit('enemy', mv.tp, !!result.crit);
 
     // Efectos secundarios post-daño
     if (mv.ef === 'burn20' && Math.random() < 0.2 && !battleState.enemyStatus) {
       battleState.enemyStatus = 'burn';
       battleState.enemyStatusTurns = 5;
       b.msg += ` ¡${b.en.nm} se quemó!`;
+      vfxBurn('enemy');
     }
     if (
       mv.ef === 'paralyze20' &&
@@ -4049,6 +4126,7 @@ function procAct(act) {
       battleState.enemyStatus = 'paralyze';
       battleState.enemyStatusTurns = 5;
       b.msg += ` ¡${b.en.nm} paralizado!`;
+      vfxParalyze('enemy');
     }
     if (
       mv.ef === 'confuse20' &&
@@ -4140,6 +4218,7 @@ function procAct(act) {
       if (battleState.enemyStatusTurns <= 0) battleState.enemyStatus = null;
       b.dotProcessed.enemy = true;
       b.msg = `¡${b.en.nm} sufre quemadura! -${bd}HP`;
+      vfxBurn('enemy');
       b.ph = 'msg';
       b.tm = 0;
       // Encolar otro eT para procesar el DoT del jugador después
@@ -4159,6 +4238,7 @@ function procAct(act) {
       if (battleState.enemyStatusTurns <= 0) battleState.enemyStatus = null;
       b.dotProcessed.enemy = true;
       b.msg = `¡El movimiento Drenadoras restó salud a tu rival y te la da a ti! -${ld} / +${ld}HP`;
+      vfxLeech('enemy', 'player');
       b.ph = 'msg';
       b.tm = 0;
       b.mq.unshift({ a: 'eT' });
@@ -4212,6 +4292,7 @@ function procAct(act) {
       if (battleState.playerStatusTurns <= 0) battleState.playerStatus = null;
       b.dotProcessed.player = true;
       b.msg = `¡${c.nm} sufre quemadura! -${bd}HP`;
+      vfxBurn('player');
       b.ph = 'msg';
       b.tm = 0;
       if (c.hp <= 0) return;
@@ -4229,6 +4310,7 @@ function procAct(act) {
       if (battleState.playerStatusTurns <= 0) battleState.playerStatus = null;
       b.dotProcessed.player = true;
       b.msg = `¡Drenadoras te restó salud y se la dio a tu rival! -${ld} / +${ld}HP`;
+      vfxLeech('player', 'enemy');
       b.ph = 'msg';
       b.tm = 0;
       if (c.hp <= 0) return;
@@ -4405,16 +4487,19 @@ function procAct(act) {
         battleState.playerStatus = 'leech';
         battleState.playerStatusTurns = 5;
         b.msg = `¡${c.nm} ha sido infectada con Drenadoras!`;
+        vfxLeech('player', 'enemy');
       }
       if (mv.ef === 'burn20' && Math.random() < 0.2 && !battleState.playerStatus) {
         battleState.playerStatus = 'burn';
         battleState.playerStatusTurns = 5;
         b.msg = `${b.en.nm}: ${mv.nm}! ¡Te quemaste!`;
+        vfxBurn('player');
       }
       if (mv.ef === 'paralyze20' && Math.random() < 0.2 && !battleState.playerStatus) {
         battleState.playerStatus = 'paralyze';
         battleState.playerStatusTurns = 5;
         b.msg = `${b.en.nm}: ${mv.nm}! ¡Te paralizaste!`;
+        vfxParalyze('player');
       }
       if (mv.ef === 'confuse20' && Math.random() < 0.2 && !battleState.playerStatus) {
         battleState.playerStatus = 'confuse';
@@ -4425,6 +4510,7 @@ function procAct(act) {
         battleState.playerStatus = 'sleep';
         battleState.playerStatusTurns = 2;
         b.msg = `${b.en.nm}: ${mv.nm}! ¡Te dormiste!`;
+        vfxSleep('player');
       }
       if (mv.ef === 'accDn') {
         b.msg = withStatMsgs(`${b.en.nm}: ${mv.nm}!`, 'player', [['spd', -1]]);
@@ -4495,8 +4581,8 @@ function procAct(act) {
       sfx.nef();
     } else sfx.hit();
     b.msg = `${b.en.nm}: ${mv.nm}! -${dm}HP${em}`;
-    for (let i = 0; i < 5; i++)
-      aP(120 + Math.random() * 40, 230 + Math.random() * 40, tCol(mv.tp));
+    // T11d–f: VFX de golpe por tipo sobre el jugador
+    vfxTypeHit('player', mv.tp, !!result.crit);
     b.ph = 'msg';
     b.tm = 0;
   } else if (act.a === 'cE') {
@@ -5031,8 +5117,14 @@ function dBattle() {
   // Criaturas
   // Durante la captura el enemigo se dibuja dentro de la animación para que
   // parezca entrar al Cristal Vínculo, no quedarse duplicado en pantalla.
-  if (b.en.hp > 0 && b.ph !== 'captureAnim') dCre(385 + esx, 108, b.en.id, b.en.lv, f);
-  if (c.hp > 0) dCre(105 + psx, 238, c.id, c.lv, f);
+  if (b.en.hp > 0 && b.ph !== 'captureAnim') {
+    dCre(385 + esx, 108, b.en.id, b.en.lv, f);
+    dStatusOverlay(400 + esx, 130, battleState.enemyStatus, f);
+  }
+  if (c.hp > 0) {
+    dCre(105 + psx, 238, c.id, c.lv, f);
+    dStatusOverlay(130 + psx, 260, battleState.playerStatus, f);
+  }
 
   // Panel enemigo — nuevo HUD estilo NDS pixel-art
   dBattleHud(8, 8, 260, 66, b.en, {
