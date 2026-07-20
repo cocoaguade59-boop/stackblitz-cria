@@ -179,12 +179,13 @@ function dTileW(c, r) {
         let ar = r;
         while (wMap[ar]?.[ac - 1] === 4) ac--;
         while (wMap[ar - 1]?.[ac] === 4) ar--;
+        // Techos apagados de paja, teja y pizarra: fantasía medieval, no suburbio moderno.
         const roofPalette = [
-          { d: '#A82828', m: '#C83838', l: '#E85858', e: '#6A1818' },
-          { d: '#2848A0', m: '#3860C8', l: '#5890E8', e: '#183068' },
-          { d: '#A86820', m: '#C88830', l: '#E8A848', e: '#684018' },
-          { d: '#208050', m: '#30A068', l: '#50C888', e: '#145030' },
-          { d: '#7030A0', m: '#9048C0', l: '#B070E0', e: '#401868' },
+          { d: '#6B3922', m: '#8B5130', l: '#B07442', e: '#3B2118' }, // teja de barro
+          { d: '#3E4548', m: '#596064', l: '#788078', e: '#242A2B' }, // pizarra
+          { d: '#8B6B31', m: '#AD8A45', l: '#C9AD68', e: '#58431F' }, // paja
+          { d: '#4E5A34', m: '#697848', l: '#87965A', e: '#303A22' }, // musgo
+          { d: '#6B4835', m: '#855E45', l: '#A87B5C', e: '#3E2A20' }, // madera oscura
         ];
         const rp = roofPalette[(ac * 5 + ar * 11) % roofPalette.length];
 
@@ -195,9 +196,9 @@ function dTileW(c, r) {
         const isWallMid = up && dn && !isRoofLower;
 
         // Fondo SIEMPRE material de casa (nunca césped) → sin franjas verdes
-        const wallBase = '#E0D8C8';
-        const wallMid = '#E8E0D0';
-        const wallDark = '#C8C0B0';
+        const wallBase = '#D8C6A2'; // yeso envejecido
+        const wallMid = '#C7B48D';
+        const wallDark = '#8A7255';
 
         if (isRoofTop) {
           // Tile entero = techo (continúa hacia abajo con el tile isRoofLower)
@@ -289,8 +290,8 @@ function dTileW(c, r) {
           cx.fillStyle = wallBase;
           cx.fillRect(x + 1, y, T - 2, T);
 
-          // ladrillos (patrones que continúan entre tiles vecinos)
-          cx.fillStyle = '#D0C8B8';
+          // entramado de vigas y relleno de yeso, continuo entre tiles vecinos.
+          cx.fillStyle = '#B99E76';
           const brickOff = (c - ac) * T; // continuidad horizontal
           for (let by = 2; by < T - 2; by += 8) {
             const rowOff = ((by / 8) | 0) % 2 === 0 ? 0 : 8;
@@ -299,17 +300,23 @@ function dTileW(c, r) {
               if (drawX > -12 && drawX < T) {
                 const w = Math.min(12, T - Math.max(0, drawX));
                 const sx0 = x + Math.max(0, drawX);
-                if (w > 2) cx.fillRect(sx0, y + by, w, 5);
+                if (w > 2) cx.fillRect(sx0, y + by, w, 4);
               }
             }
           }
 
+          // Vigas verticales, un rasgo de casas entramadas medievales.
+          cx.fillStyle = '#5A3A22';
+          if (!lf) cx.fillRect(x + 2, y, 3, T);
+          if (rt) cx.fillRect(x + T - 5, y, 3, T);
+          cx.fillRect(x, y + 3, T, 2);
+
           if (!lf) {
-            cx.fillStyle = '#A09888';
+            cx.fillStyle = '#71563D';
             cx.fillRect(x, y, 2, T);
           }
           if (!rt) {
-            cx.fillStyle = '#A09888';
+            cx.fillStyle = '#71563D';
             cx.fillRect(x + T - 2, y, 2, T);
           }
           // línea superior suave solo si no hay casa arriba (no debería pasar en mid/base)
@@ -323,9 +330,9 @@ function dTileW(c, r) {
             const drawWin = (wx) => {
               cx.fillStyle = '#2A3038';
               cx.fillRect(x + wx, y + 8, 10, 14);
-              cx.fillStyle = '#78B8E8';
+              cx.fillStyle = '#D6A44A';
               cx.fillRect(x + wx + 1, y + 9, 8, 12);
-              cx.fillStyle = '#A8D8F8';
+              cx.fillStyle = '#FFE29A';
               cx.fillRect(x + wx + 1, y + 9, 4, 5);
               cx.fillStyle = '#1A2028';
               cx.fillRect(x + wx + 5, y + 9, 1, 12);
@@ -384,7 +391,7 @@ function dTileW(c, r) {
             } else {
               cx.fillStyle = '#2A3038';
               cx.fillRect(x + 10, y + 8, 12, 12);
-              cx.fillStyle = '#68A8D8';
+              cx.fillStyle = '#D39B3E';
               cx.fillRect(x + 11, y + 9, 10, 10);
               cx.fillStyle = '#1A2028';
               cx.fillRect(x + 16, y + 9, 1, 10);
