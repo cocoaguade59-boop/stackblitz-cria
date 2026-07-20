@@ -426,7 +426,7 @@ function buildRodajeC4() {
   fillWorld(53, 70, 55, 90, 1);
   fillWorld(53, 80, 64, 82, 1);
   // Acceso lateral que anuncia la futura Cueva Volcánica.
-  fillWorld(47, 87, 53, 89, 1); setWorld(47, 88, 19); setWorld(48, 88, 15);
+  fillWorld(49, 87, 53, 89, 1); setWorld(50, 88, 19); setWorld(51, 88, 15);
 }
 
 function buildRoute3C4() {
@@ -445,6 +445,53 @@ function buildRoute3C4() {
   fillWorld(54, 74, 57, 76, 1); // paso Proa de Luchito
   // Hitos medievales: altar de cantera y faroles de garganta.
   setWorld(62, 67, 19); setWorld(59, 63, 15); setWorld(68, 60, 20);
+}
+
+function buildUltimaTomaC5() {
+  // Feria Última Toma: plaza nocturna de juglares, tapices, faroles y escenario medieval.
+  fillWorld(18, 40, 43, 61, 0);
+  // Eje de feria y camino de Andrea, siempre transitable.
+  fillWorld(29, 40, 32, 61, 1);
+  fillWorld(22, 50, 39, 53, 1);
+  // Casas y posadas en los extremos, sin invadir la plaza social.
+  worldHouse(19, 42); worldHouse(37, 42); worldHouse(19, 56); worldHouse(37, 56);
+  fillWorld(19, 46, 25, 48, 1); fillWorld(36, 46, 42, 48, 1);
+  fillWorld(19, 60, 25, 61, 1); fillWorld(36, 60, 42, 61, 1);
+  // Escenario de madera al este: tarima, carpas y faroles; la plaza queda libre para Pachi/Brisa/Roberto.
+  fillWorld(35, 49, 40, 54, 26);
+  setWorld(35, 49, 20); setWorld(40, 49, 20); setWorld(35, 54, 20); setWorld(40, 54, 20);
+  setWorld(37, 50, 18); setWorld(38, 50, 18); setWorld(39, 50, 18);
+  setWorld(36, 52, 15); setWorld(39, 52, 15);
+  // Carpas y puestos de feria en el oeste, con paso alrededor.
+  setWorld(23, 50, 18); setWorld(24, 50, 18); setWorld(22, 52, 18); setWorld(24, 54, 15);
+  // Jardines nocturnos, faroles y flores: bordes seguros, no caminos.
+  for (let r = 40; r <= 61; r++) for (let c = 18; c <= 43; c++) {
+    if (wMap[r][c] !== 0) continue;
+    if ((c === 18 || c === 43 || r === 40 || r === 61) && (c + r) % 3 !== 0) setWorld(c, r, 3);
+    else if ((c * 5 + r * 3) % 5 === 0) setWorld(c, r, 6);
+  }
+  // Restituir el eje de llegada/salida y la plaza central.
+  fillWorld(29, 40, 32, 61, 1);
+  fillWorld(27, 50, 34, 53, 1);
+}
+
+function buildRoute4C5() {
+  // Ruta 4: camino de faroles y ruinas, desde la feria hacia los prados de Montaje.
+  for (let r = 27; r <= 46; r++) for (let c = 27; c <= 52; c++) {
+    if (wMap[r][c] === 1 || wMap[r][c] === 4 || wMap[r][c] === 9) continue;
+    if (c === 27 || c === 52 || ((c + r) % 11 === 0)) setWorld(c, r, 3);
+    else if ((c * 5 + r) % 8 === 0) setWorld(c, r, 7);
+    else if ((c + r) % 4 === 0) setWorld(c, r, 6);
+    else setWorld(c, r, (c + r) % 5 === 0 ? 5 : 0);
+  }
+  // Sendero que sale del puesto de Andrea y se inclina hacia Montaje.
+  for (let r = 27; r <= 46; r++) {
+    const center = Math.round(30 + (46 - r) * 0.7);
+    keepPath(center, r); keepPath(center + 1, r);
+  }
+  fillWorld(29, 44, 33, 46, 1);
+  // Ruinas y faroles antiguos: piezas medievales, no infraestructura moderna.
+  setWorld(38, 39, 19); setWorld(39, 39, 20); setWorld(45, 33, 15); setWorld(34, 30, 19);
 }
 
 function genWorld() {
@@ -578,6 +625,8 @@ function genWorld() {
   buildRoute2C3();
   buildRodajeC4();
   buildRoute3C4();
+  buildUltimaTomaC5();
+  buildRoute4C5();
 
   // Pines del mundo (antes cristales tile 10).
   // Se colocan aquí en la gen inicial; al reentrar el mapa se re-sortean
