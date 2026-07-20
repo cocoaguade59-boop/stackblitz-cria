@@ -9,9 +9,10 @@ import { CRE_DESC } from './src/data/creature-descriptions.js';
 import { POOLS } from './src/data/pools.js';
 import { ALL_MOVES } from './src/data/moves.js';
 import { WORLD_LEVEL_ZONES, SPECIAL_MAP_LEVELS, TYPE_RESERVES } from './src/data/regions.js';
-import { MAP_LOCATIONS, ROUTE_SIGNS } from './src/data/map-markers.js';
+import { MAP_LOCATIONS } from './src/data/map-markers.js';
 import { createProaMissions, resetProaMissionProgress } from './src/data/proa-missions.js';
 import { ROUTE_GATE_DEFINITIONS, isRouteAuthorized } from './src/world/route-missions.js';
+import { getValidRouteSigns, isGateTreeEligible } from './src/world/world-layout.js';
 
 // [refactor-phase2] utilidades importadas
 import { SPRITE_LOADER } from './src/core/sprite-loader.js';
@@ -888,7 +889,7 @@ function nearRouteSign(sign) {
 }
 
 function checkRouteSign() {
-  const sign = ROUTE_SIGNS.find((sg) => nearRouteSign(sg));
+  const sign = getValidRouteSigns(wMap, WC, WR).find((sg) => nearRouteSign(sg));
   if (!sign) return false;
   G.scr = 'dialog';
   G.ds = { npc: { nm: sign.name }, dlgArr: sign.lines, li: 0, ci: 0, tm: 0, full: false };
@@ -4585,7 +4586,7 @@ function drawMap() {
     for (let r = sr; r < er; r++) for (let c = sc; c < ec; c++) dTileW(c, r);
 
     // Carteles de ruta
-    ROUTE_SIGNS.forEach((sg) => {
+    getValidRouteSigns(wMap, WC, WR).forEach((sg) => {
       const sx = sg.x * T - cam.x,
         sy = sg.y * T - cam.y;
       if (worldCull(sx, sy)) {
@@ -4614,7 +4615,7 @@ function drawMap() {
         const sy = g.y * T - cam.y;
         if (!worldCull(sx, sy)) continue;
         if (dc === 0) dRouteProa(sx, sy - 8, fr, g, authorized);
-        else if (!authorized) dRouteTree(sx, sy, fr);
+        else if (!authorized && isGateTreeEligible(wMap, g.x + dc, g.y)) dRouteTree(sx, sy, fr);
       }
     });
 

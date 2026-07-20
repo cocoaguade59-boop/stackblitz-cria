@@ -4,6 +4,7 @@
 // - Los reaparece al reentrar un mapa (posiciones nuevas)
 
 import { WC, WR, CC, CR, wMap, cave1, cave2 } from '../core/world-constants.js';
+import { isWorldPinAllowed } from './world-layout.js';
 
 const WORLD_PIN_COUNT = 35;
 const CAVE_PIN_COUNT = 5;
@@ -46,7 +47,18 @@ function placeRandomPins(map, cols, rows, pinTile, floorTile, count) {
 
 /** Respawn de pines del mundo exterior (tile 10 sobre suelo 0). */
 function respawnWorldPins() {
-  return placeRandomPins(wMap, WC, WR, 10, 0, WORLD_PIN_COUNT);
+  clearPinsOnMap(wMap, 10, 0);
+  let placed = 0;
+  let attempts = 0;
+  const maxAttempts = WORLD_PIN_COUNT * 100;
+  while (placed < WORLD_PIN_COUNT && attempts++ < maxAttempts) {
+    const c = 2 + Math.floor(Math.random() * (WC - 4));
+    const r = 2 + Math.floor(Math.random() * (WR - 4));
+    if (!isWorldPinAllowed(wMap, c, r)) continue;
+    wMap[r][c] = 10;
+    placed++;
+  }
+  return placed;
 }
 
 /** Respawn de pines de una cueva (tile 28 sobre suelo 20). */
