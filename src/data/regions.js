@@ -1,0 +1,32 @@
+// Fuente de verdad para regiones, rangos de nivel e identidad futura.
+// Los sistemas de música y ecología ampliarán estos datos en fases posteriores.
+const REGIONS = {
+  pitch: { name: 'Aldea Pitch', kind: 'village', levels: { min: 2, max: 5 }, theme: 'pitch', habitats: ['water', 'plant', 'fighting'] },
+  route1: { name: 'Ruta 1', kind: 'route', levels: { min: 4, max: 7 }, theme: 'route', habitats: ['plant', 'water', 'fighting'] },
+  storyboard: { name: 'Villa Storyboard', kind: 'village', levels: { min: 8, max: 11 }, theme: 'storyboard', mainNpc: 'Gabriela', proa: 'tamara', mission: 'gabrielaScene', habitats: ['fairy', 'steel', 'plant', 'water'] },
+  route2: { name: 'Ruta 2', kind: 'route', levels: { min: 10, max: 14 }, theme: 'route', habitats: ['plant', 'fire', 'steel'] },
+  rodaje: { name: 'Cantera Rodaje', kind: 'village', levels: { min: 14, max: 18 }, theme: 'rodaje', mainNpc: 'Dante', proa: 'luchito', mission: 'danteCollapse', habitats: ['fire', 'fighting', 'steel', 'dragon'] },
+  route3: { name: 'Ruta 3', kind: 'route', levels: { min: 18, max: 22 }, theme: 'route', habitats: ['fire', 'dragon', 'steel'] },
+  ultimatoma: { name: 'Feria Última Toma', kind: 'village', levels: { min: 22, max: 26 }, theme: 'ultimatoma', mainNpc: 'Pachi', proa: 'andrea', mission: 'lastTake', habitats: ['fairy', 'water', 'dragon'] },
+  route4: { name: 'Ruta 4', kind: 'route', levels: { min: 26, max: 31 }, theme: 'route', habitats: ['water', 'fairy', 'plant'] },
+  montaje: { name: 'Prados Montaje', kind: 'village', levels: { min: 31, max: 36 }, theme: 'montaje', mainNpc: 'Chrys', proa: 'dan', mission: 'finalCut', habitats: ['plant', 'fairy', 'normal'] },
+  route5: { name: 'Ruta 5', kind: 'route', levels: { min: 36, max: 40 }, theme: 'route', habitats: ['dragon', 'steel', 'normal'] },
+  cave1: { name: 'Cueva Volcánica', kind: 'cave', levels: { min: 10, max: 16 }, theme: 'cave', habitats: ['fire', 'dragon', 'steel'] },
+  cave2: { name: 'Cueva Cristalina', kind: 'cave', levels: { min: 26, max: 34 }, theme: 'cave', habitats: ['water', 'fairy', 'dragon'] },
+  castle: { name: 'Castillo Difusión', kind: 'castle', levels: { min: 40, max: 45 }, theme: 'castle', habitats: [] },
+  tower: { name: 'Torre P.A.', kind: 'tower', levels: { min: 45, max: 58 }, theme: 'tower', habitats: [] },
+};
+
+const WORLD_LEVEL_ZONES = [
+  { id: 'pitch', rMin: 138, rMax: 149 }, { id: 'storyboard', rMin: 105, rMax: 114 },
+  { id: 'rodaje', rMin: 77, rMax: 86 }, { id: 'ultimatoma', rMin: 47, rMax: 56 },
+  { id: 'montaje', rMin: 17, rMax: 26 }, { id: 'route1', rMin: 115, rMax: 137 },
+  { id: 'route2', rMin: 87, rMax: 104 }, { id: 'route3', rMin: 57, rMax: 76 },
+  { id: 'route4', rMin: 27, rMax: 46 }, { id: 'route5', rMin: 2, rMax: 16 },
+].map((zone) => ({ ...zone, nm: REGIONS[zone.id].name, ...REGIONS[zone.id].levels }));
+
+const SPECIAL_MAP_LEVELS = Object.fromEntries(
+  ['cave1', 'cave2', 'castle', 'tower'].map((id) => [id, { id, nm: REGIONS[id].name, ...REGIONS[id].levels }])
+);
+
+export { REGIONS, WORLD_LEVEL_ZONES, SPECIAL_MAP_LEVELS };

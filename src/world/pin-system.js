@@ -9,7 +9,7 @@ const WORLD_PIN_COUNT = 35;
 const CAVE_PIN_COUNT = 5;
 const TOWER_PIN_COUNT = 5;
 
-// Torre vive en script.js (no en world-constants). Se inyecta.
+// Torre vive en game.js (no en world-constants). Se inyecta.
 let _getTowerMap = null;
 function setTowerMapGetter(fn) {
   _getTowerMap = fn;
@@ -59,7 +59,7 @@ function respawnCavePins(mapName) {
 function respawnTowerPins() {
   const towerMap = _getTowerMap ? _getTowerMap() : null;
   if (!towerMap) return 0;
-  // Dimensiones de torre usadas en script.js
+  // Dimensiones de torre usadas en game.js
   const TWC = 30;
   const TWR = 25;
   return placeRandomPins(towerMap, TWC, TWR, 28, 20, TOWER_PIN_COUNT);

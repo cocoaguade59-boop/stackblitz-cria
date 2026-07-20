@@ -1,5 +1,5 @@
 // Pantalla de inventario de Objetos (fragmentos, fragancias, pergaminos, cristales, inciensos).
-// Solo DIBUJA. La lógica de input (uObjects) vive inline en script.js
+// Solo DIBUJA. La lógica de input (uObjects) vive inline en game.js
 // para no pelear con el bug double-G de StackBlitz.
 //
 // Reglas:

@@ -17,7 +17,7 @@ import { dBoxMenu } from '../render/ui-boxes.js';
 import { px, pixelGlow } from '../render/render-utils.js';
 import { aN } from '../utils/particles.js';
 
-// loadGame se toma de window (script.js lo asigna en init() antes del loop)
+// loadGame se toma de window (game.js lo asigna en init() antes del loop)
 
 // === PANTALLA DE TÍTULO ===
 function playTitleHorn() {

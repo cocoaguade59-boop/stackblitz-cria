@@ -1,5 +1,5 @@
 // Helpers de persistencia con localStorage.
-// Las funciones saveGame/loadGame completas siguen en script.js (usan G global).
+// Las funciones saveGame/loadGame completas siguen en game.js (usan G global).
 // Sin dependencias externas.
 
 // === GUARDADO ===

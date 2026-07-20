@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Reemplaza los bloques de datos ya extraídos en script.js por imports ES.
+Reemplaza los bloques de datos ya extraídos en game.js por imports ES.
 Idempotente: si detecta que ya se aplicó, no hace nada.
 """
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "script.js"
+SCRIPT = ROOT / "game.js"
 text = SCRIPT.read_text(encoding="utf-8")
 
 MARKER = "// [refactor-phase1] datos importados desde src/data/"
@@ -98,6 +98,6 @@ new_text = "\n".join(new_lines)
 SCRIPT.write_text(new_text, encoding="utf-8")
 
 removed = len(lines) - len(new_lines) + IMPORTS.count("\n")
-print(f"✅ script.js parcheado.")
+print(f"✅ game.js parcheado.")
 print(f"   Antes: {len(lines)} líneas / Después: {len(new_lines)} líneas")
-print(f"   Backup: script.js.bak")
+print(f"   Backup: game.js.bak")

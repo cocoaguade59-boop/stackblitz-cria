@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Parche Fase 4B: reemplaza en script.js los bloques ya extraídos por imports.
+Parche Fase 4B: reemplaza en game.js los bloques ya extraídos por imports.
 También extrae `fr` a src/core/frame.js.
 
 Idempotente.
@@ -8,7 +8,7 @@ Idempotente.
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "script.js"
+SCRIPT = ROOT / "game.js"
 text = SCRIPT.read_text(encoding="utf-8")
 
 MARKER = "// [refactor-phase4b] UI y utilidades importadas"
@@ -125,6 +125,6 @@ SCRIPT.with_suffix(".js.bak4b").write_text(text, encoding="utf-8")
 SCRIPT.write_text(final_text, encoding="utf-8")
 
 removed = len(lines) - len(final_text.split("\n"))
-print(f"✅ script.js parcheado.")
+print(f"✅ game.js parcheado.")
 print(f"   Antes: {len(lines)} líneas → Después: {len(final_text.split(chr(10)))} líneas")
-print(f"   Backup: script.js.bak4b")
+print(f"   Backup: game.js.bak4b")

@@ -31,7 +31,7 @@ const shopLore = [
 
 const INCENSE_COST = 10; // fragancia + 10G → 1 incienso
 
-// Callback para iniciar batalla contra David-O (inyectado desde script.js)
+// Callback para iniciar batalla contra David-O (inyectado desde game.js)
 let _startBattle = null;
 function setShopBattleStarter(fn) {
   _startBattle = fn;

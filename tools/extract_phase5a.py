@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Fase 5A: extrae las pantallas iniciales (título, intro, starter) del script.js
+Fase 5A: extrae las pantallas iniciales (título, intro, starter) del game.js
 a src/screens/.
 """
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = (ROOT / "script.js").read_text(encoding="utf-8")
+SRC = (ROOT / "game.js").read_text(encoding="utf-8")
 lines = SRC.split("\n")
 
 
@@ -41,7 +41,7 @@ write_module(
     "import { dShadow } from '../render/world-decor.js';\n"
     "import { dBoxMenu } from '../render/ui-boxes.js';\n"
     "import { px } from '../render/render-utils.js';\n"
-    "// kp lo asumimos global (definido en script.js). Si extraemos input a\n"
+    "// kp lo asumimos global (definido en game.js). Si extraemos input a\n"
     "// un módulo aparte más adelante, aquí se agrega el import.",
     body,
     ["playTitleHorn", "startNewGameFlow", "uTitle", "dTitle"],
@@ -91,4 +91,4 @@ write_module(
     ["uStarter", "dStarter"],
 )
 
-print("\n✅ Fase 5A: módulos creados. script.js aún no modificado.")
+print("\n✅ Fase 5A: módulos creados. game.js aún no modificado.")

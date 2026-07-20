@@ -1,5 +1,5 @@
 // Pantallas del tutor Hernán (T8).
-// Solo DIBUJA. La lógica (uHernan*) vive inline en script.js.
+// Solo DIBUJA. La lógica (uHernan*) vive inline en game.js.
 
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';

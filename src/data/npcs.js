@@ -1,5 +1,5 @@
 // Datos de NPCs del mundo, cuevas, castillo + Edison + parejas + diálogos de boss/torre.
-// Extraído de script.js (BLOQUE 10A) para achicar el entrypoint.
+// Extraído de game.js (BLOQUE 10A) para achicar el entrypoint.
 // Solo datos (y equipos preconstruidos con Cre) — no toca G.scr
 // (seguro frente al bug double-G de StackBlitz).
 

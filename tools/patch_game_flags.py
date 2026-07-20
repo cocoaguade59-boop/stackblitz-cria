@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Migra las flags mutables globales (postGame, towerOpen, etc.) desde
-script.js hacia src/core/game-flags.js.
+game.js hacia src/core/game-flags.js.
 
 Cambios:
 1. Elimina las declaraciones `let postGame = false, towerOpen = false, ...`
@@ -14,7 +14,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "script.js"
+SCRIPT = ROOT / "game.js"
 text = SCRIPT.read_text(encoding="utf-8")
 
 MARKER = "// [refactor-game-flags] flags mutables globales importadas"
@@ -162,4 +162,4 @@ SCRIPT.with_suffix(".js.bak-flags").write_text(text, encoding="utf-8")
 SCRIPT.write_text(new_text, encoding="utf-8")
 
 diff_lines = len(new_text.split('\n')) - len(text.split('\n'))
-print(f"\n✅ script.js parcheado. Diferencia: {diff_lines:+d} líneas")
+print(f"\n✅ game.js parcheado. Diferencia: {diff_lines:+d} líneas")

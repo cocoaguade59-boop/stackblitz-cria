@@ -6,7 +6,7 @@ y estados de batalla a src/entities/.
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = (ROOT / "script.js").read_text(encoding="utf-8")
+SRC = (ROOT / "game.js").read_text(encoding="utf-8")
 lines = SRC.split("\n")
 
 
@@ -83,4 +83,4 @@ write_module(
     ["STATUS", "battleState", "resetBattleState", "getModdedStat", "cDmg"],
 )
 
-print("\n✅ Fase 3: módulos creados. script.js aún no modificado.")
+print("\n✅ Fase 3: módulos creados. game.js aún no modificado.")

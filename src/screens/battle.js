@@ -1,6 +1,6 @@
 // Sistema de batalla completo: IA, captura, turnos, victoria/derrota y render.
 //
-// Callbacks inyectados desde script.js para funciones que cruzan fronteras:
+// Callbacks inyectados desde game.js para funciones que cruzan fronteras:
 //   _markNPCDefeated, _checkAllCaught, _resetRebattles,
 //   _giveDiploma, _hasDiploma, _genTower,
 //   _bossDialogues, _LEADER_MISSIONS
@@ -42,7 +42,7 @@ import { castMap, CC, CR, KC, KR, WC, WR, T } from '../core/world-constants.js';
 import { updateCamera } from '../core/camera.js';
 
 // ============================================================
-// CALLBACKS INYECTADOS (desde script.js en init())
+// CALLBACKS INYECTADOS (desde game.js en init())
 // ============================================================
 
 let _markNPCDefeated = null;

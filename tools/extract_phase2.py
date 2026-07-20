@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """
 Fase 2 del refactor: Extrae utilidades independientes (audio, sprite loader,
-save/load, skin colors, música) del script.js hacia módulos ES.
+save/load, skin colors, música) del game.js hacia módulos ES.
 
-No destructivo: solo escribe los archivos nuevos. El parche en script.js
+No destructivo: solo escribe los archivos nuevos. El parche en game.js
 va aparte (patch_phase2.py).
 """
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = (ROOT / "script.js").read_text(encoding="utf-8")
+SRC = (ROOT / "game.js").read_text(encoding="utf-8")
 lines = SRC.split("\n")
 
 
@@ -25,11 +25,11 @@ def write_module(path: Path, header: str, body: str, exports: list[str]):
 
 
 # --- Rangos (1-indexed) verificados en el script actual ---
-# script.js linea 20-39: SPRITE_LOADER + su .load('hydrapom')
-# script.js linea 68-146: class SFX + const sfx
-# script.js linea 151-167: SAVE_KEY, hasSaveGame, clearAllGameSaves
-# script.js linea 1443-1449: SK skin colors
-# script.js linea 18248-18365: música (SONGS, playMusic, stopMusic, updateMusic)
+# game.js linea 20-39: SPRITE_LOADER + su .load('hydrapom')
+# game.js linea 68-146: class SFX + const sfx
+# game.js linea 151-167: SAVE_KEY, hasSaveGame, clearAllGameSaves
+# game.js linea 1443-1449: SK skin colors
+# game.js linea 18248-18365: música (SONGS, playMusic, stopMusic, updateMusic)
 
 print("== Fase 2: extrayendo utilidades ==\n")
 
@@ -58,7 +58,7 @@ save_body = slice_lines(151, 167)
 write_module(
     ROOT / "src/core/save.js",
     "// Helpers de persistencia con localStorage.\n"
-    "// Las funciones saveGame/loadGame completas siguen en script.js (usan G global).\n"
+    "// Las funciones saveGame/loadGame completas siguen en game.js (usan G global).\n"
     "// Sin dependencias externas.",
     save_body,
     ["SAVE_KEY", "hasSaveGame", "clearAllGameSaves"],
@@ -76,7 +76,7 @@ write_module(
 
 # 5) music.js — SONGS + playMusic/stopMusic (NO updateMusic, que usa G global)
 # El bloque va de línea 18248 (SONGS) hasta 18355 (fin de stopMusic).
-# updateMusic (18357-18365) usa G, la dejamos en script.js.
+# updateMusic (18357-18365) usa G, la dejamos en game.js.
 music_body = slice_lines(18248, 18361)
 # Importa `sfx` porque playMusic lo usa.
 music_header = (
@@ -91,4 +91,4 @@ write_module(
     ["SONGS", "playMusic", "stopMusic"],
 )
 
-print("\n✅ Fase 2: módulos creados. script.js aún no modificado.")
+print("\n✅ Fase 2: módulos creados. game.js aún no modificado.")

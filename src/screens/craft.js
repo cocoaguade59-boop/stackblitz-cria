@@ -1,5 +1,5 @@
 // Pantallas de crafting de Fabiana (T5).
-// Solo DIBUJA. La lógica (uFabiana*) vive inline en script.js
+// Solo DIBUJA. La lógica (uFabiana*) vive inline en game.js
 // por el bug double-G de StackBlitz.
 
 import { G } from '../core/game-state.js';
@@ -73,7 +73,7 @@ function drawBigCrystal(cx0, cy0, code, scale = 1) {
 // ── choice Sí/No ────────────────────────────────────────────
 
 function dFabianaChoice() {
-  // script.js ya dibujó el mapa debajo
+  // game.js ya dibujó el mapa debajo
   cx.fillStyle = 'rgba(0,0,0,.55)';
   cx.fillRect(0, 0, 640, 480);
 
@@ -104,7 +104,7 @@ function dFabianaChoice() {
 // ── mini pantalla de selección de color ─────────────────────
 
 function dFabianaCraft() {
-  // script.js ya dibujó el mapa debajo
+  // game.js ya dibujó el mapa debajo
   cx.fillStyle = 'rgba(8,6,16,0.78)';
   cx.fillRect(0, 0, 640, 480);
 

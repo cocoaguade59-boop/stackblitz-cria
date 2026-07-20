@@ -3,7 +3,7 @@
 Fase 4B del refactor: extrae el Bloque 2 (UI Completa) del monolito
 en 7 módulos coherentes dentro de src/render/ y src/utils/.
 
-También extrae fr del cuerpo de script.js a src/core/frame.js.
+También extrae fr del cuerpo de game.js a src/core/frame.js.
 
 Divisiones:
   src/utils/particles.js             (aP, aN, uP) [líneas 150-178]
@@ -17,7 +17,7 @@ Divisiones:
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = (ROOT / "script.js").read_text(encoding="utf-8")
+SRC = (ROOT / "game.js").read_text(encoding="utf-8")
 lines = SRC.split("\n")
 
 
@@ -188,4 +188,4 @@ write_module(
 )
 
 # --------- extra: fr ya está creado a mano en src/core/frame.js ---------
-print("\n✅ Fase 4B: 7 módulos creados. script.js aún no modificado.")
+print("\n✅ Fase 4B: 7 módulos creados. game.js aún no modificado.")

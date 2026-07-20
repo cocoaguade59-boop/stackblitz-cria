@@ -2,7 +2,7 @@
 """
 Patch Fase 4G:
 1. Migra `T, WC, WR, CC, CR, KC, KR, cam, wMap, cave1, cave2, castMap`
-   desde script.js hacia src/core/world-constants.js.
+   desde game.js hacia src/core/world-constants.js.
 2. Reemplaza el Bloque 7 (dTileW) por import.
 3. Reemplaza asignaciones `cam = ...`, `wMap = ...`, etc. por setters.
 """
@@ -10,7 +10,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "script.js"
+SCRIPT = ROOT / "game.js"
 text = SCRIPT.read_text(encoding="utf-8")
 
 MARKER = "// [refactor-phase4g] tiles del mundo importados"
@@ -129,11 +129,11 @@ for var, setter in [
 ]:
     text = replace_assignment(text, var, setter)
 
-SCRIPT.with_suffix(".js.bak4g").write_text(SRC := (ROOT / "script.js").read_text(encoding="utf-8"), encoding="utf-8")
+SCRIPT.with_suffix(".js.bak4g").write_text(SRC := (ROOT / "game.js").read_text(encoding="utf-8"), encoding="utf-8")
 # Guardar sobre el archivo original ya modificado en memoria
 # (SRC hereda el texto ANTES de nuestros cambios, para backup)
 # Actualizo el backup a la versión previa real:
 # NOTE: para simplificar, hacemos el backup ANTES de sobrescribir
 SCRIPT.write_text(text, encoding="utf-8")
 
-print(f"\n✅ script.js parcheado.")
+print(f"\n✅ game.js parcheado.")

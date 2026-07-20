@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Patch Fase 4H: reemplaza el Bloque 8 (dTileC) en script.js por un import.
+Patch Fase 4H: reemplaza el Bloque 8 (dTileC) en game.js por un import.
 Idempotente.
 """
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "script.js"
+SCRIPT = ROOT / "game.js"
 text = SCRIPT.read_text(encoding="utf-8")
 
 MARKER = "// [refactor-phase4h] tiles de cuevas/castillo importados"
@@ -52,5 +52,5 @@ new_text = "\n".join(new_lines)
 SCRIPT.with_suffix(".js.bak4h").write_text(text, encoding="utf-8")
 SCRIPT.write_text(new_text, encoding="utf-8")
 
-print(f"✅ script.js parcheado.")
+print(f"✅ game.js parcheado.")
 print(f"   Antes: {len(lines)} líneas → Después: {len(new_lines)} líneas")

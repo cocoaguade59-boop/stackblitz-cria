@@ -1,5 +1,5 @@
 // UI del Teatro (Pachi / André). Solo dibuja.
-// Lógica de input y pelea: script.js (uTheater / startTheaterBattle).
+// Lógica de input y pelea: game.js (uTheater / startTheaterBattle).
 
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';

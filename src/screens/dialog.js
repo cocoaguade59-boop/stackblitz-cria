@@ -52,7 +52,7 @@ function uDialog() {
       sfx.sel();
 
       if (d.li >= d.dlgArr.length) {
-        // Fin del diálogo → delegar al dispatcher en script.js
+        // Fin del diálogo → delegar al dispatcher en game.js
         G.ds._finished = true;
         // Consumir teclas residuales para no saltar la siguiente pantalla
         G.keys[' '] = false; G.keys['Enter'] = false;
@@ -67,7 +67,7 @@ function uDialog() {
 // --- DIBUJAR DIÁLOGO ---
 
 function dDialog() {
-  // drawMap() se llama desde script.js antes de dDialog()
+  // drawMap() se llama desde game.js antes de dDialog()
 
   const d = G.ds;
   const curText = d.dlgArr[d.li].substring(0, d.ci);

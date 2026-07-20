@@ -2,9 +2,9 @@
 //
 // Este módulo NO importa sub-pantallas (proa, dex, missions, map-screen, objects)
 // para evitar fallos en cadena si alguno de esos módulos falla al cargar.
-// El dispatch a sub-pantallas lo maneja script.js en el switch de update/draw.
+// El dispatch a sub-pantallas lo maneja game.js en el switch de update/draw.
 //
-// NOTA: uMenu también vive INLINE en script.js (bug double-G). Si cambiás
+// NOTA: uMenu también vive INLINE en game.js (bug double-G). Si cambiás
 // opciones o índices, actualizá AMBOS.
 
 import { G } from '../core/game-state.js';
@@ -35,7 +35,7 @@ function getMenuOpts() {
 }
 
 function uMenu() {
-  // Sub-pantallas despachadas por script.js (no aquí)
+  // Sub-pantallas despachadas por game.js (no aquí)
   if (G.showMap || G.proaOpen || G.showMissions || G.showDex || G.showObjects) return;
 
   const opts = getMenuOpts();
@@ -123,7 +123,7 @@ function uMenu() {
 }
 
 function dMenu() {
-  // Sub-pantallas despachadas por script.js (no aquí)
+  // Sub-pantallas despachadas por game.js (no aquí)
   if (G.showMap || G.proaOpen || G.showMissions || G.showDex || G.showObjects) return;
 
   cx.fillStyle = 'rgba(0,0,0,.6)';

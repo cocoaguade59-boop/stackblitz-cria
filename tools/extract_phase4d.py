@@ -9,7 +9,7 @@ que dibuja 37 NPCs distintos, cada uno pixel a pixel.
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = (ROOT / "script.js").read_text(encoding="utf-8")
+SRC = (ROOT / "game.js").read_text(encoding="utf-8")
 lines = SRC.split("\n")
 
 
@@ -37,7 +37,7 @@ imports = (
 )
 
 # Nota: 'fr' se pasa como parámetro `f` a dNPC, no se importa.
-# Ver script.js: llamadas tipo dNPC(x, y, 'id', fr).
+# Ver game.js: llamadas tipo dNPC(x, y, 'id', fr).
 
 exports = "export { dNPC };\n"
 

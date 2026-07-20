@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Reemplaza en script.js los bloques de Fase 3 por imports ES.
+Reemplaza en game.js los bloques de Fase 3 por imports ES.
 Idempotente.
 """
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "script.js"
+SCRIPT = ROOT / "game.js"
 text = SCRIPT.read_text(encoding="utf-8")
 
 MARKER = "// [refactor-phase3] entidades importadas"
@@ -70,6 +70,6 @@ new_text = "\n".join(new_lines)
 SCRIPT.with_suffix(".js.bak3").write_text(text, encoding="utf-8")
 SCRIPT.write_text(new_text, encoding="utf-8")
 
-print(f"✅ script.js parcheado.")
+print(f"✅ game.js parcheado.")
 print(f"   Antes: {len(lines)} líneas → Después: {len(new_lines)} líneas")
-print(f"   Backup: script.js.bak3")
+print(f"   Backup: game.js.bak3")

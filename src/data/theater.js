@@ -4,7 +4,7 @@
 // André (post-rescate / post-game en Rodaje): jefes con aspecto PRE-GAME
 //        (Proas + Rey Navarrete).
 //
-// Solo datos. La lógica de pelea vive en script.js (startTheaterBattle).
+// Solo datos. La lógica de pelea vive en game.js (startTheaterBattle).
 
 /** Peleas que Pachi puede representar (pre y post). */
 const PACHI_BILL = [

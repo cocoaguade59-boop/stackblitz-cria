@@ -12,7 +12,7 @@ mover UI, sprites y tiles con seguridad.
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = (ROOT / "script.js").read_text(encoding="utf-8")
+SRC = (ROOT / "game.js").read_text(encoding="utf-8")
 lines = SRC.split("\n")
 
 
@@ -67,4 +67,4 @@ write_module(
     ["px", "pixelGlow", "pixelDiamond"],
 )
 
-print("\n✅ Fase 4A: módulos creados. script.js aún no modificado.")
+print("\n✅ Fase 4A: módulos creados. game.js aún no modificado.")

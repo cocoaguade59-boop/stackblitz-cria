@@ -2,10 +2,10 @@
 //
 // CRÍTICO StackBlitz: todos los valores mutables viven en window.__wc
 // para garantizar que módulos cargados en orden impredecible compartan
-// la MISMA referencia. Sin esto, tiles-world.js y script.js pueden
+// la MISMA referencia. Sin esto, tiles-world.js y game.js pueden
 // terminar con copias distintas de wMap (vacías en el render).
 //
-// script.js inicializa los arrays en genWorld() escribiendo a las
+// game.js inicializa los arrays en genWorld() escribiendo a las
 // mismas referencias que este módulo exporta.
 
 const T = 32;

@@ -7,18 +7,7 @@ import { kp } from '../core/input.js';
 import { fr } from '../core/frame.js';
 import { wMap, WC, WR } from '../core/world-constants.js';
 import { dBoxMenu } from '../render/ui-boxes.js';
-
-const MAP_LOCATIONS = [
-  { x: 20, y: 143, nm: 'Aldea Pitch', col: '#E84040' },
-  { x: 40, y: 110, nm: 'V.Storyboard', col: '#40A0E0' },
-  { x: 54, y: 82, nm: 'Cantera Rodaje', col: '#E8A030' },
-  { x: 30, y: 52, nm: 'Ult.Toma', col: '#40C040' },
-  { x: 44, y: 22, nm: 'P.Montaje', col: '#D860A8' },
-  { x: 38, y: 8, nm: 'Cast.Difusión', col: '#C8A830' },
-  { x: 15, y: 105, nm: 'C.Volcánica', col: '#E06030' },
-  { x: 65, y: 38, nm: 'C.Cristalina', col: '#80A0E0' },
-  { x: 55, y: 6, nm: 'Torre P.A.', col: '#F060F0' },
-];
+import { MAP_LOCATIONS } from '../data/map-markers.js';
 
 function uMapScreen() {
   if (kp('x') || kp('Escape') || kp(' ') || kp('Enter')) {

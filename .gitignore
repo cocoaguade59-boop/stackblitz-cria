@@ -2,8 +2,8 @@ node_modules
 dist
 *.bak
 *.bak*
-script.js.pre*
-script.js.bak*
+game.js.pre*
+game.js.bak*
 test-screenshots/
 .DS_Store
 .arena

@@ -1,5 +1,5 @@
 // Correo del Reino — trueque de Gonchi (T10).
-// Solo DIBUJA. Input en script.js (uGonchiTrade).
+// Solo DIBUJA. Input en game.js (uGonchiTrade).
 
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';

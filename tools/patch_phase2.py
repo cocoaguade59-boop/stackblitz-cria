@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-Reemplaza en script.js los bloques ya extraídos en la Fase 2 por imports ES.
+Reemplaza en game.js los bloques ya extraídos en la Fase 2 por imports ES.
 Idempotente: si detecta que ya se aplicó, no hace nada.
 """
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRIPT = ROOT / "script.js"
+SCRIPT = ROOT / "game.js"
 text = SCRIPT.read_text(encoding="utf-8")
 
 MARKER = "// [refactor-phase2] utilidades importadas"
@@ -55,7 +55,7 @@ while i < len(lines):
         i += 1
 
 # Insertar los imports después del banner inicial y del bloque Fase 1.
-# La estructura actual de script.js empieza así:
+# La estructura actual de game.js empieza así:
 #   line 1..3: banner
 #   line 4:    (vacía)
 #   line 5:    // [refactor-phase1] datos importados desde src/data/
@@ -91,6 +91,6 @@ new_text = "\n".join(new_lines)
 SCRIPT.with_suffix(".js.bak2").write_text(text, encoding="utf-8")
 SCRIPT.write_text(new_text, encoding="utf-8")
 
-print(f"✅ script.js parcheado.")
+print(f"✅ game.js parcheado.")
 print(f"   Antes: {len(lines)} líneas → Después: {len(new_lines)} líneas")
-print(f"   Backup: script.js.bak2")
+print(f"   Backup: game.js.bak2")

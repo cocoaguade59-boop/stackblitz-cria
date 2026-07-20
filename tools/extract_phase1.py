@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """
-Fase 1 del refactor: Extrae los datos puros del script.js monolítico
+Fase 1 del refactor: Extrae los datos puros del game.js monolítico
 hacia módulos ES en src/data/.
 
-Es idempotente y no destructivo: script.js NO se modifica en esta fase.
+Es idempotente y no destructivo: game.js NO se modifica en esta fase.
 Solo escribe los archivos nuevos.
 """
 import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = (ROOT / "script.js").read_text(encoding="utf-8")
+SRC = (ROOT / "game.js").read_text(encoding="utf-8")
 lines = SRC.split("\n")  # 1-indexed logically
 
 
@@ -88,4 +88,4 @@ write_module(
     ["ALL_MOVES"],
 )
 
-print("\n✅ Fase 1 completa. script.js NO fue modificado.")
+print("\n✅ Fase 1 completa. game.js NO fue modificado.")

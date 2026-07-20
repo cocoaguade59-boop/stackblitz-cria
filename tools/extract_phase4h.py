@@ -4,12 +4,12 @@ Fase 4H: extrae el Bloque 8 (dTileC - tiles de cueva/castillo/torre)
 a src/render/tiles-cave-castle.js.
 
 Es la última función de dibujo pixel-art del proyecto. Después de esta,
-script.js queda ~9700 líneas y no contiene código de render.
+game.js queda ~9700 líneas y no contiene código de render.
 """
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = (ROOT / "script.js").read_text(encoding="utf-8")
+SRC = (ROOT / "game.js").read_text(encoding="utf-8")
 lines = SRC.split("\n")
 
 

@@ -1,6 +1,6 @@
 // Pantalla de hallazgo de pin (T3+T4).
 // Estilo SaloGon / vision: icono grande + texto del loot.
-// Lógica de input (uFind) se invoca desde script.js para no pelear con el bug double-G;
+// Lógica de input (uFind) se invoca desde game.js para no pelear con el bug double-G;
 // este módulo solo dibuja y expone helpers de presentación.
 
 import { G } from '../core/game-state.js';
