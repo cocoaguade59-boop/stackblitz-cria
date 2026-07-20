@@ -1,6 +1,7 @@
 // Generación procedural de mapas: mundo, cuevas y castillo.
 // Solo escribe a arrays de tiles (window.__wc). No toca G.scr.
 import { WC, WR, CC, CR, KC, KR, wMap, cave1, cave2, castMap } from '../core/world-constants.js';
+import { isWorldPinAllowed } from './world-layout.js';
 
 function hPath(r, c1, c2, w = 2) {
   const start = Math.min(c1, c2),
@@ -283,6 +284,118 @@ function polishVillageLayout(sx, sy, id) {
   }
 }
 
+// === LAYOUTS FIJOS C2/C3 ==================================================
+// Estos layouts sustituyen la apariencia genérica de los dos primeros pueblos.
+// Solo flores/hierba menor pueden variar; caminos, agua, casas y plazas son fijos.
+function setWorld(c, r, tile) {
+  if (c >= 2 && c < WC - 2 && r >= 2 && r < WR - 2) wMap[r][c] = tile;
+}
+function fillWorld(x1, y1, x2, y2, tile) {
+  for (let r = y1; r <= y2; r++) for (let c = x1; c <= x2; c++) setWorld(c, r, tile);
+}
+function worldHouse(x, y) { fillWorld(x, y, x + 4, y + 3, 4); }
+function keepPath(c, r) { setWorld(c, r, 1); }
+
+function buildPitchC2() {
+  // Aldea Pitch: aldea fluvial. El río y puente son geometría real, no decorado.
+  fillWorld(9, 128, 35, 148, 0);
+  // Río del este, con ribera de piedra y puente central.
+  fillWorld(29, 128, 35, 148, 2);
+  for (let r = 128; r <= 148; r++) setWorld(28, r, r % 3 === 0 ? 6 : 0);
+  fillWorld(25, 139, 35, 140, 1); // puente de madera/camino
+  // Camino desde la salida sur y hacia Ruta 1.
+  fillWorld(19, 128, 20, 148, 1);
+  fillWorld(14, 139, 28, 140, 1);
+  fillWorld(19, 128, 21, 132, 1);
+  // Casas de piedra/madera, deliberadamente separadas de caminos y NPCs.
+  worldHouse(11, 130); worldHouse(22, 130); worldHouse(11, 143); worldHouse(22, 143);
+  // Patios y accesos a puertas.
+  fillWorld(11, 134, 16, 136, 1); fillWorld(22, 134, 27, 136, 1);
+  fillWorld(11, 147, 16, 148, 1); fillWorld(22, 147, 27, 148, 1);
+  // Plaza del pozo y ribera; el pozo es sólido, el resto transitable.
+  fillWorld(17, 136, 23, 138, 1); setWorld(18, 137, 22);
+  // Patio Comunitario de Ensayo: suelo delimitado y objetos sólidos reales.
+  fillWorld(11, 137, 16, 141, 1);
+  setWorld(12, 137, 20); setWorld(15, 137, 20); setWorld(12, 141, 20); setWorld(15, 141, 20);
+  setWorld(13, 139, 23); setWorld(14, 139, 23);
+  // Bosque y flores en bordes, manteniendo entradas limpias.
+  for (let r = 128; r <= 148; r++) for (let c = 9; c <= 35; c++) {
+    if (wMap[r][c] !== 0) continue;
+    if ((c === 9 || c === 35 || r === 128) && (c + r) % 3 !== 0) setWorld(c, r, 3);
+    else if ((c * 5 + r * 3) % 11 === 0) setWorld(c, r, 6);
+  }
+  // Reafirmar el eje hacia Ruta 1 después de bordes.
+  fillWorld(19, 128, 20, 148, 1);
+}
+
+function buildRoute1C2() {
+  // Ruta 1: ribera/bosque joven; el camino está siempre despejado y el río acompaña al este.
+  for (let r = 115; r <= 127; r++) {
+    for (let c = 11; c <= 32; c++) {
+      if (wMap[r][c] === 1 || wMap[r][c] === 4) continue;
+      if (c >= 27 && c <= 31 && r >= 119) setWorld(c, r, 2);
+      else if ((c + r) % 5 === 0) setWorld(c, r, 5);
+      else if (c === 11 || c === 32) setWorld(c, r, 3);
+    }
+  }
+  // Camino serpenteante de aventura desde Pitch a Storyboard.
+  for (let r = 115; r <= 127; r++) {
+    const center = r < 121 ? 25 : 20;
+    keepPath(center, r); keepPath(center + 1, r);
+  }
+  fillWorld(20, 126, 26, 127, 1);
+  // Claro lateral para exploración/pines y piedras de ribera.
+  fillWorld(14, 120, 18, 124, 0);
+  setWorld(14, 120, 6); setWorld(18, 124, 6); setWorld(16, 121, 24);
+}
+
+function buildStoryboardC3() {
+  // Villa Storyboard: plaza de iluminadores, tapices y artefactos escénicos medievales.
+  fillWorld(28, 99, 56, 118, 0);
+  // Calles y plaza de pergaminos.
+  fillWorld(39, 99, 41, 118, 1);
+  fillWorld(31, 108, 53, 110, 1);
+  fillWorld(36, 104, 46, 114, 1);
+  // Casas/gremios alrededor de la plaza.
+  worldHouse(30, 100); worldHouse(48, 100); worldHouse(30, 114); worldHouse(48, 114);
+  fillWorld(29, 104, 35, 106, 1); fillWorld(47, 104, 53, 106, 1);
+  // Paneles, vitrales y tapices: arte visual medieval, no estudio moderno.
+  setWorld(37, 106, 17); setWorld(38, 106, 17); setWorld(43, 106, 17); setWorld(44, 106, 17);
+  setWorld(37, 112, 17); setWorld(44, 112, 17); setWorld(40, 109, 19);
+  // Taller de Utilería Proa: herrería ligera, farol alquímico, cajas y placas.
+  fillWorld(48, 108, 53, 112, 26);
+  setWorld(49, 108, 20); setWorld(52, 108, 20); setWorld(49, 112, 20); setWorld(52, 112, 20);
+  setWorld(50, 110, 21); setWorld(51, 110, 21); setWorld(52, 110, 15);
+  // Jardines feéricos y arbolado protector en bordes.
+  for (let r = 99; r <= 118; r++) for (let c = 28; c <= 56; c++) {
+    if (wMap[r][c] !== 0) continue;
+    if ((c === 28 || c === 56 || r === 99 || r === 118) && (c + r) % 3 !== 0) setWorld(c, r, 3);
+    else if ((c * 3 + r * 7) % 6 === 0) setWorld(c, r, 6);
+  }
+  // Salidas sur/norte y zona de Tamara sin obstáculos.
+  fillWorld(39, 99, 41, 118, 1);
+  fillWorld(36, 108, 46, 110, 1);
+}
+
+function buildRoute2C3() {
+  // Ruta 2: bosque que se transforma gradualmente en piedra de cantera.
+  for (let r = 87; r <= 98; r++) for (let c = 31; c <= 57; c++) {
+    if (wMap[r][c] === 1 || wMap[r][c] === 4 || wMap[r][c] === 9) continue;
+    if (r < 93 && (c + r) % 4 === 0) setWorld(c, r, 3);
+    else if (r >= 93 && (c * 3 + r) % 5 === 0) setWorld(c, r, 7);
+    else if (r >= 92 && (c + r) % 3 === 0) setWorld(c, r, 26);
+    else setWorld(c, r, (c + r) % 4 === 0 ? 5 : 0);
+  }
+  // Camino ascendente intacto y sus ensanchamientos de descanso.
+  for (let r = 87; r <= 98; r++) {
+    const center = Math.round(54 - (r - 87) * 0.8);
+    keepPath(center, r); keepPath(center + 1, r);
+  }
+  fillWorld(39, 97, 45, 98, 1);
+  // Hitos de piedra y faroles de camino, medievales.
+  setWorld(35, 95, 19); setWorld(48, 92, 15); setWorld(52, 89, 20);
+}
+
 function genWorld() {
   // Inicializar mapa con hierba y hierba alta aleatoria
   for (let r = 0; r < WR; r++) {
@@ -407,6 +520,12 @@ function genWorld() {
   // Bancos, faroles, estatuas y cercas en rutas.
   addRouteDecorations();
 
+  // Fases C2/C3: primeros pueblos y rutas con geometría regional fija.
+  buildPitchC2();
+  buildRoute1C2();
+  buildStoryboardC3();
+  buildRoute2C3();
+
   // Pines del mundo (antes cristales tile 10).
   // Se colocan aquí en la gen inicial; al reentrar el mapa se re-sortean
   // desde pin-system.respawnWorldPins().
@@ -417,7 +536,7 @@ function genWorld() {
     pinAttempts++;
     const c = 4 + Math.floor(Math.random() * (WC - 8));
     const r = 4 + Math.floor(Math.random() * (WR - 8));
-    if (wMap[r][c] === 0) {
+    if (isWorldPinAllowed(wMap, c, r)) {
       wMap[r][c] = 10;
       cv2++;
     }

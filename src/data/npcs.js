@@ -139,7 +139,7 @@ const npcs = [
     fixedTeam: [{ id: 'ivygoat' }, { id: 'pinzardo' }],
   },
   {
-    x: 24,
+    x: 17,
     y: 144,
     tp: 'luis',
     nm: 'Luis',
@@ -332,8 +332,8 @@ const npcs = [
   // PUEBLO 2: VILLA STORYBOARD
   // ==========================================
   {
-    x: 40,
-    y: 109,
+    x: 38,
+    y: 108,
     tp: 'gabriela',
     nm: 'Gabriela',
     preOnly: true,
