@@ -11,7 +11,7 @@ import { ALL_MOVES } from './src/data/moves.js';
 import { WORLD_LEVEL_ZONES, SPECIAL_MAP_LEVELS } from './src/data/regions.js';
 import { MAP_LOCATIONS, ROUTE_SIGNS } from './src/data/map-markers.js';
 import { createProaMissions, resetProaMissionProgress } from './src/data/proa-missions.js';
-import { ROUTE_GATE_DEFINITIONS } from './src/world/route-missions.js';
+import { ROUTE_GATE_DEFINITIONS, isRouteAuthorized } from './src/world/route-missions.js';
 
 // [refactor-phase2] utilidades importadas
 import { SPRITE_LOADER } from './src/core/sprite-loader.js';
@@ -842,23 +842,8 @@ function giveDiploma(leader) {
 
 // Función que verifica si el jugador puede pasar de un pueblo al siguiente
 function canPassRoute(fromPueblo) {
-  if (G.supervisor) return true;
-  switch (fromPueblo) {
-    case 'pitch':
-      return true; // P1 -> P2 sin diploma
-    case 'storyboard':
-      return hasDiploma('tamara');
-    case 'rodaje':
-      return hasDiploma('luchito');
-    case 'ultimatoma':
-      return hasDiploma('andrea');
-    case 'montaje':
-      return hasDiploma('dan');
-    default:
-      return true;
-  }
+  return G.supervisor || isRouteAuthorized(fromPueblo, diplomas);
 }
-
 
 const ROUTE_GATES = ROUTE_GATE_DEFINITIONS;
 
@@ -881,26 +866,22 @@ function routeGateBlocks(c, r) {
 
 function showRouteBlockedDialog(gate) {
   const mission = LEADER_MISSIONS[gate.leader];
+  const destination = { rodaje: 'Cantera Rodaje', ultimatoma: 'Feria Última Toma', montaje: 'Prados Montaje', castle: 'Castillo Difusión' }[gate.to];
   G.scr = 'dialog';
   G.ds = {
-    npc: { nm: 'Personal' },
+    npc: { nm: 'Puesto Proa' },
     dlgArr: [
-      'Soy parte del personal de',
-      'la comunidad univ...ficada',
-      `asignado a ${gate.place}.`,
-      'Los árboles cierran los bordes:',
-      'solo este camino queda abierto.',
-      `Para pasar, vence a ${mission.leaderNm}`,
-      `y trae el diploma "${mission.diploma}".`,
-    ],
-    li: 0,
-    ci: 0,
-    tm: 0,
-    full: false,
+      'Puesto Proa de enlace regional.',
+      `${gate.place} → ${destination}.`,
+      'El tránsito de personas,',
+      'criaturas y equipo requiere',
+      'autorización Proa.',
+      `Presenta el Diploma "${mission.diploma}"`,
+      `validado por ${gate.proaName}.`,
+    ], li: 0, ci: 0, tm: 0, full: false,
   };
   sfx.nef();
 }
-
 
 function nearRouteSign(sign) {
   return G.curMap === 'world' && Math.abs(G.pl.x - sign.x) <= 1 && Math.abs(G.pl.y - sign.y) <= 1;
@@ -4619,16 +4600,15 @@ function drawMap() {
       }
     });
 
-    // Bloqueo de rutas: árboles cierran los bordes y un Proa bloquea el camino.
+    // Puestos Proa: la estación siempre existe; los árboles solo cierran rutas sin diploma.
     ROUTE_GATES.forEach((g) => {
-      if (canPassRoute(g.from)) return;
+      const authorized = canPassRoute(g.from);
       for (let dc = -Math.floor(g.w / 2); dc <= Math.floor(g.w / 2); dc++) {
         const sx = (g.x + dc) * T - cam.x;
         const sy = g.y * T - cam.y;
-        if (worldCull(sx, sy)) {
-          if (dc === 0) dRouteProa(sx, sy - 8, fr);
-          else dRouteTree(sx, sy, fr);
-        }
+        if (!worldCull(sx, sy)) continue;
+        if (dc === 0) dRouteProa(sx, sy - 8, fr, g, authorized);
+        else if (!authorized) dRouteTree(sx, sy, fr);
       }
     });
 

@@ -16,6 +16,7 @@ import { dHP, dEXP } from '../render/ui-bars.js';
 import { tCol, tEmo, tNam } from '../data/types.js';
 import { aN } from '../utils/particles.js';
 import { proa } from '../core/game-flags.js';
+import { openMapScreen } from './map-screen.js';
 
 // Opciones fijas + LaFot solo si bagUpgrade (Claudia).
 // Índices dinámicos: LaFot se inserta después de Objetos.
@@ -79,6 +80,7 @@ function uMenu() {
         break;
       case 'Mapa':
         G.showMap = true;
+        openMapScreen();
         break;
       case 'Misiones':
         G.showMissions = true;

@@ -22,32 +22,26 @@ function dRouteTree(x, y, f) {
   px(x + 22, y + 16, 4, 4, '#145020');
 }
 
-function dRouteProa(x, y, f) {
-  // Proa guardián en el único hueco del camino.
-  dShadow(x + 16, y + 31, 9, 3);
-  const by = y + Math.sin(f * 0.08) * 0.8;
-  px(x + 10, by + 26, 4, 4, '#4A3018');
-  px(x + 18, by + 26, 4, 4, '#4A3018');
-  px(x + 8, by + 18, 16, 9, '#2858A0');
-  // Uniforme del personal: polo negro con flecha amarilla pequeña
-  px(x + 6, by + 10, 20, 10, '#101010');
-  px(x + 8, by + 12, 16, 7, '#1A1A1A');
-  px(x + 13, by + 13, 6, 2, '#FFD830');
-  px(x + 17, by + 11, 3, 6, '#FFD830');
-  px(x + 4, by + 12, 4, 8, SK.a);
-  px(x + 24, by + 12, 4, 8, SK.a);
-  px(x + 13, by + 8, 6, 3, SK.a);
-  px(x + 9, by + 0, 14, 10, SK.a);
-  px(x + 10, by + 1, 12, 8, SK.d);
-  px(x + 7, by - 3, 18, 5, '#2A5830');
-  px(x + 5, by - 1, 22, 3, '#3A7A40');
-  px(x + 12, by + 4, 3, 3, '#111');
-  px(x + 18, by + 4, 3, 3, '#111');
-  px(x + 14, by + 8, 4, 1, '#C08868');
-  if (f % 40 < 20) {
-    cx.fillStyle = '#ffd700';
-    cx.font = '9px "Press Start 2P"';
-    cx.fillText('!', x + 26, by - 5);
+function dRouteProa(x, y, f, station = null, authorized = false) {
+  // Puesto Proa compacto: permanece visible incluso después de autorizar la ruta.
+  const col = authorized ? '#40D870' : '#E84838';
+  dShadow(x + 16, y + 31, 14, 4);
+  px(x + 3, y + 18, 26, 13, '#26313B');
+  px(x + 5, y + 20, 22, 9, '#465461');
+  px(x + 7, y + 22, 18, 5, '#6C7B86');
+  px(x + 11, y + 6, 10, 14, '#D8D8C8');
+  px(x + 13, y + 8, 6, 10, col);
+  px(x + 14, y + 10, 4, 5, '#111');
+  cx.fillStyle = '#FFF';
+  cx.font = '6px "Press Start 2P"';
+  cx.fillText('P', x + 14, y + 15);
+  if (!authorized && f % 40 < 20) {
+    cx.fillStyle = '#FFD700'; cx.font = '8px "Press Start 2P"'; cx.fillText('!', x + 27, y + 5);
+  }
+  if (station && f % 80 < 50) {
+    cx.fillStyle = authorized ? '#B8FFD0' : '#FFD0C8';
+    cx.font = '4px "Press Start 2P"';
+    cx.fillText(authorized ? 'AUT.' : 'DIP.', x + 1, y - 2);
   }
 }
 
