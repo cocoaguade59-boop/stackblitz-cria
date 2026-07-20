@@ -15,5 +15,8 @@ const ROUTE_SIGNS = [
   { x: 43, y: 16, name: 'Cartel Ruta 5', lines: ['↑ Castillo Difusión', '↓ Prados Montaje', 'La torre abre en post-game.'] },
   { x: 14, y: 107, name: 'Cartel Cueva', lines: ['Cueva Volcánica', 'Se oyen ecos de punk antiguo.', 'Dicen que una pared busca dragones.'] },
   { x: 71, y: 40, name: 'Cartel Cueva', lines: ['Cueva Cristalina', 'Al fondo vive SaloGon.', 'No todos los recuerdos son monstruos.'] },
+  { x: 27, y: 132, name: 'Patio Comunitario', lines: ['Patio Comunitario de Ensayo', 'Entrenamiento seguro de Lucha.', 'Pronto llegarán nuevos rivales.'] },
+  { x: 48, y: 111, name: 'Taller Proa', lines: ['Taller de Utilería Proa', 'Cámaras, focos, rieles y placas.', 'La técnica también es una forma de arte.'] },
+  { x: 63, y: 83, name: 'Patio de Cantera', lines: ['Patio de Ensayo de Cantera', 'Aquí entrenan los equipos fuertes.', 'Lucha y Acero prosperarán en Rodaje.'] },
 ];
 export { MAP_LOCATIONS, ROUTE_SIGNS };

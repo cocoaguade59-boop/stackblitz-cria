@@ -57,6 +57,28 @@ function dRouteSign(x, y, f) {
   if (f % 60 < 30) px(x + 24, y + 5, 2, 2, '#ffd700');
 }
 
+function dTypeReserve(x, y, reserve, f) {
+  dShadow(x + 16, y + 30, 18, 4);
+  if (reserve.type === 'fighting') {
+    // Patio de entrenamiento: cuerdas, saco y muñeco de paja.
+    px(x + 3, y + 22, 27, 3, '#A87848'); px(x + 5, y + 24, 23, 4, '#7A5030');
+    px(x + 4, y + 8, 2, 16, '#D0B070'); px(x + 27, y + 8, 2, 16, '#D0B070');
+    px(x + 5, y + 10, 22, 1, '#E8D090'); px(x + 5, y + 17, 22, 1, '#E8D090');
+    px(x + 16, y + 8, 4, 12, '#B88848'); px(x + 14, y + 11, 8, 6, '#D0A858');
+    px(x + 17, y + 5, 2, 3, '#6A4828');
+  } else {
+    // Taller técnico: riel, foco, caja y placa de acero.
+    px(x + 2, y + 25, 29, 3, '#606878'); px(x + 4, y + 22, 25, 2, '#A8A8C0');
+    px(x + 8, y + 10, 2, 14, '#525A68'); px(x + 6, y + 8, 6, 4, '#D8E0E8');
+    px(x + 7, y + 9, 4, 2, f % 30 < 18 ? '#FFF0A0' : '#B8C8D8');
+    px(x + 18, y + 16, 9, 8, '#6A7080'); px(x + 19, y + 17, 7, 6, '#A8A8C0');
+    px(x + 21, y + 18, 3, 2, '#D8E0E8');
+  }
+  cx.fillStyle = reserve.type === 'fighting' ? '#FFD080' : '#D8E8FF';
+  cx.font = '4px "Press Start 2P"';
+  cx.fillText(reserve.type === 'fighting' ? 'LUCHA' : 'ACERO', x, y - 2);
+}
+
 function dFallenPortrait(id, x, y, sc = 4) {
   cx.save();
   cx.translate(x, y);
@@ -95,4 +117,4 @@ function dFallenPortrait(id, x, y, sc = 4) {
   cx.restore();
 }
 
-export { dShadow, dRouteTree, dRouteProa, dRouteSign, dFallenPortrait };
+export { dShadow, dRouteTree, dRouteProa, dRouteSign, dTypeReserve, dFallenPortrait };

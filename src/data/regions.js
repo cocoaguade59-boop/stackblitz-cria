@@ -17,6 +17,15 @@ const REGIONS = {
   tower: { name: 'Torre P.A.', kind: 'tower', levels: { min: 45, max: 58 }, theme: 'tower', habitats: [] },
 };
 
+// Reservas ambientales: hacen visibles Lucha y Acero antes de incorporar especies.
+// No alimentan pools de encuentros hasta que existan criaturas reales de esos tipos.
+const TYPE_RESERVES = [
+  { id: 'pitch-training', type: 'fighting', x: 27, y: 132, region: 'route1', label: 'Patio Comunitario de Ensayo', stage: 'early' },
+  { id: 'storyboard-props', type: 'steel', x: 48, y: 111, region: 'storyboard', label: 'Taller de Utilería Proa', stage: 'early' },
+  { id: 'rodaje-yard', type: 'fighting', x: 63, y: 83, region: 'rodaje', label: 'Patio de Ensayo de Cantera', stage: 'advanced' },
+  { id: 'rodaje-rails', type: 'steel', x: 64, y: 80, region: 'rodaje', label: 'Taller de Rieles y Utilería', stage: 'advanced' },
+];
+
 const WORLD_LEVEL_ZONES = [
   { id: 'pitch', rMin: 138, rMax: 149 }, { id: 'storyboard', rMin: 105, rMax: 114 },
   { id: 'rodaje', rMin: 77, rMax: 86 }, { id: 'ultimatoma', rMin: 47, rMax: 56 },
@@ -29,4 +38,4 @@ const SPECIAL_MAP_LEVELS = Object.fromEntries(
   ['cave1', 'cave2', 'castle', 'tower'].map((id) => [id, { id, nm: REGIONS[id].name, ...REGIONS[id].levels }])
 );
 
-export { REGIONS, WORLD_LEVEL_ZONES, SPECIAL_MAP_LEVELS };
+export { REGIONS, TYPE_RESERVES, WORLD_LEVEL_ZONES, SPECIAL_MAP_LEVELS };

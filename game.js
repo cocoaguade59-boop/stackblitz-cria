@@ -8,7 +8,7 @@ import { CDB } from './src/data/creatures.js';
 import { CRE_DESC } from './src/data/creature-descriptions.js';
 import { POOLS } from './src/data/pools.js';
 import { ALL_MOVES } from './src/data/moves.js';
-import { WORLD_LEVEL_ZONES, SPECIAL_MAP_LEVELS } from './src/data/regions.js';
+import { WORLD_LEVEL_ZONES, SPECIAL_MAP_LEVELS, TYPE_RESERVES } from './src/data/regions.js';
 import { MAP_LOCATIONS, ROUTE_SIGNS } from './src/data/map-markers.js';
 import { createProaMissions, resetProaMissionProgress } from './src/data/proa-missions.js';
 import { ROUTE_GATE_DEFINITIONS, isRouteAuthorized } from './src/world/route-missions.js';
@@ -58,7 +58,7 @@ import {
 import { dBox, dBoxMenu, dDialogBox, dDialogAdaptive, wrapText, dMenuOption, dArrow } from './src/render/ui-boxes.js';
 import { dHP, dEXP, dBattlePanel } from './src/render/ui-bars.js';
 import { dTypeIcon, moveUiCol, movePpColor, dMoveButton } from './src/render/ui-type-icons.js';
-import { dShadow, dRouteTree, dRouteProa, dRouteSign, dFallenPortrait } from './src/render/world-decor.js';
+import { dShadow, dRouteTree, dRouteProa, dRouteSign, dTypeReserve, dFallenPortrait } from './src/render/world-decor.js';
 import { initBattleBackgroundAssets, drawBattleBackgroundAsset, dWorldEncounterBG, dBattleBG, dBattleIntroBG } from './src/render/battle-backgrounds.js';
 import { drawNotifications, drawParticles } from './src/render/notifications-draw.js';
 
@@ -4598,6 +4598,12 @@ function drawMap() {
           cx.textAlign = 'left';
         }
       }
+    });
+
+    // Reservas de Lucha y Acero: ambiente visible, sin encuentros hasta tener especies.
+    TYPE_RESERVES.forEach((reserve) => {
+      const sx = reserve.x * T - cam.x, sy = reserve.y * T - cam.y;
+      if (worldCull(sx, sy)) dTypeReserve(sx, sy - 8, reserve, fr);
     });
 
     // Puestos Proa: la estación siempre existe; los árboles solo cierran rutas sin diploma.
