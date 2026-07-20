@@ -443,14 +443,24 @@ const npcs = [
         '🔥 Fuego vence a 🌿 Planta',
       ],
       [
-        '🐉 Dragón es fuerte contra',
-        '🔥 Fuego y 🌿 Planta, pero',
-        '🧚 Hada lo destruye.',
+        '🐉 Dragón vence a sí mismo,',
+        'pero no puede herir a 🧚 Hada.',
+        '🧚 Hada vence a 🐉 Dragón.',
       ],
       [
-        '🧚 Hada vence a 🐉 Dragón',
-        'y 💧 Agua, pero es débil',
-        'contra 🔥 Fuego y 🌿 Planta.',
+        '🥊 Lucha vence a ⚪ Normal',
+        'y a ⚙️ Acero, pero 🧚 Hada',
+        'resiste los golpes de Lucha.',
+      ],
+      [
+        '⚙️ Acero vence a 🧚 Hada.',
+        'Pero 🔥 Fuego y 🥊 Lucha',
+        'son muy peligrosos para Acero.',
+      ],
+      [
+        '⚪ Normal no hiere mucho a',
+        '⚙️ Acero. ¡Conocer los tipos',
+        'puede decidir una batalla!',
       ],
     ],
     postDlg: [

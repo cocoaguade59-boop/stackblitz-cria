@@ -2,16 +2,21 @@
 // Datos puros, sin dependencias.
 // === TIPOS ===
 function tEff(a, d) {
-  if (a === 'normal') return 1;
-  const c = {
-    fire: { fire: 0.5, water: 0.5, plant: 2, dragon: 0.5, fairy: 2 },
-    water: { fire: 2, water: 0.5, plant: 0.5, dragon: 1, fairy: 0.5 },
-    plant: { fire: 0.5, water: 2, plant: 0.5, dragon: 0.5, fairy: 2 },
-    dragon: { fire: 2, water: 1, plant: 2, dragon: 1, fairy: 0.5 },
-    fairy: { fire: 0.5, water: 2, plant: 0.5, dragon: 2, fairy: 1 },
+  // Tabla cerrada de afinidades del Reino. Las combinaciones no listadas
+  // hacen daño neutral (x1).
+  const chart = {
+    normal: { steel: 0.5 },
+    fire: { fire: 0.5, water: 0.5, plant: 2, dragon: 0.5, fairy: 0.5, steel: 2 },
+    water: { fire: 2, water: 0.5, plant: 0.5, dragon: 0.5, steel: 0.5 },
+    plant: { fire: 0.5, water: 2, plant: 0.5, dragon: 0.5, steel: 0.5 },
+    dragon: { fire: 0.5, water: 0.5, plant: 0.5, dragon: 2, fairy: 0, steel: 0.5 },
+    fairy: { fire: 0.5, dragon: 2, fighting: 2, steel: 0.5 },
+    fighting: { normal: 2, fairy: 0.5, steel: 2 },
+    steel: { fire: 0.5, water: 0.5, fairy: 2, steel: 0.5 },
   };
-  return c[a]?.[d] || 1;
+  return chart[a]?.[d] ?? 1;
 }
+
 function tCol(t) {
   return (
     {
