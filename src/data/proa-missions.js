@@ -1,7 +1,7 @@
 // Misiones de Proa: datos, textos y progreso de evaluación local.
 // El juego inyecta el equipo actual para que estos datos no dependan de estado global.
 function createProaMissions(getParty) {
-  return {
+  const missions = {
   tamara: {
     leaderNm: 'Tamara',
     diploma: 'Fotografía Estética',
@@ -60,7 +60,7 @@ function createProaMissions(getParty) {
     ],
     superEffectiveHits: 0,
     check: function () {
-      return LEADER_MISSIONS.luchito.superEffectiveHits >= 3;
+      return missions.luchito.superEffectiveHits >= 3;
     },
   },
   andrea: {
@@ -139,10 +139,11 @@ function createProaMissions(getParty) {
     gossip: 0,
     gossipNeeded: 3,
     check: function () {
-      return LEADER_MISSIONS.dan.gossip >= LEADER_MISSIONS.dan.gossipNeeded;
+      return missions.dan.gossip >= missions.dan.gossipNeeded;
     },
   },
-};;
+};
+  return missions;
 }
 
 function resetProaMissionProgress(missions) {
