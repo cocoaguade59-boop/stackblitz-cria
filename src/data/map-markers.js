@@ -17,6 +17,6 @@ const ROUTE_SIGNS = [
   { x: 71, y: 40, name: 'Cartel Cueva', lines: ['Cueva Cristalina', 'Al fondo vive SaloGon.', 'No todos los recuerdos son monstruos.'] },
   { x: 27, y: 132, name: 'Patio Comunitario', lines: ['Patio Comunitario de Ensayo', 'Entrenamiento seguro de Lucha.', 'Pronto llegarán nuevos rivales.'] },
   { x: 48, y: 111, name: 'Taller Proa', lines: ['Taller de Utilería Proa', 'Cámaras, focos, rieles y placas.', 'La técnica también es una forma de arte.'] },
-  { x: 63, y: 83, name: 'Patio de Cantera', lines: ['Patio de Ensayo de Cantera', 'Aquí entrenan los equipos fuertes.', 'Lucha y Acero prosperarán en Rodaje.'] },
+  { x: 47, y: 84, name: 'Patio de Cantera', lines: ['Patio de Ensayo de Cantera', 'Aquí entrenan los equipos fuertes.', 'Lucha y Acero prosperarán en Rodaje.'] },
 ];
 export { MAP_LOCATIONS, ROUTE_SIGNS };

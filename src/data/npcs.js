@@ -982,7 +982,7 @@ const npcs = [
     fixedTeam: [{ id: 'ivygoat' }, { id: 'axolotl' }, { id: 'wyvern' }],
   },
   {
-    x: 65,
+    x: 60,
     y: 72,
     tp: 'piero',
     nm: 'Piero',

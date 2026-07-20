@@ -22,8 +22,8 @@ const REGIONS = {
 const TYPE_RESERVES = [
   { id: 'pitch-training', type: 'fighting', x: 27, y: 132, region: 'route1', label: 'Patio Comunitario de Ensayo', stage: 'early' },
   { id: 'storyboard-props', type: 'steel', x: 48, y: 111, region: 'storyboard', label: 'Taller de Utilería Proa', stage: 'early' },
-  { id: 'rodaje-yard', type: 'fighting', x: 63, y: 83, region: 'rodaje', label: 'Patio de Ensayo de Cantera', stage: 'advanced' },
-  { id: 'rodaje-rails', type: 'steel', x: 64, y: 80, region: 'rodaje', label: 'Taller de Rieles y Utilería', stage: 'advanced' },
+  { id: 'rodaje-yard', type: 'fighting', x: 47, y: 84, region: 'rodaje', label: 'Patio de Ensayo de Cantera', stage: 'advanced' },
+  { id: 'rodaje-rails', type: 'steel', x: 65, y: 84, region: 'rodaje', label: 'Taller de Rieles y Utilería', stage: 'advanced' },
 ];
 
 const WORLD_LEVEL_ZONES = [

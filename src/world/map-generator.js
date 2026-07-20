@@ -396,6 +396,57 @@ function buildRoute2C3() {
   setWorld(35, 95, 19); setWorld(48, 92, 15); setWorld(52, 89, 20);
 }
 
+function buildRodajeC4() {
+  // Cantera Rodaje: piedra, madera y metal de gremio; sin fábrica contemporánea.
+  fillWorld(43, 70, 72, 90, 26);
+  // Camino de las vagonetas: conecta Ruta 2, plaza Proa y salida a Ruta 3.
+  fillWorld(53, 70, 55, 90, 1);
+  fillWorld(53, 80, 64, 82, 1);
+  fillWorld(54, 87, 66, 89, 1);
+  // Casas/almacenes de cantera fuera de la plaza de NPCs.
+  worldHouse(44, 72); worldHouse(65, 72); worldHouse(44, 86); worldHouse(65, 86);
+  fillWorld(44, 76, 50, 78, 1); fillWorld(64, 76, 70, 78, 1);
+  // Plaza de Luchito: piedra abierta, deliberadamente sin objetos sólidos donde están los NPCs.
+  fillWorld(50, 79, 60, 85, 1);
+  // Patio de Ensayo de Cantera (Lucha): anillo de piedra, sacos y columnas.
+  fillWorld(45, 81, 50, 85, 26);
+  setWorld(45, 81, 20); setWorld(50, 81, 20); setWorld(45, 85, 20); setWorld(50, 85, 20);
+  setWorld(47, 82, 23); setWorld(48, 82, 23); setWorld(46, 84, 7);
+  // Taller de Rieles y Utilería (Acero): riel de vagoneta, cajas, farol y herrería.
+  fillWorld(61, 82, 68, 85, 26);
+  setWorld(61, 82, 20); setWorld(68, 82, 20); setWorld(61, 85, 20); setWorld(68, 85, 20);
+  setWorld(63, 83, 21); setWorld(64, 83, 21); setWorld(66, 83, 15); setWorld(67, 84, 7);
+  // Bordes de cantera: roca y muros de contención, nunca sobre caminos/NPCs.
+  for (let r = 70; r <= 90; r++) for (let c = 43; c <= 72; c++) {
+    if (wMap[r][c] !== 26) continue;
+    if ((c === 43 || c === 72 || r === 70 || r === 90) && (c + r) % 3 !== 0) setWorld(c, r, 7);
+    else if ((c * 7 + r) % 17 === 0) setWorld(c, r, 15);
+  }
+  // Restaurar salidas limpias después de los bordes.
+  fillWorld(53, 70, 55, 90, 1);
+  fillWorld(53, 80, 64, 82, 1);
+  // Acceso lateral que anuncia la futura Cueva Volcánica.
+  fillWorld(47, 87, 53, 89, 1); setWorld(47, 88, 19); setWorld(48, 88, 15);
+}
+
+function buildRoute3C4() {
+  // Ruta 3: garganta de cantera con piedra, faroles y un camino de peregrinos.
+  for (let r = 57; r <= 69; r++) for (let c = 51; c <= 71; c++) {
+    if (wMap[r][c] === 1 || wMap[r][c] === 4 || wMap[r][c] === 9) continue;
+    if (c === 51 || c === 71 || ((c * 3 + r) % 7 === 0)) setWorld(c, r, 7);
+    else if ((c + r) % 5 === 0) setWorld(c, r, 26);
+    else setWorld(c, r, (c + r) % 4 === 0 ? 5 : 0);
+  }
+  // La ruta gira gradualmente desde el puesto de Luchito hacia el norte/este.
+  for (let r = 57; r <= 76; r++) {
+    const center = r > 69 ? 54 : Math.round(54 + (69 - r) * 0.8);
+    keepPath(center, r); keepPath(center + 1, r);
+  }
+  fillWorld(54, 74, 57, 76, 1); // paso Proa de Luchito
+  // Hitos medievales: altar de cantera y faroles de garganta.
+  setWorld(62, 67, 19); setWorld(59, 63, 15); setWorld(68, 60, 20);
+}
+
 function genWorld() {
   // Inicializar mapa con hierba y hierba alta aleatoria
   for (let r = 0; r < WR; r++) {
@@ -525,6 +576,8 @@ function genWorld() {
   buildRoute1C2();
   buildStoryboardC3();
   buildRoute2C3();
+  buildRodajeC4();
+  buildRoute3C4();
 
   // Pines del mundo (antes cristales tile 10).
   // Se colocan aquí en la gen inicial; al reentrar el mapa se re-sortean
