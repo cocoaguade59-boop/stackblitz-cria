@@ -1130,149 +1130,364 @@ function dTileW(c, r) {
       break;
     }
 
-    // ─── 32: MOLINO EXTERIOR (5×9 junto al río) ────────────
+    // ─── 32: MOLINO DE VIENTO (5×9, piedra cilíndrica) ─────
     case 32: {
       const up = wMap[r - 1]?.[c] === 32;
       const dn = wMap[r + 1]?.[c] === 32;
       const lf = wMap[r]?.[c - 1] === 32;
       const rt = wMap[r]?.[c + 1] === 32;
 
-      // Ancla NW del bloque
+      // Ancla NW del bloque para posicionamiento relativo
       let ac = c, ar = r;
       while (wMap[ar]?.[ac - 1] === 32) ac--;
       while (wMap[ar - 1]?.[ac] === 32) ar--;
+      const relR = r - ar; // 0..8
+      const relC = c - ac; // 0..4
+      const midC = 2; // columna central (0-indexed: cols 0,1,2,3,4 → centro es 2)
 
-      const isRoofTop = !up;
-      const isRoofLower = up && wMap[r - 2]?.[c] !== 32;
-      const isBase = up && !dn;
-      const isWallMid = up && dn && !isRoofLower;
+      // Paleta de piedra rústica (varios tonos)
+      const stoneColors = ['#6E6458','#7A7060','#665C50','#72685C','#6A5E52','#7E7464','#62584C'];
+      const stoneIdx = (c * 3 + r * 7) % stoneColors.length;
+      const stoneBase = stoneColors[stoneIdx];
+      const stoneLight = '#8E8474';
+      const stoneDark = '#564C40';
+      const mortar = '#9A9080';
 
-      // Paleta del molino: piedra gris + teja rojiza + rueda de agua
-      const stoneDark = '#5A5448';
-      const stoneMid = '#6A6458';
-      const roofD = '#6B3922';
-      const roofM = '#8B5130';
-      const roofL = '#B07442';
+      // Madera del techo/balcón
+      const woodDark = '#5A3A22';
+      const woodMid = '#7A5030';
+      const woodLight = '#9A6840';
+      const woodRail = '#6B4830';
 
-      if (isRoofTop) {
-        // Techo de teja
-        cx.fillStyle = roofD;
+      // Techo (teja/capuchón)
+      const capDark = '#4A3020';
+      const capMid = '#6B4830';
+      const capLight = '#8B6040';
+
+      // Aspas
+      const sailWood = '#5A3A20';
+      const sailPanel = '#D8D0C0'; // blanco envejecido
+
+      // Determinar zona del molino
+      const isTopRow = relR === 0;
+      const isCapRow = relR === 1 || relR === 2;
+      const isUpperStone = relR === 3;
+      const isBalconyRow = relR === 4 || relR === 5;
+      const isMidStone = relR === 6;
+      const isLowerStone = relR === 7;
+      const isBaseRow = relR === 8;
+
+      // ─── FONDO: cielo/entorno (solo en bordes exteriores) ───
+      // Los tiles interiores no dibujan fondo de hierba
+      const isEdge = !up || !dn || !lf || !rt;
+      if (isEdge && (isTopRow || (relC === 0 && !lf) || (relC === 4 && !rt))) {
+        // Hierba del bioma
+        const snow = Math.max(0, Math.min(1, (68 - r) / 46));
+        cx.fillStyle = lerpColor('#58A830', '#F2F8F4', snow);
         cx.fillRect(x, y, T, T);
-        cx.fillStyle = roofM;
-        cx.fillRect(x, y + 2, T, T - 2);
-        cx.fillStyle = roofL;
-        cx.fillRect(x + 1, y + 4, T - 2, 10);
-        cx.fillStyle = '#3B2118';
-        cx.fillRect(x, y, T, 4);
-        cx.fillStyle = roofL;
-        cx.fillRect(x + 1, y + 1, T - 2, 2);
-        for (let i = 0; i < 4; i++) {
-          cx.fillRect(x + i * 8, y + 14, 7, 1);
-          cx.fillRect(x + 2 + i * 8, y + 20, 7, 1);
-          cx.fillRect(x + i * 8, y + 26, 7, 1);
-        }
-        if (!lf) { cx.fillStyle = '#3B2118'; cx.fillRect(x, y, 2, T); }
-        if (!rt) { cx.fillStyle = '#3B2118'; cx.fillRect(x + T - 2, y, 2, T); }
-      } else if (isRoofLower) {
-        cx.fillStyle = roofD; cx.fillRect(x, y, T, 16);
-        cx.fillStyle = roofM; cx.fillRect(x, y, T, 14);
-        cx.fillStyle = roofL; cx.fillRect(x + 1, y + 2, T - 2, 6);
-        for (let i = 0; i < 4; i++) {
-          cx.fillRect(x + i * 8, y + 4, 7, 1);
-          cx.fillRect(x + 2 + i * 8, y + 10, 7, 1);
-        }
-        cx.fillStyle = '#3B2118'; cx.fillRect(x, y + 14, T, 4);
-        cx.fillStyle = '#5A3A18'; cx.fillRect(x, y + 16, T, 2);
-        // Pared
-        cx.fillStyle = stoneMid; cx.fillRect(x, y + 18, T, T - 18);
-        // Bloques de piedra
-        for (let br = 0; br < 2; br++) {
-          cx.fillStyle = stoneDark;
-          cx.fillRect(x + 2, y + 20 + br * 8, T - 4, 1);
-        }
-      } else if (isBase) {
-        // Base: pared de piedra + puerta de molino
-        cx.fillStyle = stoneDark; cx.fillRect(x, y, T, T);
-        cx.fillStyle = stoneMid; cx.fillRect(x + 1, y, T - 2, T);
-        for (let br = 0; br < 3; br++) {
-          cx.fillStyle = stoneDark;
-          cx.fillRect(x + 2, y + 6 + br * 8, T - 4, 1);
-        }
+      }
 
-        // Puerta de molino (más ancha, arqueada, madera reforzada)
-        let leftExtent = 0, cc = c;
-        while (wMap[r]?.[cc - 1] === 32) { cc--; leftExtent++; }
-        let width = 1; cc = c;
-        while (wMap[r]?.[cc + 1] === 32) { cc++; width++; }
-        width += leftExtent;
-        const isDoorTile = leftExtent === Math.floor((width - 1) / 2);
-
-        if (isDoorTile) {
-          cx.fillStyle = '#3A2010';
-          cx.fillRect(x + 5, y + 2, 22, 28);
-          cx.fillStyle = '#4A3018';
-          cx.fillRect(x + 7, y + 3, 18, 26);
-          // Tablones verticales
-          cx.fillStyle = '#5A4028';
-          cx.fillRect(x + 12, y + 3, 1, 26);
-          cx.fillRect(x + 18, y + 3, 1, 26);
-          // Refuerzos de hierro
-          cx.fillStyle = '#585868';
-          cx.fillRect(x + 7, y + 10, 18, 2);
-          cx.fillRect(x + 7, y + 22, 18, 2);
-          // Cerradura
-          cx.fillStyle = '#D8B840';
-          cx.fillRect(x + 24, y + 15, 2, 3);
-        } else {
-          // Ventana pequeña de molino
-          cx.fillStyle = '#2A2018';
-          cx.fillRect(x + 10, y + 6, 12, 10);
-          cx.fillStyle = '#D6A44A';
-          cx.fillRect(x + 11, y + 7, 10, 8);
-          cx.fillStyle = '#3A2A18';
-          cx.fillRect(x + 16, y + 7, 1, 8);
+      // ─── CAPUCHÓN / TECHO DE MADERA (rows 0-2) ─────────────
+      if (isTopRow) {
+        // Cúpula: semicírculo de madera en los tiles centrales
+        if (relC >= 1 && relC <= 3) {
+          cx.fillStyle = capDark;
+          cx.fillRect(x, y, T, T);
+          cx.fillStyle = capMid;
+          cx.fillRect(x + 1, y + 2, T - 2, T - 2);
+          // Curvatura del domo más marcada en bordes
+          const distFromCenter = Math.abs(relC - midC);
+          const domeH = distFromCenter === 0 ? 28 : distFromCenter === 1 ? 24 : 18;
+          cx.fillStyle = capLight;
+          cx.fillRect(x + 2, y + (T - domeH), T - 4, domeH - 2);
+          // Tablones del domo
+          cx.fillStyle = capDark;
+          for (let i = 0; i < 3; i++) {
+            cx.fillRect(x + 6 + i * 8, y + 6, 1, T - 10);
+          }
         }
-      } else {
-        // Pared media
-        cx.fillStyle = stoneDark; cx.fillRect(x, y, T, T);
-        cx.fillStyle = stoneMid; cx.fillRect(x + 1, y, T - 2, T);
-        for (let br = 0; br < 3; br++) {
-          cx.fillStyle = stoneDark;
-          cx.fillRect(x + 2, y + 6 + br * 8, T - 4, 1);
-        }
-        // Ventana alta
-        if (isWallMid && (c + r) % 2 === 0) {
-          cx.fillStyle = '#2A2018';
-          cx.fillRect(x + 10, y + 8, 12, 10);
-          cx.fillStyle = '#D6A44A';
-          cx.fillRect(x + 11, y + 9, 10, 8);
+        // Eje metálico central (solo en tile central)
+        if (relC === midC) {
+          cx.fillStyle = '#787870';
+          cx.fillRect(x + 14, y - 6, 4, 14);
+          cx.fillStyle = '#989890';
+          cx.fillRect(x + 15, y - 5, 2, 10);
+          // Detalle de cobre/óxido
+          cx.fillStyle = '#A87040';
+          cx.fillRect(x + 13, y - 2, 6, 3);
         }
       }
 
-      // RUEDA DE AGUA: en los tiles del lado derecho (pegados al río)
-      // Solo se dibuja en los tiles de la columna más a la derecha (cerca del agua)
-      if (!rt && (r - ar) >= 2 && (r - ar) <= 6) {
-        // Postes de soporte de la rueda
-        cx.fillStyle = '#4A3018';
-        cx.fillRect(x + 26, y - 4, 4, 36);
-        // Rueda parcial (se completa entre tiles)
-        const rot = fr * 0.02;
-        const cxW = x + 18, cyW = y + 10;
-        cx.save();
-        cx.translate(cxW, cyW);
-        cx.rotate(rot);
-        cx.fillStyle = '#6A4830';
-        for (let i = 0; i < 8; i++) {
-          const a = (i / 8) * Math.PI * 2;
-          cx.fillRect(Math.cos(a) * 8 - 1, Math.sin(a) * 8 - 1, 3, 3);
+      if (isCapRow && !isTopRow) {
+        // Anillo de madera bajo el domo
+        cx.fillStyle = capMid;
+        cx.fillRect(x, y, T, T);
+        if (relC >= 1 && relC <= 3) {
+          cx.fillStyle = capDark;
+          cx.fillRect(x + 1, y, T - 2, T);
+          cx.fillStyle = capMid;
+          cx.fillRect(x + 2, y + 1, T - 4, T - 2);
+          // Ventilación / pequeña abertura en fila 2
+          if (relR === 2 && relC === midC) {
+            cx.fillStyle = '#2A1810';
+            cx.fillRect(x + 10, y + 10, 12, 8);
+            cx.fillStyle = '#4A3020';
+            cx.fillRect(x + 11, y + 11, 10, 6);
+            cx.fillStyle = '#D6A44A';
+            cx.fillRect(x + 12, y + 12, 8, 4);
+          }
         }
-        cx.fillStyle = '#4A3018';
-        cx.fillRect(-1, -10, 2, 20);
-        cx.fillRect(-10, -1, 20, 2);
-        cx.fillStyle = '#7A5840';
-        cx.fillRect(-2, -2, 4, 4);
-        cx.restore();
+        // Mecanismo junto al eje (relR=2, tile central)
+        if (relR === 2 && relC === midC) {
+          cx.fillStyle = '#787870';
+          cx.fillRect(x + 12, y - 2, 8, 6);
+          cx.fillStyle = '#A87040';
+          cx.fillRect(x + 13, y - 1, 6, 3);
+        }
       }
+
+      // ─── ASPAS (dibujadas sobre todo el molino, rows 1-4) ──
+      if (relR >= 0 && relR <= 4) {
+        const rot = fr * 0.015;
+        const cxW = (ac + 2.5) * T - cam.x; // centro del molino en pantalla
+        const cyW = (ar + 2) * T - cam.y;   // altura del eje
+
+        // Dibujar aspas desde el centro: 4 brazos en cruz
+        for (let blade = 0; blade < 4; blade++) {
+          const angle = rot + blade * Math.PI / 2;
+          const dx = Math.cos(angle);
+          const dy = Math.sin(angle);
+
+          // Solo dibujar en tiles donde el aspa es visible
+          // El aspa se extiende ~60px desde el centro
+          const bladeLen = 52;
+          for (let d = 0; d < bladeLen; d += 3) {
+            const bx = cxW + dx * d - x;
+            const by = cyW + dy * d - y;
+            if (bx < -4 || bx > T + 4 || by < -4 || by > T + 4) continue;
+
+            // Brazo de madera
+            if (d < bladeLen - 8) {
+              cx.fillStyle = sailWood;
+              cx.fillRect(x + bx - 1, y + by - 1, 3, 3);
+              // Panel blanco en la parte exterior del aspa
+              if (d > 10) {
+                const panelW = Math.abs(dx) > 0.5 ? 3 : 12;
+                const panelH = Math.abs(dy) > 0.5 ? 3 : 12;
+                cx.fillStyle = sailPanel;
+                if (Math.abs(dx) > 0.5) {
+                  cx.fillRect(x + bx - 1, y + by - 5, 3, 11);
+                } else {
+                  cx.fillRect(x + bx - 5, y + by - 1, 11, 3);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      // ─── CUERPO DE PIEDRA (rows 3-7) ──────────────────────
+      if (relR >= 3 && relR <= 7) {
+        // Cilindro: más ancho en la base, estrecho arriba
+        // relR 3: más estrecho, relR 7: más ancho
+        const baseWidth = 0.6 + (relR - 3) * 0.1; // 0.6→1.0
+        const inset = Math.max(0, Math.floor((1 - baseWidth) * T / 2));
+
+        // Fondo de piedra con mortero
+        cx.fillStyle = mortar;
+        cx.fillRect(x, y, T, T);
+
+        // Solo dibujar piedra si este tile está dentro del cilindro
+        const isInCylinder = relC >= 1 && relC <= 3;
+        if (isInCylinder) {
+          cx.fillStyle = stoneBase;
+          const sx = inset;
+          const sw = T - inset * 2;
+          cx.fillRect(x + sx, y, sw, T);
+
+          // Bloques de piedra irregulares
+          const blockRows = [
+            [0, 5], [5, 10], [10, 16], [16, 22], [22, 28], [28, 32]
+          ];
+          blockRows.forEach(([br, er], ri) => {
+            const rowOff = ri % 2 === 0 ? 0 : 8;
+            for (let bx = sx + rowOff; bx < sx + sw; bx += 14) {
+              const bw = 10 + ((c * 7 + r * 3 + ri) % 5);
+              cx.fillStyle = stoneColors[(c + r + ri) % stoneColors.length];
+              cx.fillRect(x + bx, y + br, Math.min(bw, sx + sw - bx), er - br);
+              // Sombra bajo cada bloque
+              cx.fillStyle = 'rgba(0,0,0,.12)';
+              cx.fillRect(x + bx, y + er - 1, Math.min(bw, sx + sw - bx), 1);
+            }
+          });
+
+          // Borde izquierdo del cilindro (sombreado)
+          if (relC === 1) {
+            cx.fillStyle = 'rgba(0,0,0,.15)';
+            cx.fillRect(x + inset, y, 3, T);
+          }
+          // Borde derecho (más claro)
+          if (relC === 3) {
+            cx.fillStyle = 'rgba(255,255,255,.06)';
+            cx.fillRect(x + T - inset - 3, y, 3, T);
+          }
+
+          // ─── VENTANA (fila 6, tile central) ────────────────
+          if (relR === 6 && relC === midC) {
+            cx.fillStyle = '#2A1A10';
+            cx.fillRect(x + 8, y + 4, 16, 14);
+            cx.fillStyle = '#4A3020';
+            cx.fillRect(x + 9, y + 5, 14, 12);
+            // Marco de madera
+            cx.fillStyle = woodDark;
+            cx.fillRect(x + 8, y + 4, 16, 1);
+            cx.fillRect(x + 8, y + 17, 16, 1);
+            cx.fillRect(x + 8, y + 4, 1, 14);
+            cx.fillRect(x + 23, y + 4, 1, 14);
+            // Cristales divididos
+            cx.fillStyle = '#D6A44A';
+            cx.fillRect(x + 10, y + 6, 5, 5);
+            cx.fillRect(x + 17, y + 6, 5, 5);
+            cx.fillRect(x + 10, y + 13, 5, 5);
+            cx.fillRect(x + 17, y + 13, 5, 5);
+            // Travesaños
+            cx.fillStyle = woodDark;
+            cx.fillRect(x + 16, y + 5, 1, 12);
+            cx.fillRect(x + 9, y + 11, 14, 1);
+          }
+
+          // ─── PUERTA PRINCIPAL (fila 7, tile central) ──────
+          if (relR === 7 && relC === midC) {
+            // Marco de piedra
+            cx.fillStyle = '#4A3A2A';
+            cx.fillRect(x + 6, y + 0, 20, 30);
+            // Puerta de madera arqueada
+            cx.fillStyle = woodDark;
+            cx.fillRect(x + 8, y + 1, 16, 28);
+            cx.fillStyle = woodMid;
+            cx.fillRect(x + 9, y + 2, 14, 26);
+            // Arco
+            cx.fillStyle = stoneLight;
+            cx.fillRect(x + 7, y - 1, 18, 3);
+            cx.fillStyle = stoneDark;
+            cx.fillRect(x + 8, y - 2, 14, 2);
+            // Tablones
+            cx.fillStyle = woodDark;
+            cx.fillRect(x + 14, y + 2, 1, 26);
+            cx.fillRect(x + 19, y + 2, 1, 26);
+            // Refuerzos
+            cx.fillStyle = '#585860';
+            cx.fillRect(x + 9, y + 8, 14, 2);
+            cx.fillRect(x + 9, y + 20, 14, 2);
+            // Cerradura
+            cx.fillStyle = '#C8A830';
+            cx.fillRect(x + 21, y + 14, 2, 3);
+          }
+        }
+      }
+
+      // ─── BALCÓN PERIMETRAL (rows 4-5) ──────────────────────
+      if (relR === 4 || relR === 5) {
+        // Solo en tiles con piedra + los bordes para las ménsulas
+        if (relC >= 1 && relC <= 3) {
+          if (relR === 4) {
+            // Suelo del balcón (tablones que sobresalen)
+            cx.fillStyle = woodMid;
+            cx.fillRect(x - 4, y + 24, T + 8, 6);
+            cx.fillStyle = woodDark;
+            cx.fillRect(x - 4, y + 29, T + 8, 2);
+            // Tablones individuales
+            for (let tx = -4; tx < T + 4; tx += 6) {
+              cx.fillStyle = woodLight;
+              cx.fillRect(x + tx, y + 25, 4, 3);
+            }
+          }
+          if (relR === 5) {
+            // Barandilla: postes verticales + pasamanos
+            for (let px2 = -4; px2 <= T + 2; px2 += 6) {
+              cx.fillStyle = woodRail;
+              cx.fillRect(x + px2, y + 4, 2, 22);
+            }
+            // Pasamanos superior
+            cx.fillStyle = woodMid;
+            cx.fillRect(x - 4, y + 4, T + 8, 3);
+            cx.fillStyle = woodLight;
+            cx.fillRect(x - 3, y + 5, T + 6, 1);
+            // Pasamanos inferior
+            cx.fillStyle = woodMid;
+            cx.fillRect(x - 4, y + 16, T + 8, 2);
+          }
+          // Puerta del balcón (fila 4, tile central)
+          if (relR === 4 && relC === midC) {
+            cx.fillStyle = woodDark;
+            cx.fillRect(x + 10, y + 6, 12, 18);
+            cx.fillStyle = woodMid;
+            cx.fillRect(x + 11, y + 7, 10, 16);
+            cx.fillStyle = '#2A1810';
+            cx.fillRect(x + 13, y + 8, 6, 14);
+            // Arco de la puerta
+            cx.fillStyle = stoneLight;
+            cx.fillRect(x + 9, y + 4, 14, 3);
+          }
+        }
+        // Ménsulas (soportes del balcón) en bordes
+        if (relC === 1 || relC === 3) {
+          cx.fillStyle = woodDark;
+          const mx = relC === 1 ? x + 2 : x + 24;
+          if (relR === 5) {
+            cx.fillRect(mx, y + 26, 6, 6);
+            cx.fillStyle = woodMid;
+            cx.fillRect(mx + 1, y + 24, 4, 4);
+          }
+        }
+      }
+
+      // ─── BASE: ROCAS Y VEGETACIÓN (fila 8) ────────────────
+      if (isBaseRow) {
+        // Suelo de hierba
+        const snow = Math.max(0, Math.min(1, (68 - r) / 46));
+        cx.fillStyle = lerpColor('#58A830', '#F2F8F4', snow);
+        cx.fillRect(x, y, T, T);
+
+        if (relC >= 1 && relC <= 3) {
+          // Rocas en la base
+          cx.fillStyle = '#5A5048';
+          cx.fillRect(x + 2, y + 2, T - 4, 14);
+          // Rocas individuales
+          const rocks = relC === 1 ? [[3,4,10,8],[15,6,8,9]] :
+                        relC === 2 ? [[4,2,24,12]] :
+                        [[3,4,10,8],[15,5,9,9]];
+          rocks.forEach(([rx, ry2, rw, rh]) => {
+            cx.fillStyle = stoneColors[(c + Math.floor(ry2/4)) % stoneColors.length];
+            cx.fillRect(x + rx, y + ry2, rw, rh);
+            cx.fillStyle = 'rgba(255,255,255,.08)';
+            cx.fillRect(x + rx + 1, y + ry2, rw - 2, 2);
+          });
+
+          // Arbustos
+          if (relC !== midC) {
+            const bx2 = relC === 1 ? x + 16 : x + 2;
+            cx.fillStyle = '#3A6A20';
+            cx.fillRect(bx2, y + 6, 14, 12);
+            cx.fillStyle = '#4A8A2A';
+            cx.fillRect(bx2 + 2, y + 4, 10, 10);
+            cx.fillStyle = '#5AA830';
+            cx.fillRect(bx2 + 2, y + 6, 10, 6);
+            // Hojas sueltas
+            cx.fillStyle = '#6AC040';
+            cx.fillRect(bx2 + 4, y + 2, 6, 4);
+            cx.fillRect(bx2, y + 10, 4, 3);
+            cx.fillRect(bx2 + 10, y + 8, 4, 3);
+          } else {
+            // Planta pequeña central
+            cx.fillStyle = '#3A6A20';
+            cx.fillRect(x + 12, y + 10, 8, 6);
+            cx.fillStyle = '#5AA830';
+            cx.fillRect(x + 13, y + 8, 6, 4);
+          }
+        }
+      }
+
       break;
     }
   } // fin switch
