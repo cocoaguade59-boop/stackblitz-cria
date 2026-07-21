@@ -436,50 +436,141 @@ function buildRoute1C2() {
 }
 
 function buildStoryboardC3() {
-  // Villa Storyboard: plaza de iluminadores, tapices y artefactos escénicos medievales.
-  fillWorld(28, 99, 56, 118, 0);
-  // Calles y plaza de pergaminos.
-  fillWorld(39, 99, 41, 118, 1);
-  fillWorld(31, 108, 53, 110, 1);
-  fillWorld(36, 104, 46, 114, 1);
-  // Casas/gremios alrededor de la plaza.
-  worldHouse(30, 100); worldHouse(48, 100); worldHouse(30, 114); worldHouse(48, 114);
-  fillWorld(29, 104, 35, 106, 1); fillWorld(47, 104, 53, 106, 1);
-  // Paneles, vitrales y tapices: arte visual medieval, no estudio moderno.
-  setWorld(37, 106, 17); setWorld(38, 106, 17); setWorld(43, 106, 17); setWorld(44, 106, 17);
-  setWorld(37, 112, 17); setWorld(44, 112, 17); setWorld(40, 109, 19);
-  // Taller de Utilería Proa: herrería ligera, farol alquímico, cajas y placas.
-  fillWorld(48, 108, 53, 112, 26);
-  setWorld(49, 108, 20); setWorld(52, 108, 20); setWorld(49, 112, 20); setWorld(52, 112, 20);
-  setWorld(50, 110, 21); setWorld(51, 110, 21); setWorld(52, 110, 15);
-  // Jardines feéricos y arbolado protector en bordes.
-  for (let r = 99; r <= 118; r++) for (let c = 28; c <= 56; c++) {
-    if (wMap[r][c] !== 0) continue;
-    if ((c === 28 || c === 56 || r === 99 || r === 118) && (c + r) % 3 !== 0) setWorld(c, r, 3);
-    else if ((c * 3 + r * 7) % 6 === 0) setWorld(c, r, 6);
+  // C3.1 — Villa Storyboard definitiva (120×300, filas 200–229).
+  // Villa de iluminadores, vitrales, tapices, pergaminos y flores.
+  // NPCs: Gabriela(56,213), Fabiana(49,216), Paulo(69,216),
+  //        Claudia(52,220), Tamara(60,211), DavidO(65,220), Luas(58,207).
+
+  // 1. Limpiar área (cols 32-85, rows 200-229)
+  fillWorld(32, 200, 85, 229, 0);
+
+  // 2. Camino Real (3 tiles ancho)
+  fillWorld(58, 200, 60, 229, 1);
+
+  // 3. Plaza de los Pergaminos (central, amplia)
+  fillWorld(46, 213, 66, 222, 1);
+  // Fuente/estatua central
+  setWorld(56, 217, 19);
+  // Bancos alrededor de la fuente
+  setWorld(54, 218, 16); setWorld(58, 218, 16);
+  // Faroles en esquinas de plaza
+  setWorld(48, 215, 15); setWorld(64, 215, 15);
+  setWorld(48, 220, 15); setWorld(64, 220, 15);
+
+  // 4. Red de calles secundarias
+  // Calle horizontal alta (row 210): conecta Proa Tamara con casas
+  fillWorld(36, 210, 76, 210, 1);
+  // Calle horizontal media (row 214): casa Fabiana → plaza
+  fillWorld(36, 214, 76, 214, 1);
+  // Calle horizontal sur (row 224): conexión casas bajas
+  fillWorld(36, 224, 76, 224, 1);
+  // Callejón de los gremios (row 207)
+  fillWorld(36, 207, 76, 207, 1);
+
+  // 5. Calles verticales
+  // Calle oeste (col 43): conecta Fabiana, gremios, zona baja
+  fillWorld(43, 202, 43, 227, 1);
+  // Calle este (col 70): conecta Paulo, taller Acero
+  fillWorld(70, 202, 70, 227, 1);
+  // Calle central-oeste (col 52): paso lateral de plaza
+  fillWorld(52, 213, 52, 222, 1);
+  // Calle central-este (col 62): paso lateral de plaza
+  fillWorld(62, 213, 62, 222, 1);
+
+  // ─── CASAS IMPORTANTES (4×3) ──────────────────────────────
+  // Fabiana (oeste superior): cols 38-41, rows 203-206
+  for (let r = 203; r <= 206; r++) for (let c = 38; c <= 41; c++) setWorld(c, r, 4);
+  fillWorld(37, 207, 42, 209, 1); // patio
+
+  // Paulo (este superior): cols 70-73, rows 203-206
+  for (let r = 203; r <= 206; r++) for (let c = 70; c <= 73; c++) setWorld(c, r, 4);
+  fillWorld(69, 207, 74, 209, 1);
+
+  // Gabriela (oeste inferior): cols 38-41, rows 225-228
+  for (let r = 225; r <= 228; r++) for (let c = 38; c <= 41; c++) setWorld(c, r, 4);
+  fillWorld(37, 229, 42, 229, 1);
+
+  // Casa adicional (Claudia/DavidO, este inferior): cols 70-73, rows 225-228
+  for (let r = 225; r <= 228; r++) for (let c = 70; c <= 73; c++) setWorld(c, r, 4);
+  fillWorld(69, 229, 74, 229, 1);
+
+  // ─── PROA TAMARA (edificio especial al norte de plaza) ────
+  // Cols 47-52, rows 200-203 (más ancho que casa normal, 6×4)
+  for (let r = 200; r <= 203; r++) for (let c = 47; c <= 52; c++) setWorld(c, r, 4);
+  fillWorld(48, 204, 51, 206, 1); // patio/acceso
+
+  // ─── TALLER ACERO (herrería fina, sureste de plaza) ──────
+  // Suelo de taller (tile 26 = piedra) en área delimitada
+  fillWorld(64, 218, 76, 223, 26);
+  // Rieles, cajas, faroles: decoración medieval, no fábrica
+  setWorld(66, 220, 15); setWorld(74, 220, 15); setWorld(71, 219, 21);
+  setWorld(68, 221, 21); setWorld(73, 222, 7);
+  // Borde del taller
+  setWorld(64, 218, 20); setWorld(64, 223, 20);
+  setWorld(76, 218, 20); setWorld(76, 223, 20);
+
+  // ─── DECORACIÓN ARTÍSTICA ─────────────────────────────────
+  // Paneles de vitrales (tile 17) en la plaza
+  setWorld(50, 216, 17); setWorld(51, 216, 17);
+  setWorld(61, 219, 17); setWorld(62, 219, 17);
+  // Tapices colgantes (tile 17) en callejones
+  setWorld(45, 207, 17); setWorld(68, 210, 17);
+  setWorld(45, 214, 17); setWorld(68, 214, 17);
+  // Murales en paredes de gremios
+  setWorld(42, 212, 17); setWorld(71, 212, 17);
+  // Estatua de escriba (tile 19) al norte
+  setWorld(56, 207, 19);
+  // Arcos de entrada (tile 14)
+  setWorld(58, 201, 14); setWorld(59, 201, 14); // norte
+  setWorld(58, 229, 14); setWorld(59, 229, 14); // sur
+
+  // ─── JARDINES Y FLORES ────────────────────────────────────
+  // Flores en bordes de plaza y callejones
+  for (let r = 200; r <= 229; r++) {
+    for (let c = 32; c <= 85; c++) {
+      if (wMap[r][c] !== 0) continue;
+      // Setos en bordes
+      if (c === 32 || c === 85 || r === 200 || r === 229) {
+        if ((c + r) % 3 !== 0) setWorld(c, r, 3);
+      } else if ((c * 5 + r * 3) % 11 === 0) setWorld(c, r, 6);
+      else if ((c * 7 + r * 3) % 12 === 0 && r > 220) setWorld(c, r, 5);
+    }
   }
-  // Salidas sur/norte y zona de Tamara sin obstáculos.
-  fillWorld(39, 99, 41, 118, 1);
-  fillWorld(36, 108, 46, 110, 1);
+
+  // Jardín feérico al noroeste (zona tranquila)
+  fillWorld(34, 201, 41, 205, 0);
+  setWorld(37, 203, 6); setWorld(39, 202, 6);
+  setWorld(35, 204, 6); setWorld(40, 204, 6);
+
+  // Reafirmar camino principal
+  fillWorld(58, 200, 60, 229, 1);
 }
 
 function buildRoute2C3() {
-  // Ruta 2: bosque que se transforma gradualmente en piedra de cantera.
-  for (let r = 87; r <= 98; r++) for (let c = 31; c <= 57; c++) {
-    if (wMap[r][c] === 1 || wMap[r][c] === 4 || wMap[r][c] === 9) continue;
-    if (r < 93 && (c + r) % 4 === 0) setWorld(c, r, 3);
-    else if (r >= 93 && (c * 3 + r) % 5 === 0) setWorld(c, r, 7);
-    else if (r >= 92 && (c + r) % 3 === 0) setWorld(c, r, 26);
-    else setWorld(c, r, (c + r) % 4 === 0 ? 5 : 0);
+  // Ruta 2 (filas 185–199): bosque que se transforma en piedra de cantera.
+  // Transición climática: templado Storyboard → roca/vapor de Rodaje.
+  for (let r = 185; r <= 199; r++) {
+    for (let c = 42; c <= 72; c++) {
+      if (wMap[r][c] === 1 || wMap[r][c] === 4 || wMap[r][c] === 9) continue;
+      if (r > 194 && (c + r) % 4 === 0) setWorld(c, r, 7);  // rocas
+      else if (r > 193 && (c * 3 + r) % 5 === 0) setWorld(c, r, 26); // piedra
+      else if (r > 192 && (c + r) % 3 === 0) setWorld(c, r, 2); // charcos
+      else if ((c + r) % 3 === 0) setWorld(c, r, 3); // árboles
+      else setWorld(c, r, (c + r) % 4 === 0 ? 5 : 0);
+    }
   }
-  // Camino ascendente intacto y sus ensanchamientos de descanso.
-  for (let r = 87; r <= 98; r++) {
-    const center = Math.round(54 - (r - 87) * 0.8);
+  // Camino ascendente desde Storyboard
+  for (let r = 185; r <= 199; r++) {
+    const center = Math.round(59 - (199 - r) * 0.4);
     keepPath(center, r); keepPath(center + 1, r);
   }
-  fillWorld(39, 97, 45, 98, 1);
-  // Hitos de piedra y faroles de camino, medievales.
-  setWorld(35, 95, 19); setWorld(48, 92, 15); setWorld(52, 89, 20);
+  // Ensanchamiento de descanso en la cima
+  fillWorld(55, 187, 63, 189, 1);
+  // Hitos: faroles y piedras de camino
+  setWorld(56, 194, 15); setWorld(62, 190, 19);
+  setWorld(54, 197, 20); setWorld(61, 196, 7);
+  // Veta de mineral visible (anticipo de cantera)
+  setWorld(58, 192, 7); setWorld(65, 188, 7);
 }
 
 function buildRodajeC4() {
