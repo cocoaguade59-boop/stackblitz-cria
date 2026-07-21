@@ -523,13 +523,13 @@ function genExpandedTerrainC15a2b() {
     // Cuatro edificios provisionales; C2.5–C6 los convertirán en estructuras únicas/entrables.
     if (id !== 'castle') {
       [[cx-12,cy-7],[cx+8,cy-7],[cx-12,cy+4],[cx+8,cy+4]].forEach(([x,y]) => {
-        for(let yy=y;yy<y+3;yy++) for(let xx=x;xx<x+4;xx++) wMap[yy][xx]=4;
+        for(let yy=y;yy<y+3;yy++) for(let xx=x;xx<x+4;xx++) if (wMap[yy]) wMap[yy][xx]=4;
       });
     } else {
       for(let y=Math.max(2, cy-3);y<=Math.min(WR-3, cy+3);y++) for(let x=Math.max(2, cx-18);x<=Math.min(WC-3, cx+18);x++) if (x<cx-3||x>cx+3||y<cy) wMap[y][x]=13;
       if (cy + 3 < WR - 2) wMap[cy+3][cx]=11;
     }
-    for(let y=Math.max(2, cy-8);y<=Math.min(WR-3, cy+8);y++) for(let x=Math.max(2, cx-1);x<=Math.min(WC-3, cx+1);x++) if(wMap[y][x]!==4&&wMap[y][x]!==13)wMap[y][x]=1;
+    for(let y=Math.max(2, cy-8);y<=Math.min(WR-3, cy+8);y++) for(let x=Math.max(2, cx-1);x<=Math.min(WC-3, cx+1);x++) if(wMap[y] && wMap[y][x]!==4&&wMap[y][x]!==13)wMap[y][x]=1;
   });
 
   // Río del sur y puentes provisionales transitables.
