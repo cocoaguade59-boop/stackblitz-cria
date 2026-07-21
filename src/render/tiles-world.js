@@ -1048,6 +1048,87 @@ function dTileW(c, r) {
         }
       }
       break;
+
+    // ─── C2.1: NUEVOS TILES DE ALDEA ─────────────────────────
+    case 28: { // Surcos de cultivo (parcelas)
+      drawWorldDecorBase(c, r, x, y);
+      // surcos marrones alternados
+      for (let row = 0; row < 4; row++) {
+        cx.fillStyle = row % 2 === 0 ? '#8B6B3A' : '#6B4E28';
+        cx.fillRect(x + 2, y + 4 + row * 7, 28, 5);
+      }
+      // brotes verdes en cada surco
+      cx.fillStyle = '#5A9A30';
+      for (let row = 0; row < 4; row++) {
+        for (let i = 0; i < 3; i++) {
+          const bx = x + 5 + i * 9 + ((row + c) % 3) * 2;
+          cx.fillRect(bx, y + 8 + row * 7, 2, 3);
+          cx.fillStyle = '#7AC040';
+          cx.fillRect(bx, y + 7 + row * 7, 1, 2);
+          cx.fillStyle = '#5A9A30';
+        }
+      }
+      break;
+    }
+    case 29: { // Muelle / tablones de madera
+      cx.fillStyle = '#2080C0';
+      cx.fillRect(x, y, T, T);
+      cx.fillStyle = '#8B6038';
+      cx.fillRect(x + 2, y, 28, T);
+      // tablones horizontales
+      for (let row = 0; row < 4; row++) {
+        cx.fillStyle = row % 2 === 0 ? '#9B7050' : '#7B5030';
+        cx.fillRect(x + 2, y + 2 + row * 8, 28, 6);
+      }
+      // clavos
+      cx.fillStyle = '#585858';
+      for (let r2 = 0; r2 < 4; r2++)
+        for (let c2 = 0; c2 < 3; c2++)
+          cx.fillRect(x + 6 + c2 * 10, y + 4 + r2 * 8, 2, 2);
+      // postes laterales
+      cx.fillStyle = '#5A3820';
+      cx.fillRect(x, y + 2, 3, 28);
+      cx.fillRect(x + 29, y + 2, 3, 28);
+      break;
+    }
+    case 30: { // Redes de pesca colgadas
+      drawWorldDecorBase(c, r, x, y);
+      cx.fillStyle = '#5A3820';
+      cx.fillRect(x + 4, y + 2, 2, 28);
+      cx.fillStyle = '#D8C8A0';
+      // red en rombos
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 5; j++) {
+          const nx = x + 8 + i * 8 + (j % 2) * 4;
+          const ny = y + 3 + j * 6;
+          cx.fillRect(nx, ny, 2, 2);
+          if (j < 4) { cx.fillRect(nx + 1, ny + 1, 1, 5); }
+        }
+      }
+      break;
+    }
+    case 31: { // Barca / bote
+      cx.fillStyle = '#2080C0';
+      cx.fillRect(x, y, T, T);
+      // casco
+      cx.fillStyle = '#6B3A20';
+      cx.fillRect(x + 3, y + 12, 26, 14);
+      cx.fillStyle = '#8B5030';
+      cx.fillRect(x + 4, y + 10, 24, 10);
+      cx.fillStyle = '#A06040';
+      cx.fillRect(x + 6, y + 10, 20, 6);
+      // borda
+      cx.fillStyle = '#5A2A10';
+      cx.fillRect(x + 2, y + 11, 28, 2);
+      // remos
+      cx.fillStyle = '#8B6030';
+      cx.fillRect(x + 2, y + 6, 4, 18);
+      cx.fillRect(x + 26, y + 6, 4, 18);
+      // agua debajo
+      cx.fillStyle = 'rgba(72,160,232,.3)';
+      cx.fillRect(x + 6, y + 24, 20, 4);
+      break;
+    }
   } // fin switch
 } // fin dTileW
 

@@ -298,56 +298,111 @@ function worldHouse(x, y) { fillWorld(x, y, x + 4, y + 3, 4); }
 function keepPath(c, r) { setWorld(c, r, 1); }
 
 function buildPitchC2() {
-  // Aldea Pitch: aldea fluvial. El río y puente son geometría real, no decorado.
-  fillWorld(9, 128, 35, 148, 0);
-  // Río del este, con ribera de piedra y puente central.
-  fillWorld(29, 128, 35, 148, 2);
-  for (let r = 128; r <= 148; r++) setWorld(28, r, r % 3 === 0 ? 6 : 0);
-  fillWorld(25, 139, 35, 140, 1); // puente de madera/camino
-  // Camino desde la salida sur y hacia Ruta 1.
-  fillWorld(19, 128, 20, 148, 1);
-  fillWorld(14, 139, 28, 140, 1);
-  fillWorld(19, 128, 21, 132, 1);
-  // Casas de piedra/madera, deliberadamente separadas de caminos y NPCs.
-  worldHouse(11, 130); worldHouse(22, 130); worldHouse(11, 143); worldHouse(22, 143);
-  // Patios y accesos a puertas.
-  fillWorld(11, 134, 16, 136, 1); fillWorld(22, 134, 27, 136, 1);
-  fillWorld(11, 147, 16, 148, 1); fillWorld(22, 147, 27, 148, 1);
-  // Plaza del pozo y ribera; el pozo es sólido, el resto transitable.
-  fillWorld(17, 136, 23, 138, 1); setWorld(18, 137, 22);
-  // Patio Comunitario de Ensayo: suelo delimitado y objetos sólidos reales.
-  fillWorld(11, 137, 16, 141, 1);
-  setWorld(12, 137, 20); setWorld(15, 137, 20); setWorld(12, 141, 20); setWorld(15, 141, 20);
-  setWorld(13, 139, 23); setWorld(14, 139, 23);
-  // Bosque y flores en bordes, manteniendo entradas limpias.
-  for (let r = 128; r <= 148; r++) for (let c = 9; c <= 35; c++) {
-    if (wMap[r][c] !== 0) continue;
-    if ((c === 9 || c === 35 || r === 128) && (c + r) % 3 !== 0) setWorld(c, r, 3);
-    else if ((c * 5 + r * 3) % 11 === 0) setWorld(c, r, 6);
+  // C2.1 — Aldea Pitch definitiva (120×300, filas 270–299).
+  // Aldea fluvial sureña: río al este, molino 5×9, puente, muelle, parcelas y plaza.
+  // NPCs conservan sus coordenadas: Alessandro(56,284), Luas(63,284),
+  // Alexandro(52,288), Luis(76,280), Nicole(55,291). Spawn: (60,285).
+
+  // 1. Limpiar área del pueblo (cols 25-97, rows 270-299)
+  fillWorld(25, 270, 97, 299, 0);
+
+  // 2. Camino Real (3 tiles ancho) — columna vertebral norte→sur
+  fillWorld(58, 270, 60, 299, 1);
+
+  // 3. Río al este (cols 85-93), con riberas decoradas
+  fillWorld(85, 270, 93, 299, 2);
+  for (let r = 270; r <= 299; r++) {
+    setWorld(84, r, r % 3 === 0 ? 6 : 0);
+    setWorld(94, r, r % 2 === 0 ? 7 : 0);
   }
-  // Reafirmar el eje hacia Ruta 1 después de bordes.
-  fillWorld(19, 128, 20, 148, 1);
+
+  // 4. Puente de madera sobre el río (filas 280-281)
+  fillWorld(83, 280, 95, 281, 1);
+
+  // 5. Plaza central (rows 281–288, cols 48–66)
+  fillWorld(48, 281, 66, 288, 1);
+  setWorld(56, 285, 22); // pozo
+  setWorld(50, 283, 15); setWorld(64, 283, 15);
+  setWorld(50, 286, 15); setWorld(64, 286, 15);
+  setWorld(58, 287, 16); // banco
+
+  // 6. Molino 5×9 (noreste, cols 70-74, rows 278-286)
+  for (let r = 278; r <= 286; r++)
+    for (let c = 70; c <= 74; c++)
+      setWorld(c, r, 4);
+  fillWorld(67, 287, 69, 287, 1);
+  fillWorld(72, 287, 72, 288, 1);
+
+  // 7. Cuatro casas (4×3) con patios delanteros
+  for (let r = 274; r <= 277; r++) for (let c = 38; c <= 41; c++) setWorld(c, r, 4);
+  fillWorld(37, 278, 42, 280, 1);
+  for (let r = 274; r <= 277; r++) for (let c = 76; c <= 79; c++) setWorld(c, r, 4);
+  fillWorld(75, 278, 80, 280, 1);
+  for (let r = 291; r <= 294; r++) for (let c = 38; c <= 41; c++) setWorld(c, r, 4);
+  fillWorld(37, 295, 42, 297, 1);
+  for (let r = 291; r <= 294; r++) for (let c = 48; c <= 51; c++) setWorld(c, r, 4);
+  fillWorld(47, 295, 52, 297, 1);
+
+  // 8. Patio de Lucha (oeste de plaza)
+  fillWorld(43, 282, 47, 286, 1);
+  setWorld(43, 282, 20); setWorld(47, 282, 20); setWorld(43, 286, 20); setWorld(47, 286, 20);
+  setWorld(44, 284, 23); setWorld(46, 284, 23); setWorld(45, 283, 7);
+
+  // 9. Muelle + barca + redes (sur del puente)
+  fillWorld(82, 292, 84, 294, 1);
+  setWorld(82, 293, 29); setWorld(82, 294, 29);
+  setWorld(85, 294, 31); setWorld(86, 294, 31); setWorld(85, 295, 31); setWorld(86, 295, 31);
+  setWorld(81, 291, 30); setWorld(81, 292, 30);
+
+  // 10. Parcelas (sur-oeste) con cercas - NO tocar casas
+  fillWorld(30, 295, 36, 298, 28); // antes era hasta 42, ahora hasta 36 para no invadir casa
+  for (let c = 29; c <= 37; c++) { setWorld(c, 294, 20); setWorld(c, 299, 20); }
+  for (let r = 295; r <= 298; r++) { setWorld(29, r, 20); setWorld(37, r, 20); }
+  setWorld(33, 296, 23); setWorld(44, 297, 21); setWorld(44, 298, 21);
+
+  // 11. Huerto junto al río (sur-este)
+  fillWorld(75, 295, 80, 298, 28);
+  setWorld(74, 294, 20); setWorld(81, 294, 20);
+  setWorld(74, 299, 20); setWorld(81, 299, 20);
+  setWorld(74, 295, 20); setWorld(74, 296, 20);
+
+  // 12. Arco de entrada norte a Ruta 1
+  setWorld(58, 271, 14); setWorld(59, 271, 14);
+
+  // 13. Bordes: árboles + flores sin tapar caminos
+  for (let r = 270; r <= 299; r++) {
+    for (let c = 25; c <= 97; c++) {
+      if (wMap[r][c] !== 0) continue;
+      if (c === 25 || c === 97 || r === 270 || r === 299) {
+        if ((c + r) % 3 !== 0) setWorld(c, r, 3);
+      } else if ((c * 5 + r * 3) % 11 === 0) setWorld(c, r, 6);
+      else if ((c * 3 + r * 7) % 13 === 0 && r > 288) setWorld(c, r, 5);
+    }
+  }
+
+  // 14. Salida limpia norte
+  fillWorld(58, 270, 61, 273, 1);
 }
 
 function buildRoute1C2() {
-  // Ruta 1: ribera/bosque joven; el camino está siempre despejado y el río acompaña al este.
-  for (let r = 115; r <= 127; r++) {
-    for (let c = 11; c <= 32; c++) {
-      if (wMap[r][c] === 1 || wMap[r][c] === 4) continue;
-      if (c >= 27 && c <= 31 && r >= 119) setWorld(c, r, 2);
-      else if ((c + r) % 5 === 0) setWorld(c, r, 5);
-      else if (c === 11 || c === 32) setWorld(c, r, 3);
+  // Ruta 1 (filas 248–269): ribera y bosque joven. Río angosto al este.
+  for (let r = 248; r <= 269; r++) {
+    for (let c = 45; c <= 70; c++) {
+      if (wMap[r][c] === 1 || wMap[r][c] === 4 || wMap[r][c] === 9 || wMap[r][c] === 2) continue;
+      if ((c + r) % 5 === 0) setWorld(c, r, 5);
     }
   }
-  // Camino serpenteante de aventura desde Pitch a Storyboard.
-  for (let r = 115; r <= 127; r++) {
-    const center = r < 121 ? 25 : 20;
+  for (let r = 248; r <= 269; r++)
+    for (let c = 84; c <= 87; c++)
+      if (wMap[r][c] !== 1 && wMap[r][c] !== 4) setWorld(c, r, 2);
+  for (let r = 248; r <= 269; r++) {
+    const center = r > 258 ? 59 : Math.round(59 + (269 - r) * 0.3);
     keepPath(center, r); keepPath(center + 1, r);
   }
-  fillWorld(20, 126, 26, 127, 1);
-  // Claro lateral para exploración/pines y piedras de ribera.
-  fillWorld(14, 120, 18, 124, 0);
-  setWorld(14, 120, 6); setWorld(18, 124, 6); setWorld(16, 121, 24);
+  fillWorld(70, 258, 76, 264, 0);
+  setWorld(72, 260, 6); setWorld(74, 262, 7);
+  fillWorld(82, 255, 89, 256, 1);
+  setWorld(58, 265, 15); setWorld(60, 252, 19);
 }
 
 function buildStoryboardC3() {
@@ -541,6 +596,16 @@ function genExpandedTerrainC15a2b() {
     if (Math.abs(c-60)<10 || wMap[r][c]!==0) continue;
     if ((c*5+r*3)%13===0) wMap[r][c]=3;
   }
+
+  // C2/C3: layouts fijos sobreescribiendo hubs provisionales
+  buildPitchC2();
+  buildRoute1C2();
+  buildStoryboardC3();
+  buildRoute2C3();
+  buildRodajeC4();
+  buildRoute3C4();
+  buildUltimaTomaC5();
+  buildRoute4C5();
 }
 
 function genWorld() {
@@ -668,15 +733,7 @@ function genWorld() {
   // Bancos, faroles, estatuas y cercas en rutas.
   addRouteDecorations();
 
-  // Fases C2/C3: primeros pueblos y rutas con geometría regional fija.
-  buildPitchC2();
-  buildRoute1C2();
-  buildStoryboardC3();
-  buildRoute2C3();
-  buildRodajeC4();
-  buildRoute3C4();
-  buildUltimaTomaC5();
-  buildRoute4C5();
+  // Fases C2/C3 llamadas dentro de genExpandedTerrainC15a2b para 120×300
 
   // Pines del mundo (antes cristales tile 10).
   // Se colocan aquí en la gen inicial; al reentrar el mapa se re-sortean

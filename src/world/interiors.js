@@ -22,61 +22,68 @@ const IT = {
   creatureStorage: 55,
 };
 
-// ─── EDIFICIOS REGISTRADOS ─────────────────────────────────────────
-// Cada edificio tiene:
-//  - exterior: bounding box aproximado del edificio en el mundo
-//  - door: tile ABAJO del edificio donde el jugador se para para entrar
-//  - exit: coordenadas de retorno al mundo tras salir
-//  - size: dimensiones del mapa interior
-//  - style: variante visual
-// Las coordenadas coinciden con los hubs de genExpandedTerrainC15a2b:
-//   Pitch en cx=60,cy=285 genera edificios en [48,278],[68,278],[48,289],[68,289]
+// C1.5b — Edificios registrados con posiciones reales.
+// C2.1 — Actualizado para el layout definitivo de Aldea Pitch (filas 270-299).
+// Las coordenadas coinciden con buildPitchC2() en map-generator.js.
 const BUILDINGS = {
-  pitch_home_1: {
-    id: 'pitch_home_1',
+  // ─── PITCH ────────────────────────────────────────────────
+  pitch_home_NO: {  // Casa noroeste: cols 38-41, rows 274-277
+    id: 'pitch_home_NO',
     kind: 'home',
     region: 'pitch',
-    exterior: { x: 48, y: 278, w: 4, h: 3 },
-    door: { x: 50, y: 281 },          // tile de camino justo debajo del edificio
-    exit: { map: 'world', x: 50, y: 282, d: 0 },
+    exterior: { x: 38, y: 274, w: 4, h: 4 },
+    door: { x: 40, y: 278 },
+    exit: { map: 'world', x: 40, y: 279, d: 0 },
     title: 'Casa de Aldea Pitch',
     size: { cols: 12, rows: 9 },
     style: 'pitch',
   },
-  pitch_home_2: {
-    id: 'pitch_home_2',
+  pitch_home_NE: {  // Casa noreste: cols 76-79, rows 274-277
+    id: 'pitch_home_NE',
     kind: 'home',
     region: 'pitch',
-    exterior: { x: 68, y: 278, w: 4, h: 3 },
-    door: { x: 70, y: 281 },
-    exit: { map: 'world', x: 70, y: 282, d: 0 },
+    exterior: { x: 76, y: 274, w: 4, h: 4 },
+    door: { x: 78, y: 278 },
+    exit: { map: 'world', x: 78, y: 279, d: 0 },
     title: 'Casa de Aldea Pitch',
     size: { cols: 12, rows: 9 },
     style: 'pitch',
   },
-  pitch_mill: {
+  pitch_home_SO: {  // Casa suroeste: cols 38-41, rows 291-294
+    id: 'pitch_home_SO',
+    kind: 'home',
+    region: 'pitch',
+    exterior: { x: 38, y: 291, w: 4, h: 4 },
+    door: { x: 40, y: 295 },
+    exit: { map: 'world', x: 40, y: 296, d: 0 },
+    title: 'Casa de Aldea Pitch',
+    size: { cols: 12, rows: 9 },
+    style: 'pitch',
+  },
+  pitch_home_SE: {  // Casa sureste: cols 48-51, rows 291-294
+    id: 'pitch_home_SE',
+    kind: 'home',
+    region: 'pitch',
+    exterior: { x: 48, y: 291, w: 4, h: 4 },
+    door: { x: 50, y: 295 },
+    exit: { map: 'world', x: 50, y: 296, d: 0 },
+    title: 'Casa de Aldea Pitch',
+    size: { cols: 12, rows: 9 },
+    style: 'pitch',
+  },
+  pitch_mill: {  // Molino 5×9: cols 70-74, rows 278-286
     id: 'pitch_mill',
     kind: 'mill',
     region: 'pitch',
-    exterior: { x: 48, y: 289, w: 4, h: 3 },
-    door: { x: 50, y: 292 },
-    exit: { map: 'world', x: 50, y: 293, d: 0 },
+    exterior: { x: 70, y: 278, w: 5, h: 9 },
+    door: { x: 72, y: 287 },
+    exit: { map: 'world', x: 72, y: 288, d: 0 },
     title: 'Molino de Aldea Pitch',
     size: { cols: 16, rows: 14 },
     style: 'mill',
     futureMission: 'luisBridge',
   },
-  pitch_home_4: {
-    id: 'pitch_home_4',
-    kind: 'home',
-    region: 'pitch',
-    exterior: { x: 68, y: 289, w: 4, h: 3 },
-    door: { x: 70, y: 292 },
-    exit: { map: 'world', x: 70, y: 293, d: 0 },
-    title: 'Casa de Aldea Pitch',
-    size: { cols: 12, rows: 9 },
-    style: 'pitch',
-  },
+  // ─── STORYBOARD ───────────────────────────────────────────
   storyboard_proa: {
     id: 'storyboard_proa',
     kind: 'proa',

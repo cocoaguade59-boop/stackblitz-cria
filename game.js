@@ -373,7 +373,7 @@ function solidW(c, r) {
   // Pin de hallazgo (antes cristal): sólido, se recoge con SPACE
   if (t === 10) return true;
   // Decoración sólida del mundo: puestos, estatuas, cercas, cajas, pozos, muñecos y cámara/set.
-  if ([18, 19, 20, 21, 22, 23, 25, 27].includes(t)) return true;
+  if ([18, 19, 20, 21, 22, 23, 25, 27, 30, 31].includes(t)) return true;
   if (t === 13) return true;
   if (t === 9) return true;
   if (t === 12 && !towerOpen) return true;
