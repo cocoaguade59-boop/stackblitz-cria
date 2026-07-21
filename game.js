@@ -1141,13 +1141,13 @@ function uWorld() {
     }
   }
 
-  // Entrada a interiores: si estás frente a un edificio (tile 4 hacia arriba)
-  // y esa posición corresponde a una puerta registrada, entrar.
+  // Entrada a interiores: SOLO por la puerta registrada.
+  // El jugador debe estar parado en building.door y presionar ↑.
   if (!G.pl.stepTarget && kh('ArrowUp')) {
     const pc = Math.round(G.pl.x), pr = Math.round(G.pl.y);
     const above = wMap[pr - 1]?.[pc];
     if (above === 4 || above === 32) {
-      const building = getBuildingAt(pc, pr - 1);
+      const building = getBuildingAtDoor(pc, pr); // solo puerta exacta
       if (building) {
         const map = createInteriorMap(building);
         const palette = getStylePalette(building);
