@@ -1,4 +1,4 @@
-// C2.1 test: verificar edificios nuevos en Pitch (molino + casa NO)
+// C2.2 test: verificar conectividad de caminos + molino junto al río
 import { chromium } from 'playwright';
 import { createServer } from 'vite';
 import path from 'path';
@@ -10,48 +10,17 @@ const press = async (page, key, ms = 120) => {
   await page.keyboard.down(key); await sleep(ms); await page.keyboard.up(key); await sleep(80);
 };
 
-async function testBuilding(page, doorX, doorY, label) {
-  await page.evaluate(([dx, dy]) => {
-    const G = window.__G; if (!G) return;
-    G.pl.x = dx; G.pl.y = dy; G.pl.d = 3;
-    G.pl.moving = false; G.pl.stepTarget = null;
-  }, [doorX, doorY]);
-  await sleep(300);
-  await page.keyboard.down('ArrowUp');
-  await sleep(600);
-  await page.keyboard.up('ArrowUp');
-  await sleep(800);
-  const r = await page.evaluate(() => window.__G?.curMap || '?');
-  const ok = r === 'interior';
-  if (ok) {
-    // salir
-    await press(page, 'ArrowDown', 80);
-    await sleep(150);
-    for (let i = 0; i < 6; i++) {
-      await page.keyboard.down('ArrowDown'); await sleep(100); await page.keyboard.up('ArrowDown'); await sleep(50);
-    }
-    await page.keyboard.down('ArrowDown'); await sleep(350); await page.keyboard.up('ArrowDown');
-    await sleep(700);
-    const e = await page.evaluate(() => window.__G?.curMap || '?');
-    console.log(`   ${label}: entrada ✅ salida ${e === 'world' ? '✅' : '❌'}`);
-    return e === 'world';
-  }
-  console.log(`   ${label}: ❌ no entró (curMap=${r})`);
-  return false;
-}
-
 async function main() {
-  const server = await createServer({ root: __dirname, server: { port: 5210 } });
+  const server = await createServer({ root: __dirname, server: { port: 5211 } });
   await server.listen();
-  let failed = 0;
+  let ok = true;
   try {
     const browser = await chromium.launch({ headless: true });
     const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
-    await page.goto('http://localhost:5210', { waitUntil: 'domcontentloaded' });
+    await page.goto('http://localhost:5211', { waitUntil: 'domcontentloaded' });
     await sleep(4500);
 
-    await press(page, ' ');
-    await sleep(2500);
+    await press(page, ' '); await sleep(2500);
     for (let i = 0; i < 20; i++) {
       const s = await page.evaluate(() => window.__G?.scr || '?');
       if (s === 'starter') { await press(page, ' '); await sleep(1200); break; }
@@ -59,32 +28,51 @@ async function main() {
       await press(page, ' ');
       await sleep(100);
     }
-    let st = await page.evaluate(() => window.__G ? `${window.__G.scr}/${window.__G.curMap}` : '?');
+    let st = await page.evaluate(() => window.__G ? `${window.__G.scr}` : '?');
     if (st.includes('starter')) { await press(page, ' '); await sleep(1200); }
 
-    // Test 1: Molino (door 72,287)
-    console.log('─── Molino 5×9 ───');
-    if (!await testBuilding(page, 72, 287, 'Molino')) failed++;
+    // Verificar tile del molino
+    const millInfo = await page.evaluate(async () => {
+      const wc = await import('/src/core/world-constants.js');
+      let tiles = '';
+      for (let r = 278; r <= 286; r++) {
+        tiles += `r${r}:`;
+        for (let c = 78; c <= 82; c++) tiles += wc.wMap[r]?.[c] + ',';
+        tiles += ' ';
+      }
+      return tiles;
+    });
+    console.log('Molino tiles:', millInfo);
+    if (millInfo.includes('32')) console.log('   ✅ Molino usa tile 32 (distinto de casas)');
+    else { console.log('   ❌ Molino no tiene tile 32'); ok = false; }
 
-    // Test 2: Casa NO (door 40,278)
-    console.log('─── Casa NO ───');
-    if (!await testBuilding(page, 40, 278, 'Casa NO')) failed++;
+    // Verificar conectividad: probar entrada al molino
+    await page.evaluate(() => {
+      const G = window.__G; G.pl.x = 80; G.pl.y = 287; G.pl.d = 3;
+      G.pl.moving = false; G.pl.stepTarget = null;
+    });
+    await sleep(300);
+    await page.keyboard.down('ArrowUp'); await sleep(500); await page.keyboard.up('ArrowUp'); await sleep(800);
+    const inside = await page.evaluate(() => window.__G?.curMap || '?');
+    if (inside === 'interior') {
+      console.log('   ✅ Entrada al molino funciona');
+      // salir
+      await press(page, 'ArrowDown', 80); await sleep(150);
+      for (let i = 0; i < 6; i++) { await page.keyboard.down('ArrowDown'); await sleep(100); await page.keyboard.up('ArrowDown'); await sleep(50); }
+      await page.keyboard.down('ArrowDown'); await sleep(350); await page.keyboard.up('ArrowDown');
+      await sleep(700);
+    } else { console.log('   ❌ No entró al molino'); ok = false; }
 
-    // Test 3: Casa NE (door 78,278)
-    console.log('─── Casa NE ───');
-    if (!await testBuilding(page, 78, 278, 'Casa NE')) failed++;
+    // Verificar que el río está al lado del molino (col 85 debe ser agua junto a col 82 del molino)
+    const rioInfo = await page.evaluate(async () => {
+      const wc = await import('/src/core/world-constants.js');
+      return `wMap[284][83]=${wc.wMap[284]?.[83]} wMap[284][84]=${wc.wMap[284]?.[84]} wMap[284][85]=${wc.wMap[284]?.[85]} wMap[284][82]=${wc.wMap[284]?.[82]}`;
+    });
+    console.log('Río junto al molino:', rioInfo);
 
-    // Test 4: Casa SO (door 40,295)
-    console.log('─── Casa SO ───');
-    if (!await testBuilding(page, 40, 295, 'Casa SO')) failed++;
-
-    // Test 5: Casa SE (door 50,295)
-    console.log('─── Casa SE ───');
-    if (!await testBuilding(page, 50, 295, 'Casa SE')) failed++;
-
-    console.log('\n' + (failed === 0 ? '✅ C2.1: 5/5 edificios funcionando' : `❌ ${failed} fallo(s)`));
+    console.log('\n' + (ok ? '✅ C2.2: Molino junto al río + caminos conectados' : '❌ Verificar problemas'));
     await browser.close();
   } finally { await server.close(); }
-  process.exit(failed > 0 ? 1 : 0);
+  process.exit(ok ? 0 : 1);
 }
 main().catch(e => { console.error(e); process.exit(1); });

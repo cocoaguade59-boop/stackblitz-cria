@@ -1129,6 +1129,152 @@ function dTileW(c, r) {
       cx.fillRect(x + 6, y + 24, 20, 4);
       break;
     }
+
+    // ─── 32: MOLINO EXTERIOR (5×9 junto al río) ────────────
+    case 32: {
+      const up = wMap[r - 1]?.[c] === 32;
+      const dn = wMap[r + 1]?.[c] === 32;
+      const lf = wMap[r]?.[c - 1] === 32;
+      const rt = wMap[r]?.[c + 1] === 32;
+
+      // Ancla NW del bloque
+      let ac = c, ar = r;
+      while (wMap[ar]?.[ac - 1] === 32) ac--;
+      while (wMap[ar - 1]?.[ac] === 32) ar--;
+
+      const isRoofTop = !up;
+      const isRoofLower = up && wMap[r - 2]?.[c] !== 32;
+      const isBase = up && !dn;
+      const isWallMid = up && dn && !isRoofLower;
+
+      // Paleta del molino: piedra gris + teja rojiza + rueda de agua
+      const stoneDark = '#5A5448';
+      const stoneMid = '#6A6458';
+      const roofD = '#6B3922';
+      const roofM = '#8B5130';
+      const roofL = '#B07442';
+
+      if (isRoofTop) {
+        // Techo de teja
+        cx.fillStyle = roofD;
+        cx.fillRect(x, y, T, T);
+        cx.fillStyle = roofM;
+        cx.fillRect(x, y + 2, T, T - 2);
+        cx.fillStyle = roofL;
+        cx.fillRect(x + 1, y + 4, T - 2, 10);
+        cx.fillStyle = '#3B2118';
+        cx.fillRect(x, y, T, 4);
+        cx.fillStyle = roofL;
+        cx.fillRect(x + 1, y + 1, T - 2, 2);
+        for (let i = 0; i < 4; i++) {
+          cx.fillRect(x + i * 8, y + 14, 7, 1);
+          cx.fillRect(x + 2 + i * 8, y + 20, 7, 1);
+          cx.fillRect(x + i * 8, y + 26, 7, 1);
+        }
+        if (!lf) { cx.fillStyle = '#3B2118'; cx.fillRect(x, y, 2, T); }
+        if (!rt) { cx.fillStyle = '#3B2118'; cx.fillRect(x + T - 2, y, 2, T); }
+      } else if (isRoofLower) {
+        cx.fillStyle = roofD; cx.fillRect(x, y, T, 16);
+        cx.fillStyle = roofM; cx.fillRect(x, y, T, 14);
+        cx.fillStyle = roofL; cx.fillRect(x + 1, y + 2, T - 2, 6);
+        for (let i = 0; i < 4; i++) {
+          cx.fillRect(x + i * 8, y + 4, 7, 1);
+          cx.fillRect(x + 2 + i * 8, y + 10, 7, 1);
+        }
+        cx.fillStyle = '#3B2118'; cx.fillRect(x, y + 14, T, 4);
+        cx.fillStyle = '#5A3A18'; cx.fillRect(x, y + 16, T, 2);
+        // Pared
+        cx.fillStyle = stoneMid; cx.fillRect(x, y + 18, T, T - 18);
+        // Bloques de piedra
+        for (let br = 0; br < 2; br++) {
+          cx.fillStyle = stoneDark;
+          cx.fillRect(x + 2, y + 20 + br * 8, T - 4, 1);
+        }
+      } else if (isBase) {
+        // Base: pared de piedra + puerta de molino
+        cx.fillStyle = stoneDark; cx.fillRect(x, y, T, T);
+        cx.fillStyle = stoneMid; cx.fillRect(x + 1, y, T - 2, T);
+        for (let br = 0; br < 3; br++) {
+          cx.fillStyle = stoneDark;
+          cx.fillRect(x + 2, y + 6 + br * 8, T - 4, 1);
+        }
+
+        // Puerta de molino (más ancha, arqueada, madera reforzada)
+        let leftExtent = 0, cc = c;
+        while (wMap[r]?.[cc - 1] === 32) { cc--; leftExtent++; }
+        let width = 1; cc = c;
+        while (wMap[r]?.[cc + 1] === 32) { cc++; width++; }
+        width += leftExtent;
+        const isDoorTile = leftExtent === Math.floor((width - 1) / 2);
+
+        if (isDoorTile) {
+          cx.fillStyle = '#3A2010';
+          cx.fillRect(x + 5, y + 2, 22, 28);
+          cx.fillStyle = '#4A3018';
+          cx.fillRect(x + 7, y + 3, 18, 26);
+          // Tablones verticales
+          cx.fillStyle = '#5A4028';
+          cx.fillRect(x + 12, y + 3, 1, 26);
+          cx.fillRect(x + 18, y + 3, 1, 26);
+          // Refuerzos de hierro
+          cx.fillStyle = '#585868';
+          cx.fillRect(x + 7, y + 10, 18, 2);
+          cx.fillRect(x + 7, y + 22, 18, 2);
+          // Cerradura
+          cx.fillStyle = '#D8B840';
+          cx.fillRect(x + 24, y + 15, 2, 3);
+        } else {
+          // Ventana pequeña de molino
+          cx.fillStyle = '#2A2018';
+          cx.fillRect(x + 10, y + 6, 12, 10);
+          cx.fillStyle = '#D6A44A';
+          cx.fillRect(x + 11, y + 7, 10, 8);
+          cx.fillStyle = '#3A2A18';
+          cx.fillRect(x + 16, y + 7, 1, 8);
+        }
+      } else {
+        // Pared media
+        cx.fillStyle = stoneDark; cx.fillRect(x, y, T, T);
+        cx.fillStyle = stoneMid; cx.fillRect(x + 1, y, T - 2, T);
+        for (let br = 0; br < 3; br++) {
+          cx.fillStyle = stoneDark;
+          cx.fillRect(x + 2, y + 6 + br * 8, T - 4, 1);
+        }
+        // Ventana alta
+        if (isWallMid && (c + r) % 2 === 0) {
+          cx.fillStyle = '#2A2018';
+          cx.fillRect(x + 10, y + 8, 12, 10);
+          cx.fillStyle = '#D6A44A';
+          cx.fillRect(x + 11, y + 9, 10, 8);
+        }
+      }
+
+      // RUEDA DE AGUA: en los tiles del lado derecho (pegados al río)
+      // Solo se dibuja en los tiles de la columna más a la derecha (cerca del agua)
+      if (!rt && (r - ar) >= 2 && (r - ar) <= 6) {
+        // Postes de soporte de la rueda
+        cx.fillStyle = '#4A3018';
+        cx.fillRect(x + 26, y - 4, 4, 36);
+        // Rueda parcial (se completa entre tiles)
+        const rot = fr * 0.02;
+        const cxW = x + 18, cyW = y + 10;
+        cx.save();
+        cx.translate(cxW, cyW);
+        cx.rotate(rot);
+        cx.fillStyle = '#6A4830';
+        for (let i = 0; i < 8; i++) {
+          const a = (i / 8) * Math.PI * 2;
+          cx.fillRect(Math.cos(a) * 8 - 1, Math.sin(a) * 8 - 1, 3, 3);
+        }
+        cx.fillStyle = '#4A3018';
+        cx.fillRect(-1, -10, 2, 20);
+        cx.fillRect(-10, -1, 20, 2);
+        cx.fillStyle = '#7A5840';
+        cx.fillRect(-2, -2, 4, 4);
+        cx.restore();
+      }
+      break;
+    }
   } // fin switch
 } // fin dTileW
 

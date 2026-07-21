@@ -299,9 +299,8 @@ function keepPath(c, r) { setWorld(c, r, 1); }
 
 function buildPitchC2() {
   // C2.1 — Aldea Pitch definitiva (120×300, filas 270–299).
-  // Aldea fluvial sureña: río al este, molino 5×9, puente, muelle, parcelas y plaza.
-  // NPCs conservan sus coordenadas: Alessandro(56,284), Luas(63,284),
-  // Alexandro(52,288), Luis(76,280), Nicole(55,291). Spawn: (60,285).
+  // Aldea fluvial sureña: río al este, molino 5×9 junto al río, puente, muelle, parcelas y plaza.
+  // NPCs: Alessandro(56,284), Luas(63,284), Alexandro(52,288), Luis(76,280), Nicole(55,291).
 
   // 1. Limpiar área del pueblo (cols 25-97, rows 270-299)
   fillWorld(25, 270, 97, 299, 0);
@@ -316,30 +315,60 @@ function buildPitchC2() {
     setWorld(94, r, r % 2 === 0 ? 7 : 0);
   }
 
-  // 4. Puente de madera sobre el río (filas 280-281)
-  fillWorld(83, 280, 95, 281, 1);
+  // 4. Puente de madera sobre el río (filas 281-282)
+  fillWorld(83, 281, 95, 282, 1);
 
-  // 5. Plaza central (rows 281–288, cols 48–66)
+  // 5. Plaza central amplia (rows 281–288, cols 48–66)
   fillWorld(48, 281, 66, 288, 1);
   setWorld(56, 285, 22); // pozo
   setWorld(50, 283, 15); setWorld(64, 283, 15);
   setWorld(50, 286, 15); setWorld(64, 286, 15);
   setWorld(58, 287, 16); // banco
 
-  // 6. Molino 5×9 (noreste, cols 70-74, rows 278-286)
-  for (let r = 278; r <= 286; r++)
-    for (let c = 70; c <= 74; c++)
-      setWorld(c, r, 4);
-  fillWorld(67, 287, 69, 287, 1);
-  fillWorld(72, 287, 72, 288, 1);
+  // ─── RED DE CAMINOS SECUNDARIOS (este-oeste) ──────────────
+  // Calle horizontal alta (row 276): conecta NO, NE y camino real
+  fillWorld(38, 276, 82, 276, 1);
+  // Calle horizontal media-alta (row 280): conecta casas norte con plaza
+  fillWorld(38, 280, 84, 280, 1);
+  // Calle horizontal plaza-sur (row 290): conecta SO, SE y camino al río
+  fillWorld(38, 290, 84, 290, 1);
+  // Callejón sur (row 297): acceso a parcelas y huerto
+  fillWorld(30, 297, 82, 297, 1);
+  // Conexión molino→puente (row 284, desde plaza hacia el este)
+  fillWorld(66, 284, 82, 284, 1);
+  // Conexión muelle→plaza (row 293)
+  fillWorld(66, 293, 81, 293, 1);
 
-  // 7. Cuatro casas (4×3) con patios delanteros
+  // ─── CALLES VERTICALES SECUNDARIAS ────────────────────────
+  // Calle oeste (col 43): conecta NO, SO y patio de Lucha
+  fillWorld(43, 274, 43, 297, 1);
+  // Calle este-plaza (col 66): borde derecho de plaza, conecta al puente
+  fillWorld(66, 281, 66, 293, 1);
+  // Calle del molino (col 72): acceso vertical al molino
+  fillWorld(72, 276, 72, 290, 1);
+  fillWorld(73, 276, 73, 290, 1);
+  // Calle este residencial (col 81): conecta NE con el puente
+  fillWorld(81, 276, 81, 282, 1);
+
+  // 6. Molino 5×9 PEGADO al río (cols 78-82, rows 278-286)
+  //   Usa tile 32 (molino) en vez de 4 (casa)
+  for (let r = 278; r <= 286; r++)
+    for (let c = 78; c <= 82; c++)
+      setWorld(c, r, 32);
+  // Acceso frontal: camino desde la plaza hasta la puerta del molino
+  fillWorld(66, 287, 77, 289, 1);
+
+  // 7. Cuatro casas (4×3) con patios y caminos de acceso
+  // NO: cols 38-41, rows 274-277 (acceso desde row 278-280)
   for (let r = 274; r <= 277; r++) for (let c = 38; c <= 41; c++) setWorld(c, r, 4);
   fillWorld(37, 278, 42, 280, 1);
-  for (let r = 274; r <= 277; r++) for (let c = 76; c <= 79; c++) setWorld(c, r, 4);
-  fillWorld(75, 278, 80, 280, 1);
+  // NE: cols 74-77, rows 274-277
+  for (let r = 274; r <= 277; r++) for (let c = 74; c <= 77; c++) setWorld(c, r, 4);
+  fillWorld(73, 278, 78, 280, 1);
+  // SO: cols 38-41, rows 291-294
   for (let r = 291; r <= 294; r++) for (let c = 38; c <= 41; c++) setWorld(c, r, 4);
   fillWorld(37, 295, 42, 297, 1);
+  // SE: cols 48-51, rows 291-294
   for (let r = 291; r <= 294; r++) for (let c = 48; c <= 51; c++) setWorld(c, r, 4);
   fillWorld(47, 295, 52, 297, 1);
 
@@ -348,17 +377,17 @@ function buildPitchC2() {
   setWorld(43, 282, 20); setWorld(47, 282, 20); setWorld(43, 286, 20); setWorld(47, 286, 20);
   setWorld(44, 284, 23); setWorld(46, 284, 23); setWorld(45, 283, 7);
 
-  // 9. Muelle + barca + redes (sur del puente)
+  // 9. Muelle + barca + redes (sur del puente, sobre el río)
   fillWorld(82, 292, 84, 294, 1);
   setWorld(82, 293, 29); setWorld(82, 294, 29);
   setWorld(85, 294, 31); setWorld(86, 294, 31); setWorld(85, 295, 31); setWorld(86, 295, 31);
   setWorld(81, 291, 30); setWorld(81, 292, 30);
 
-  // 10. Parcelas (sur-oeste) con cercas - NO tocar casas
-  fillWorld(30, 295, 36, 298, 28); // antes era hasta 42, ahora hasta 36 para no invadir casa
+  // 10. Parcelas de cultivo (sur-oeste)
+  fillWorld(30, 295, 36, 298, 28);
   for (let c = 29; c <= 37; c++) { setWorld(c, 294, 20); setWorld(c, 299, 20); }
   for (let r = 295; r <= 298; r++) { setWorld(29, r, 20); setWorld(37, r, 20); }
-  setWorld(33, 296, 23); setWorld(44, 297, 21); setWorld(44, 298, 21);
+  setWorld(33, 296, 23); // espantapájaros
 
   // 11. Huerto junto al río (sur-este)
   fillWorld(75, 295, 80, 298, 28);
@@ -366,10 +395,11 @@ function buildPitchC2() {
   setWorld(74, 299, 20); setWorld(81, 299, 20);
   setWorld(74, 295, 20); setWorld(74, 296, 20);
 
-  // 12. Arco de entrada norte a Ruta 1
+  // 12. Arcos de entrada: norte (Ruta 1) y sur
   setWorld(58, 271, 14); setWorld(59, 271, 14);
+  setWorld(58, 299, 14); setWorld(59, 299, 14);
 
-  // 13. Bordes: árboles + flores sin tapar caminos
+  // 13. Bordes: árboles + flores sin tapar caminos ni casas
   for (let r = 270; r <= 299; r++) {
     for (let c = 25; c <= 97; c++) {
       if (wMap[r][c] !== 0) continue;
