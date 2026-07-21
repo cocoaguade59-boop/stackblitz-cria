@@ -526,8 +526,8 @@ function genExpandedTerrainC15a2b() {
         for(let yy=y;yy<y+3;yy++) for(let xx=x;xx<x+4;xx++) wMap[yy][xx]=4;
       });
     } else {
-      for(let y=cy-3;y<=cy+3;y++) for(let x=cx-18;x<=cx+18;x++) if (x<cx-3||x>cx+3||y<cy) wMap[y][x]=13;
-      wMap[cy+3][cx]=11;
+      for(let y=Math.max(2, cy-3);y<=Math.min(WR-3, cy+3);y++) for(let x=Math.max(2, cx-18);x<=Math.min(WC-3, cx+18);x++) if (x<cx-3||x>cx+3||y<cy) wMap[y][x]=13;
+      if (cy + 3 < WR - 2) wMap[cy+3][cx]=11;
     }
     for(let y=cy-8;y<=cy+8;y++) for(let x=cx-1;x<=cx+1;x++) if(wMap[y][x]!==4&&wMap[y][x]!==13)wMap[y][x]=1;
   });
