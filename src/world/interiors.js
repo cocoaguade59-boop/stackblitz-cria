@@ -121,6 +121,14 @@ const BUILDINGS = {
     title: 'Casa de Claudia', size: { cols: 12, rows: 9 }, style: 'storyboard',
   },
   // ─── RODAJE ────────────────────────────────────────────────
+  rodaje_proa: {
+    id: 'rodaje_proa', kind: 'proa', region: 'rodaje',
+    exterior: { x: 54, y: 131, w: 7, h: 5 },
+    door: { x: 57, y: 136 },
+    exit: { x: 57, y: 136, d: 0 },
+    title: 'Casa Proa de Luchito', size: { cols: 18, rows: 12 }, style: 'proa',
+    leader: 'luchito',
+  },
   rodaje_almacen_NO: {
     id: 'rodaje_almacen_NO', kind: 'home', region: 'rodaje',
     exterior: { x: 42, y: 133, w: 4, h: 4 },

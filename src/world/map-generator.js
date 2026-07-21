@@ -619,7 +619,10 @@ function buildRodajeC4() {
   fillWorld(50, 132, 50, 155, 1); // oeste
   fillWorld(70, 132, 70, 155, 1); // este
 
-  // ─── PLAZA DE LUCHITO (central, piedra abierta) ──────────
+  // ─── PROA DE LUCHITO (edificio especial al norte de plaza) ────
+  // Cols 54-60, rows 131-135 (7×5, más ancho que almacén normal)
+  for (let r = 131; r <= 135; r++) for (let c = 54; c <= 60; c++) setWorld(c, r, 4);
+  fillWorld(55, 136, 59, 138, 1); // patio/acceso
   fillWorld(52, 140, 68, 148, 1);
   // Yunque ceremonial (piedra de Proa)
   setWorld(60, 144, 7);
