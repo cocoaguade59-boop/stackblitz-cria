@@ -509,6 +509,29 @@ function genExpandedTerrainC15a2b() {
   [285,250,215,180,145,115,85,55,28,12,5].forEach((r) => {
     for (let y=r-2;y<=r+2;y++) for(let x=50;x<=70;x++) if(y>=2&&y<WR-2) wMap[y][x]=1;
   });
+  // C1.5a-2c: plazas regionales provisionales, ya reubicadas en el mapa ampliado.
+  const hubs = [
+    [60,285,'pitch'], [60,215,'storyboard'], [60,145,'rodaje'],
+    [60,85,'ultimatoma'], [60,28,'montaje'], [60,5,'castle'],
+  ];
+  hubs.forEach(([cx, cy, id]) => {
+    const floor = id === 'rodaje' ? 26 : 1;
+    for (let y=cy-8;y<=cy+8;y++) for(let x=cx-14;x<=cx+14;x++) {
+      if (x<2||x>=WC-2||y<2||y>=WR-2) continue;
+      wMap[y][x] = floor;
+    }
+    // Cuatro edificios provisionales; C2.5–C6 los convertirán en estructuras únicas/entrables.
+    if (id !== 'castle') {
+      [[cx-12,cy-7],[cx+8,cy-7],[cx-12,cy+4],[cx+8,cy+4]].forEach(([x,y]) => {
+        for(let yy=y;yy<y+3;yy++) for(let xx=x;xx<x+4;xx++) wMap[yy][xx]=4;
+      });
+    } else {
+      for(let y=cy-3;y<=cy+3;y++) for(let x=cx-18;x<=cx+18;x++) if (x<cx-3||x>cx+3||y<cy) wMap[y][x]=13;
+      wMap[cy+3][cx]=11;
+    }
+    for(let y=cy-8;y<=cy+8;y++) for(let x=cx-1;x<=cx+1;x++) if(wMap[y][x]!==4&&wMap[y][x]!==13)wMap[y][x]=1;
+  });
+
   // Río del sur y puentes provisionales transitables.
   for(let r=255;r<WR-2;r++) for(let c=88;c<=96;c++) wMap[r][c]=2;
   for (const r of [276,288]) for(let c=86;c<=98;c++) wMap[r][c]=1;
