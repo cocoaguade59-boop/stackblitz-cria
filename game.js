@@ -6061,9 +6061,9 @@ function uStarter() {
     setProa([]);
     sfx.cap();
     G.curMap = 'world';
-    G.pl.x = 20;
-    G.pl.y = 145;
-    G.pl.d = 3;
+    G.pl.x = EXPANDED_SPAWN.player.x;
+    G.pl.y = EXPANDED_SPAWN.player.y;
+    G.pl.d = EXPANDED_SPAWN.player.d;
     G.pl.stepTarget = null;
     G.pl.moving = false;
     updateCamera(WC, WR);
@@ -6948,9 +6948,9 @@ function update() {
   // de vuelta a Aldea Pitch y limpia el estado de movimiento.
   if (kp('r') && G.scr === 'world') {
     G.curMap = 'world';
-    G.pl.x = 20;
-    G.pl.y = 145;
-    G.pl.d = 0;
+    G.pl.x = EXPANDED_SPAWN.emergency.x;
+    G.pl.y = EXPANDED_SPAWN.emergency.y;
+    G.pl.d = EXPANDED_SPAWN.player.d;
     G.pl.f = 0;
     G.pl.sprint = false;
     G.pl.moving = false;
