@@ -13,6 +13,7 @@ import { MAP_LOCATIONS } from './src/data/map-markers.js';
 import { createProaMissions, resetProaMissionProgress } from './src/data/proa-missions.js';
 import { ROUTE_GATE_DEFINITIONS, isRouteAuthorized } from './src/world/route-missions.js';
 import { getValidRouteSigns, isGateTreeEligible } from './src/world/world-layout.js';
+import { EXPANDED_SPAWN, applyExpandedNpcPlacements } from './src/world/expanded-world-runtime.js';
 
 // [refactor-phase2] utilidades importadas
 import { SPRITE_LOADER } from './src/core/sprite-loader.js';
@@ -2733,7 +2734,7 @@ function resetGame(startIntro = false) {
   setTowerKey({ edison: false, roberto: false, gabriela: false, ximena: false });
   setDiplomas({ tamara: false, luchito: false, andrea: false, dan: false });
   setCaptureCount({});
-  setLastHealPos({ x: 60, y: 285, map: 'world' });
+  setLastHealPos({ ...EXPANDED_SPAWN.lastHeal });
 
   // Regenerar mapas
   // === HELPERS DE CAMINOS PARA EL MAPA GRANDE ===
@@ -2777,6 +2778,7 @@ function resetGame(startIntro = false) {
       }
   }
   genWorld();
+  applyExpandedNpcPlacements(npcs);
   genCave(cave1, CC, CR);
   addOloSecretChamber(cave1);
   genCave(cave2, CC, CR);
@@ -5942,8 +5944,8 @@ function startNewGameFlow() {
   G.hasSave = false;
   G.sSel = 0;
   G.curMap = 'world';
-  G.pl.x = 60;
-  G.pl.y = 285;
+  G.pl.x = EXPANDED_SPAWN.player.x;
+  G.pl.y = EXPANDED_SPAWN.player.y;
   G.pl.d = 3;
   G.pl.stepTarget = null;
   G.pl.moving = false;
@@ -7254,6 +7256,7 @@ function init() {
 
   // Generar mapas
   genWorld();
+  applyExpandedNpcPlacements(npcs);
   genCave(cave1, CC, CR);
   addOloSecretChamber(cave1);
   genCave(cave2, CC, CR);

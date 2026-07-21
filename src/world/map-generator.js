@@ -2,6 +2,7 @@
 // Solo escribe a arrays de tiles (window.__wc). No toca G.scr.
 import { WC, WR, CC, CR, KC, KR, wMap, cave1, cave2, castMap } from '../core/world-constants.js';
 import { isWorldPinAllowed } from './world-layout.js';
+import { applyExpandedWorldPoints } from './expanded-world-runtime.js';
 
 function hPath(r, c1, c2, w = 2) {
   const start = Math.min(c1, c2),
@@ -543,7 +544,7 @@ function genExpandedTerrainC15a2b() {
 }
 
 function genWorld() {
-  if (WC === 120 && WR === 300) { genExpandedTerrainC15a2b(); return; }
+  if (WC === 120 && WR === 300) { genExpandedTerrainC15a2b(); applyExpandedWorldPoints(wMap); return; }
   // Inicializar mapa con hierba y hierba alta aleatoria
   for (let r = 0; r < WR; r++) {
     wMap[r] = [];
