@@ -196,6 +196,10 @@ import { INTRO_LINES, dIntro } from './src/screens/intro.js';
 import { dStarter } from './src/screens/starter.js';
 import { dMenu } from './src/screens/menu.js';
 
+// [refactor-phase5b-C1.5b] sistema de interiores importado
+import { IT, BUILDINGS, isInteriorSolid, createInteriorMap, getInteriorSpawn, getBuildingAtDoor, getBuildingAt, getActiveInterior, setActiveInterior } from './src/world/interiors.js';
+import { dTileI } from './src/render/tiles-interior.js';
+
 
 // [refactor-phase4a] bloque 'canvas' movido a src/
 
@@ -1052,6 +1056,43 @@ function getNPCBattleIntro(npc) {
 // BLOQUE 13: LÓGICA MUNDO/CUEVA/CASTILLO/TORRE + CHECKNPC
 // ============================================================
 
+// === INTERIORES (C1.5b) ===
+function uInterior() {
+  const ai = getActiveInterior();
+  if (!ai) { G.curMap = 'world'; return; }
+
+  // Salida: si pisa tile puerta (42), sale al mundo
+  const tc = Math.round(G.pl.x), tr = Math.round(G.pl.y);
+  if (ai.map[tr]?.[tc] === IT.door && kh('ArrowDown')) {
+    setActiveInterior(null);
+    G.curMap = 'world';
+    const ret = G._returnFromInterior || { x: 60, y: 285, d: 0 };
+    G.pl.x = ret.x;
+    G.pl.y = ret.y;
+    G.pl.d = ret.d;
+    G.pl.stepTarget = null;
+    G.pl.moving = false;
+    updateCamera(WC, WR);
+    aN('Saliste.');
+    sfx.sel();
+    return;
+  }
+
+  // Movimiento dentro del interior
+  const interiorSolid = (c, r) => {
+    if (c < 0 || c >= ai.cols || r < 0 || r >= ai.rows) return true;
+    return isInteriorSolid(ai.map[r]?.[c]);
+  };
+  moveEntity(interiorSolid, ai.cols, ai.rows, ai.map);
+
+  // Menú
+  if (kp('x') || kp('Escape')) {
+    sfx.sel();
+    G.scr = 'menu';
+    G.ms = { s: 0 };
+  }
+}
+
 // === MUNDO PRINCIPAL ===
 function uWorld() {
   // Proas de ruta: bloquean la salida norte si falta el diploma del líder.
@@ -1097,6 +1138,32 @@ function uWorld() {
       });
       aN(etc <= 40 ? 'Cueva Volcánica...' : 'Cueva Cristalina...');
       return;
+    }
+  }
+
+  // Entrada a interiores: si estás frente a un edificio (tile 4 hacia arriba)
+  // y esa posición corresponde a una puerta registrada, entrar.
+  if (!G.pl.stepTarget && kh('ArrowUp')) {
+    const pc = Math.round(G.pl.x), pr = Math.round(G.pl.y);
+    const above = wMap[pr - 1]?.[pc];
+    if (above === 4) {
+      const building = getBuildingAt(pc, pr - 1);
+      if (building) {
+        const map = createInteriorMap(building);
+        G._returnFromInterior = { ...building.exit };
+        setActiveInterior({ building, map, cols: building.size.cols, rows: building.size.rows });
+        G.prevCurMap = G.curMap;
+        G.curMap = 'interior';
+        const sp = getInteriorSpawn(building);
+        G.pl.x = sp.x;
+        G.pl.y = sp.y;
+        G.pl.d = sp.d;
+        G.pl.stepTarget = null;
+        G.pl.moving = false;
+        aN(building.title);
+        sfx.sel();
+        return;
+      }
     }
   }
 
@@ -4576,6 +4643,42 @@ function activatePostGame() {
 // ============================================================
 
 function drawMap() {
+  // ─── INTERIOR (C1.5b) ───────────────────────────────────────
+  if (G.curMap === 'interior') {
+    const ai = getActiveInterior();
+    if (!ai) { G.curMap = 'world'; return; }
+    const { map, cols, rows } = ai;
+    // Fondo oscuro para bordes
+    cx.fillStyle = '#1A1815';
+    cx.fillRect(0, 0, 640, 480);
+    // Centrar el interior en pantalla
+    const offX = Math.floor((640 - cols * T) / 2);
+    const offY = Math.floor((480 - rows * T) / 2);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        dTileI(map[r][c], offX + c * T, offY + r * T);
+      }
+    }
+    // Jugador
+    dPlayerGBA(offX + G.pl.x * T, offY + G.pl.y * T - 8, G.pl.d, G.pl.f);
+    // Label de interior
+    dBox(220, 2, 200, 18);
+    cx.fillStyle = '#ffd700';
+    cx.font = '8px "Press Start 2P"';
+    cx.textAlign = 'center';
+    cx.fillText(ai.building.title, 320, 14);
+    cx.textAlign = 'left';
+    // Controles
+    cx.fillStyle = 'rgba(0,0,0,.4)';
+    cx.fillRect(4, 462, 400, 16);
+    cx.fillStyle = '#666';
+    cx.font = '5px "Press Start 2P"';
+    cx.fillText('Flechas:Mover  FlechaAbajo:Salir  X:Menú', 8, 473);
+    drawParticles();
+    drawNotifications();
+    return;
+  }
+
   // Mundo con FOV 15×9 + zoom uniforme (solo capa de exploración).
   // HUD / labels de zona se dibujan DESPUÉS a escala 1:1.
   beginWorldCamera(cx);
@@ -6979,6 +7082,7 @@ function update() {
       break;
     case 'world':
       if (G.curMap === 'world') uWorld();
+      else if (G.curMap === 'interior') uInterior();
       else if (G.curMap.startsWith('cave')) uCave();
       else if (G.curMap === 'castle') uCastle();
       else if (G.curMap === 'tower') uTower();
@@ -7144,7 +7248,7 @@ function draw() {
       dStarter();
       break;
     case 'world':
-      drawMap();
+      drawMap(); // drawMap ya maneja G.curMap === 'interior' internamente
       break;
     case 'battle':
       dBattle();
@@ -7275,6 +7379,7 @@ function init() {
   // Exponer funciones que modulos necesitan via window (sin orden de carga)
   window.__gameLoadGame = loadGame;
   window.__gameSaveGame = saveGame;
+  window.__G = G; // debugging / tests
   setShopBattleStarter(startNPCBattle);
 
   // Iniciar loop
