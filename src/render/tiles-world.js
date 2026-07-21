@@ -1490,6 +1490,81 @@ function dTileW(c, r) {
 
       break;
     }
+
+    // ─── 33: ALMACÉN DE CANTERA (Rodaje, 4×3) ─────────────
+    case 33: {
+      const up = wMap[r - 1]?.[c] === 33;
+      const dn = wMap[r + 1]?.[c] === 33;
+      const lf = wMap[r]?.[c - 1] === 33;
+      const rt = wMap[r]?.[c + 1] === 33;
+      let ac = c, ar = r;
+      while (wMap[ar]?.[ac - 1] === 33) ac--;
+      while (wMap[ar - 1]?.[ac] === 33) ar--;
+      const rockD = '#4A4038', rockM = '#5A5048', woodD = '#4A2C14', woodM = '#6B4020';
+      const roofD = '#3A3028', roofM = '#504030', iron = '#585860';
+      const isRoofTop = !up, isRoofLower = up && wMap[r-2]?.[c] !== 33;
+      const isBase = up && !dn, isWallMid = up && dn && !isRoofLower;
+
+      if (isRoofTop) {
+        cx.fillStyle = roofD; cx.fillRect(x, y, T, T);
+        cx.fillStyle = roofM; cx.fillRect(x, y + 2, T, T - 2);
+        cx.fillStyle = '#585048'; cx.fillRect(x + 1, y + 5, T - 2, 8);
+        cx.fillStyle = roofD;
+        for (let i = 0; i < 4; i++) { cx.fillRect(x + i*8, y + 18, 7, 1); cx.fillRect(x + 2 + i*8, y + 24, 7, 1); }
+        cx.fillStyle = woodD; cx.fillRect(x, y, T, 3);
+        if (!lf) { cx.fillStyle = roofD; cx.fillRect(x, y, 2, T); }
+        if (!rt) { cx.fillStyle = roofD; cx.fillRect(x + T - 2, y, 2, T); }
+        if (!lf && rt) {
+          cx.fillStyle = '#3A2810'; cx.fillRect(x + 12, y + 10, 8, 14);
+          cx.fillStyle = '#5A4020'; cx.fillRect(x + 13, y + 11, 6, 12);
+          cx.fillStyle = '#E8A020'; cx.fillRect(x + 14, y + 13, 4, 6);
+          cx.fillStyle = '#F8E060'; cx.fillRect(x + 15, y + 14, 2, 3);
+        }
+      } else if (isRoofLower) {
+        cx.fillStyle = roofD; cx.fillRect(x, y, T, 16);
+        cx.fillStyle = roofM; cx.fillRect(x, y, T, 14);
+        cx.fillStyle = '#585048'; cx.fillRect(x + 1, y + 2, T - 2, 5);
+        for (let i = 0; i < 4; i++) { cx.fillRect(x + i*8, y + 6, 7, 1); cx.fillRect(x + 2 + i*8, y + 12, 7, 1); }
+        cx.fillStyle = roofD; cx.fillRect(x, y + 14, T, 4);
+        cx.fillStyle = woodD; cx.fillRect(x, y + 16, T, 2);
+        cx.fillStyle = rockM; cx.fillRect(x, y + 18, T, T - 18);
+        for (let br = 0; br < 2; br++) { cx.fillStyle = rockD; cx.fillRect(x + 2, y + 20 + br*8, T - 4, 1); }
+      } else if (isBase) {
+        cx.fillStyle = rockD; cx.fillRect(x, y, T, T);
+        cx.fillStyle = rockM; cx.fillRect(x + 1, y, T - 2, T);
+        for (let br = 0; br < 3; br++) { cx.fillStyle = rockD; cx.fillRect(x + 2, y + 6 + br*8, T - 4, 1); }
+        let leftExtent = 0, cc = c;
+        while (wMap[r]?.[cc - 1] === 33) { cc--; leftExtent++; }
+        let width = 1; cc = c;
+        while (wMap[r]?.[cc + 1] === 33) { cc++; width++; }
+        width += leftExtent;
+        if (leftExtent === Math.floor((width - 1)/2)) {
+          cx.fillStyle = woodD; cx.fillRect(x + 7, y + 0, 18, 30);
+          cx.fillStyle = woodM; cx.fillRect(x + 8, y + 1, 16, 28);
+          cx.fillStyle = iron; cx.fillRect(x + 11, y + 2, 2, 26); cx.fillRect(x + 19, y + 2, 2, 26);
+          cx.fillRect(x + 8, y + 8, 16, 2); cx.fillRect(x + 8, y + 20, 16, 2);
+          cx.fillStyle = '#C8A830'; cx.fillRect(x + 22, y + 14, 2, 3);
+          cx.fillStyle = iron; cx.fillRect(x + 8, y + 4, 3, 2); cx.fillRect(x + 8, y + 24, 3, 2);
+        } else {
+          cx.fillStyle = '#1A1008'; cx.fillRect(x + 10, y + 6, 12, 12);
+          cx.fillStyle = '#D6A44A'; cx.fillRect(x + 11, y + 7, 10, 10);
+          cx.fillStyle = iron; cx.fillRect(x + 16, y + 7, 1, 10); cx.fillRect(x + 11, y + 11, 10, 1);
+          cx.fillStyle = rockD; cx.fillRect(x + 10, y + 6, 12, 1); cx.fillRect(x + 10, y + 17, 12, 1);
+        }
+      } else {
+        cx.fillStyle = rockD; cx.fillRect(x, y, T, T);
+        cx.fillStyle = rockM; cx.fillRect(x + 1, y, T - 2, T);
+        for (let br = 0; br < 3; br++) { cx.fillStyle = rockD; cx.fillRect(x + 2, y + 6 + br*8, T - 4, 1); }
+        if ((c+r)%3 === 0) { cx.fillStyle = '#8A6040'; cx.fillRect(x + 4, y + 12, 24, 2); cx.fillStyle = '#A87850'; cx.fillRect(x + 8, y + 12, 12, 1); }
+        if (isWallMid && (c+r)%2 === 0) {
+          cx.fillStyle = '#1A1008'; cx.fillRect(x + 8, y + 10, 16, 10);
+          cx.fillStyle = '#D6A44A'; cx.fillRect(x + 9, y + 11, 14, 8);
+          cx.fillStyle = iron; cx.fillRect(x + 16, y + 11, 1, 8); cx.fillRect(x + 9, y + 14, 14, 1);
+        }
+      }
+      if (!lf && !up) { cx.fillStyle = '#C8A830'; cx.fillRect(x + 4, y + 4, 4, 6); cx.fillStyle = '#8A6030'; cx.fillRect(x + 6, y + 6, 4, 4); }
+      break;
+    }
   } // fin switch
 } // fin dTileW
 

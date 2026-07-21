@@ -369,7 +369,7 @@ function solidW(c, r) {
   // Edificios (4) son sólidos
   // Torre cerrada es sólida
   if (t === 2 || t === 3 || t === 7) return true;
-  if (t === 4 || t === 32) return true; // casas y molino
+  if (t === 4 || t === 32 || t === 33) return true; // casas, molino y almacenes
   // Pin de hallazgo (antes cristal): sólido, se recoge con SPACE
   if (t === 10) return true;
   // Decoración sólida del mundo: puestos, estatuas, cercas, cajas, pozos, muñecos y cámara/set.
@@ -1146,7 +1146,7 @@ function uWorld() {
   if (!G.pl.stepTarget && kh('ArrowUp')) {
     const pc = Math.round(G.pl.x), pr = Math.round(G.pl.y);
     const above = wMap[pr - 1]?.[pc];
-    if (above === 4 || above === 32) {
+    if (above === 4 || above === 32 || above === 33) {
       const building = getBuildingAtDoor(pc, pr); // solo puerta exacta
       if (building) {
         const map = createInteriorMap(building);

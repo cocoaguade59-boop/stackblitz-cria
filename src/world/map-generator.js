@@ -627,18 +627,18 @@ function buildRodajeC4() {
   setWorld(54, 142, 15); setWorld(66, 142, 15);
   setWorld(54, 146, 15); setWorld(66, 146, 15);
 
-  // ─── CASAS / ALMACENES (4×3) ─────────────────────────────
+  // ─── CASAS / ALMACENES (4×3, tile 33 = almacén de cantera) ──
   // Almacén NO (cols 42-45, rows 133-136)
-  for (let r = 133; r <= 136; r++) for (let c = 42; c <= 45; c++) setWorld(c, r, 4);
+  for (let r = 133; r <= 136; r++) for (let c = 42; c <= 45; c++) setWorld(c, r, 33);
   fillWorld(41, 137, 46, 139, 1);
   // Almacén NE (cols 75-78, rows 133-136)
-  for (let r = 133; r <= 136; r++) for (let c = 75; c <= 78; c++) setWorld(c, r, 4);
+  for (let r = 133; r <= 136; r++) for (let c = 75; c <= 78; c++) setWorld(c, r, 33);
   fillWorld(74, 137, 79, 139, 1);
   // Almacén SO (cols 42-45, rows 151-154)
-  for (let r = 151; r <= 154; r++) for (let c = 42; c <= 45; c++) setWorld(c, r, 4);
+  for (let r = 151; r <= 154; r++) for (let c = 42; c <= 45; c++) setWorld(c, r, 33);
   fillWorld(41, 155, 46, 157, 1);
   // Almacén SE (cols 75-78, rows 151-154)
-  for (let r = 151; r <= 154; r++) for (let c = 75; c <= 78; c++) setWorld(c, r, 4);
+  for (let r = 151; r <= 154; r++) for (let c = 75; c <= 78; c++) setWorld(c, r, 33);
   fillWorld(74, 155, 79, 157, 1);
 
   // ─── PATIO DE ENSAYO DE CANTERA (LUCHA) ──────────────────
@@ -676,10 +676,22 @@ function buildRodajeC4() {
   setWorld(68, 138, 25); setWorld(68, 147, 25);
 
   // ─── ACCESO A CUEVA VOLCÁNICA ─────────────────────────────
-  // Entrada en el extremo este
-  fillWorld(80, 148, 83, 153, 1);
-  setWorld(81, 150, 19); setWorld(82, 150, 15);
-  setWorld(80, 151, 9); setWorld(80, 150, 9); // entrada cueva 2x2
+  // Entrada al este, separada del pueblo por rocas — se siente importante
+  // Camino ceremonial hacia la cueva
+  fillWorld(78, 148, 81, 153, 1);
+  // Rocas guardianas flanqueando el acceso
+  setWorld(78, 148, 7); setWorld(78, 153, 7);
+  setWorld(77, 149, 7); setWorld(77, 152, 7);
+  // Faroles marcando el camino a la cueva
+  setWorld(79, 149, 15); setWorld(79, 152, 15);
+  // Entrada de cueva (tile 9, 2x2) — más a la derecha para destacar
+  setWorld(82, 150, 9); setWorld(82, 151, 9);
+  setWorld(83, 150, 9); setWorld(83, 151, 9);
+  // Rocas alrededor de la entrada
+  setWorld(81, 149, 7); setWorld(84, 149, 7);
+  setWorld(81, 152, 7); setWorld(84, 152, 7);
+  // Antorcha ceremonial frente a la cueva
+  setWorld(81, 150, 15);
 
   // ─── ARCOS DE ENTRADA ─────────────────────────────────────
   setWorld(58, 131, 14); setWorld(59, 131, 14); // norte
@@ -961,10 +973,10 @@ function genWorld() {
   // Pines del mundo (antes cristales tile 10).
   // Se colocan aquí en la gen inicial; al reentrar el mapa se re-sortean
   // desde pin-system.respawnWorldPins().
-  // Cantidad: 35 (usuario bajó de 45 → 35).
+  // Cantidad: 50 (expandido desde 35).
   let cv2 = 0;
   let pinAttempts = 0;
-  while (cv2 < 35 && pinAttempts < 2000) {
+  while (cv2 < 50 && pinAttempts < 3000) {
     pinAttempts++;
     const c = 4 + Math.floor(Math.random() * (WC - 8));
     const r = 4 + Math.floor(Math.random() * (WR - 8));
