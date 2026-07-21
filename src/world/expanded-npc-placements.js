@@ -26,6 +26,7 @@ const EXPANDED_NPC_PLACEMENTS = {
     Nahuel: { x: 69, y: 147 },
     Andre: { x: 73, y: 139 },
     DavidO: { x: 65, y: 138 },
+    Luas: { x: 66, y: 138 },   // regla: David-O izquierda, Luas derecha
     Piero: { x: 76, y: 126 },
   },
   ultimatoma: {
@@ -35,6 +36,7 @@ const EXPANDED_NPC_PLACEMENTS = {
     Deyna: { x: 53, y: 88 },
     Dayana: { x: 68, y: 88 },
     DavidO: { x: 66, y: 78 },
+    Luas: { x: 67, y: 78 },   // regla: David-O izquierda, Luas derecha
   },
   montaje: {
     Dan: { x: 60, y: 24 },

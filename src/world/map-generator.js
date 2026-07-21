@@ -554,10 +554,10 @@ function buildStoryboardC3() {
     }
   }
 
-  // Jardín feérico al noroeste (zona tranquila)
-  fillWorld(34, 201, 41, 205, 0);
-  setWorld(37, 203, 6); setWorld(39, 202, 6);
-  setWorld(35, 204, 6); setWorld(40, 204, 6);
+  // Jardín feérico al noroeste (zona tranquila, sin tocar casas)
+  fillWorld(34, 201, 37, 205, 0);
+  setWorld(35, 203, 6); setWorld(36, 202, 6);
+  setWorld(34, 204, 6); setWorld(37, 204, 6);
 
   // Reafirmar camino principal
   fillWorld(58, 200, 60, 229, 1);
