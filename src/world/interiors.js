@@ -120,6 +120,35 @@ const BUILDINGS = {
     exit: { x: 71, y: 229, d: 0 },
     title: 'Casa de Claudia', size: { cols: 12, rows: 9 }, style: 'storyboard',
   },
+  // ─── RODAJE ────────────────────────────────────────────────
+  rodaje_almacen_NO: {
+    id: 'rodaje_almacen_NO', kind: 'home', region: 'rodaje',
+    exterior: { x: 42, y: 133, w: 4, h: 4 },
+    door: { x: 43, y: 137 },
+    exit: { x: 43, y: 137, d: 0 },
+    title: 'Almacén de Cantera', size: { cols: 12, rows: 9 }, style: 'rodaje',
+  },
+  rodaje_almacen_NE: {
+    id: 'rodaje_almacen_NE', kind: 'home', region: 'rodaje',
+    exterior: { x: 75, y: 133, w: 4, h: 4 },
+    door: { x: 76, y: 137 },
+    exit: { x: 76, y: 137, d: 0 },
+    title: 'Almacén de Cantera', size: { cols: 12, rows: 9 }, style: 'rodaje',
+  },
+  rodaje_almacen_SO: {
+    id: 'rodaje_almacen_SO', kind: 'home', region: 'rodaje',
+    exterior: { x: 42, y: 151, w: 4, h: 4 },
+    door: { x: 43, y: 155 },
+    exit: { x: 43, y: 155, d: 0 },
+    title: 'Almacén de Cantera', size: { cols: 12, rows: 9 }, style: 'rodaje',
+  },
+  rodaje_almacen_SE: {
+    id: 'rodaje_almacen_SE', kind: 'home', region: 'rodaje',
+    exterior: { x: 75, y: 151, w: 4, h: 4 },
+    door: { x: 76, y: 155 },
+    exit: { x: 76, y: 155, d: 0 },
+    title: 'Almacén de Cantera', size: { cols: 12, rows: 9 }, style: 'rodaje',
+  },
 };
 
 // ─── PALETAS DE ESTILO POR REGIÓN (C1.5b-3) ──────────────────────

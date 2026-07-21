@@ -591,54 +591,139 @@ function buildRoute2C3() {
 }
 
 function buildRodajeC4() {
-  // Cantera Rodaje: piedra, madera y metal de gremio; sin fábrica contemporánea.
-  fillWorld(43, 70, 72, 90, 26);
-  // Camino de las vagonetas: conecta Ruta 2, plaza Proa y salida a Ruta 3.
-  fillWorld(53, 70, 55, 90, 1);
-  fillWorld(53, 80, 64, 82, 1);
-  fillWorld(54, 87, 66, 89, 1);
-  // Casas/almacenes de cantera fuera de la plaza de NPCs.
-  worldHouse(44, 72); worldHouse(65, 72); worldHouse(44, 86); worldHouse(65, 86);
-  fillWorld(44, 76, 50, 78, 1); fillWorld(64, 76, 70, 78, 1);
-  // Plaza de Luchito: piedra abierta, deliberadamente sin objetos sólidos donde están los NPCs.
-  fillWorld(50, 79, 60, 85, 1);
-  // Patio de Ensayo de Cantera (Lucha): anillo de piedra, sacos y columnas.
-  fillWorld(45, 81, 50, 85, 26);
-  setWorld(45, 81, 20); setWorld(50, 81, 20); setWorld(45, 85, 20); setWorld(50, 85, 20);
-  setWorld(47, 82, 23); setWorld(48, 82, 23); setWorld(46, 84, 7);
-  // Taller de Rieles y Utilería (Acero): riel de vagoneta, cajas, farol y herrería.
-  fillWorld(61, 82, 68, 85, 26);
-  setWorld(61, 82, 20); setWorld(68, 82, 20); setWorld(61, 85, 20); setWorld(68, 85, 20);
-  setWorld(63, 83, 21); setWorld(64, 83, 21); setWorld(66, 83, 15); setWorld(67, 84, 7);
-  // Bordes de cantera: roca y muros de contención, nunca sobre caminos/NPCs.
-  for (let r = 70; r <= 90; r++) for (let c = 43; c <= 72; c++) {
-    if (wMap[r][c] !== 26) continue;
-    if ((c === 43 || c === 72 || r === 70 || r === 90) && (c + r) % 3 !== 0) setWorld(c, r, 7);
-    else if ((c * 7 + r) % 17 === 0) setWorld(c, r, 15);
+  // C4.1 — Cantera Rodaje definitiva (120×300, filas 130–159).
+  // Cantera medieval fantástica: roca, madera, vagonetas, rieles, fraguas.
+  // NPCs: Luchito(60,141), Dante(66,143), Pachi(55,143), Gonchi(52,147),
+  //        Nahuel(69,147), Andre(73,139), DavidO(65,138), Luas(66,138),
+  //        Piero(76,126).
+
+  // 1. Limpiar área (cols 37-83, rows 130-159)
+  fillWorld(37, 130, 83, 159, 0);
+
+  // 2. Camino Real (3 tiles)
+  fillWorld(58, 130, 60, 159, 1);
+
+  // 3. Suelo de cantera base (tile 26) alrededor del camino
+  fillWorld(40, 132, 80, 157, 26);
+  // Devolver camino
+  fillWorld(58, 130, 60, 159, 1);
+
+  // 4. Red de calles sobre piedra
+  // Calle horizontal alta (row 136): conecta Ruta 2 con la plaza
+  fillWorld(42, 136, 78, 136, 1);
+  // Calle horizontal plaza (row 143): eje central de Rodaje
+  fillWorld(42, 143, 78, 143, 1);
+  // Calle horizontal sur (row 150): acceso a almacenes y salida Ruta 3
+  fillWorld(42, 150, 78, 150, 1);
+  // Calles verticales
+  fillWorld(50, 132, 50, 155, 1); // oeste
+  fillWorld(70, 132, 70, 155, 1); // este
+
+  // ─── PLAZA DE LUCHITO (central, piedra abierta) ──────────
+  fillWorld(52, 140, 68, 148, 1);
+  // Yunque ceremonial (piedra de Proa)
+  setWorld(60, 144, 7);
+  // Faroles de fragua
+  setWorld(54, 142, 15); setWorld(66, 142, 15);
+  setWorld(54, 146, 15); setWorld(66, 146, 15);
+
+  // ─── CASAS / ALMACENES (4×3) ─────────────────────────────
+  // Almacén NO (cols 42-45, rows 133-136)
+  for (let r = 133; r <= 136; r++) for (let c = 42; c <= 45; c++) setWorld(c, r, 4);
+  fillWorld(41, 137, 46, 139, 1);
+  // Almacén NE (cols 75-78, rows 133-136)
+  for (let r = 133; r <= 136; r++) for (let c = 75; c <= 78; c++) setWorld(c, r, 4);
+  fillWorld(74, 137, 79, 139, 1);
+  // Almacén SO (cols 42-45, rows 151-154)
+  for (let r = 151; r <= 154; r++) for (let c = 42; c <= 45; c++) setWorld(c, r, 4);
+  fillWorld(41, 155, 46, 157, 1);
+  // Almacén SE (cols 75-78, rows 151-154)
+  for (let r = 151; r <= 154; r++) for (let c = 75; c <= 78; c++) setWorld(c, r, 4);
+  fillWorld(74, 155, 79, 157, 1);
+
+  // ─── PATIO DE ENSAYO DE CANTERA (LUCHA) ──────────────────
+  // Anillo de piedra al oeste de la plaza
+  fillWorld(44, 140, 50, 147, 26);
+  setWorld(44, 140, 20); setWorld(50, 140, 20);
+  setWorld(44, 147, 20); setWorld(50, 147, 20);
+  // Sacos y postes
+  setWorld(46, 142, 23); setWorld(48, 142, 23);
+  setWorld(47, 144, 7); setWorld(45, 145, 7);
+  // Columna de entrenamiento
+  setWorld(47, 140, 19);
+
+  // ─── TALLER DE RIELES Y UTILERÍA (ACERO) ─────────────────
+  // Al este de la plaza
+  fillWorld(64, 140, 76, 148, 26);
+  setWorld(64, 140, 20); setWorld(76, 140, 20);
+  setWorld(64, 148, 20); setWorld(76, 148, 20);
+  // Riel de vagoneta (camino recto en el taller)
+  fillWorld(67, 144, 73, 145, 1);
+  // Cajas de herramientas y faroles
+  setWorld(66, 142, 21); setWorld(73, 142, 21);
+  setWorld(65, 145, 15); setWorld(74, 145, 15);
+  // Vagoneta decorativa (roca/caja)
+  setWorld(69, 146, 7); setWorld(71, 146, 7);
+  // Fragua
+  setWorld(70, 142, 19); setWorld(70, 141, 15);
+
+  // ─── VAGONETAS Y RIELES (decoración del pueblo) ──────────
+  // Rieles horizontales en calles principales
+  setWorld(56, 137, 29); setWorld(60, 137, 29);
+  setWorld(56, 149, 29); setWorld(62, 149, 29);
+  // Poleas y vigas (decoración vertical)
+  setWorld(52, 138, 25); setWorld(52, 147, 25);
+  setWorld(68, 138, 25); setWorld(68, 147, 25);
+
+  // ─── ACCESO A CUEVA VOLCÁNICA ─────────────────────────────
+  // Entrada en el extremo este
+  fillWorld(80, 148, 83, 153, 1);
+  setWorld(81, 150, 19); setWorld(82, 150, 15);
+  setWorld(80, 151, 9); setWorld(80, 150, 9); // entrada cueva 2x2
+
+  // ─── ARCOS DE ENTRADA ─────────────────────────────────────
+  setWorld(58, 131, 14); setWorld(59, 131, 14); // norte
+  setWorld(58, 159, 14); setWorld(59, 159, 14); // sur
+
+  // ─── BORDES DE CANTERA ────────────────────────────────────
+  for (let r = 130; r <= 159; r++) {
+    for (let c = 37; c <= 83; c++) {
+      if (wMap[r][c] !== 26 && wMap[r][c] !== 0) continue;
+      // Muros de contención en bordes
+      if (c === 37 || c === 83 || r === 130 || r === 159) {
+        if ((c + r) % 3 !== 0) setWorld(c, r, 7);
+      } else if ((c * 7 + r) % 17 === 0) setWorld(c, r, 15);
+      else if ((c * 3 + r * 5) % 13 === 0) setWorld(c, r, 7);
+      else if ((c + r) % 6 === 0 && wMap[r][c] === 0) setWorld(c, r, 5);
+    }
   }
-  // Restaurar salidas limpias después de los bordes.
-  fillWorld(53, 70, 55, 90, 1);
-  fillWorld(53, 80, 64, 82, 1);
-  // Acceso lateral que anuncia la futura Cueva Volcánica.
-  fillWorld(49, 87, 53, 89, 1); setWorld(50, 88, 19); setWorld(51, 88, 15);
+
+  // Reafirmar camino principal
+  fillWorld(58, 130, 60, 159, 1);
 }
 
 function buildRoute3C4() {
-  // Ruta 3: garganta de cantera con piedra, faroles y un camino de peregrinos.
-  for (let r = 57; r <= 69; r++) for (let c = 51; c <= 71; c++) {
-    if (wMap[r][c] === 1 || wMap[r][c] === 4 || wMap[r][c] === 9) continue;
-    if (c === 51 || c === 71 || ((c * 3 + r) % 7 === 0)) setWorld(c, r, 7);
-    else if ((c + r) % 5 === 0) setWorld(c, r, 26);
-    else setWorld(c, r, (c + r) % 4 === 0 ? 5 : 0);
+  // Ruta 3 (filas 115–129): garganta de cantera con piedra, faroles y camino de peregrinos.
+  for (let r = 115; r <= 129; r++) {
+    for (let c = 42; c <= 75; c++) {
+      if (wMap[r][c] === 1 || wMap[r][c] === 4 || wMap[r][c] === 9) continue;
+      if (c === 42 || c === 75 || ((c * 3 + r) % 7 === 0)) setWorld(c, r, 7);
+      else if ((c + r) % 5 === 0) setWorld(c, r, 26);
+      else if ((c * 5 + r * 3) % 13 === 0) setWorld(c, r, 5);
+      else setWorld(c, r, 0);
+    }
   }
-  // La ruta gira gradualmente desde el puesto de Luchito hacia el norte/este.
-  for (let r = 57; r <= 76; r++) {
-    const center = r > 69 ? 54 : Math.round(54 + (69 - r) * 0.8);
+  // Camino de peregrinos hacia el puesto de Luchito
+  for (let r = 115; r <= 129; r++) {
+    const center = Math.round(58 + (129 - r) * 0.3);
     keepPath(center, r); keepPath(center + 1, r);
   }
-  fillWorld(54, 74, 57, 76, 1); // paso Proa de Luchito
-  // Hitos medievales: altar de cantera y faroles de garganta.
-  setWorld(62, 67, 19); setWorld(59, 63, 15); setWorld(68, 60, 20);
+  // Descanso antes de Rodaje
+  fillWorld(57, 128, 62, 129, 1);
+  // Hitos de cantera: faroles, altar de piedra, vetas
+  setWorld(55, 125, 19); setWorld(63, 122, 15);
+  setWorld(60, 119, 20); setWorld(54, 117, 7);
+  setWorld(65, 120, 7);
 }
 
 function buildUltimaTomaC5() {
