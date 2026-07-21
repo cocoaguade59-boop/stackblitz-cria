@@ -529,7 +529,7 @@ function genExpandedTerrainC15a2b() {
       for(let y=Math.max(2, cy-3);y<=Math.min(WR-3, cy+3);y++) for(let x=Math.max(2, cx-18);x<=Math.min(WC-3, cx+18);x++) if (x<cx-3||x>cx+3||y<cy) wMap[y][x]=13;
       if (cy + 3 < WR - 2) wMap[cy+3][cx]=11;
     }
-    for(let y=cy-8;y<=cy+8;y++) for(let x=cx-1;x<=cx+1;x++) if(wMap[y][x]!==4&&wMap[y][x]!==13)wMap[y][x]=1;
+    for(let y=Math.max(2, cy-8);y<=Math.min(WR-3, cy+8);y++) for(let x=Math.max(2, cx-1);x<=Math.min(WC-3, cx+1);x++) if(wMap[y][x]!==4&&wMap[y][x]!==13)wMap[y][x]=1;
   });
 
   // Río del sur y puentes provisionales transitables.
