@@ -9,8 +9,8 @@
 // mismas referencias que este módulo exporta.
 
 const T = 32;
-const WC = 80;
-const WR = 150;
+const WC = 120;
+const WR = 300;
 const CC = 40;
 const CR = 30;
 const KC = 30;

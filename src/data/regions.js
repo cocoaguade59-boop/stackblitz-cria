@@ -27,11 +27,11 @@ const TYPE_RESERVES = [
 ];
 
 const WORLD_LEVEL_ZONES = [
-  { id: 'pitch', rMin: 138, rMax: 149 }, { id: 'storyboard', rMin: 105, rMax: 114 },
-  { id: 'rodaje', rMin: 77, rMax: 86 }, { id: 'ultimatoma', rMin: 47, rMax: 56 },
-  { id: 'montaje', rMin: 17, rMax: 26 }, { id: 'route1', rMin: 115, rMax: 137 },
-  { id: 'route2', rMin: 87, rMax: 104 }, { id: 'route3', rMin: 57, rMax: 76 },
-  { id: 'route4', rMin: 27, rMax: 46 }, { id: 'route5', rMin: 2, rMax: 16 },
+  { id: 'pitch', rMin: 270, rMax: 299 }, { id: 'route1', rMin: 230, rMax: 269 },
+  { id: 'storyboard', rMin: 200, rMax: 229 }, { id: 'route2', rMin: 160, rMax: 199 },
+  { id: 'rodaje', rMin: 130, rMax: 159 }, { id: 'route3', rMin: 100, rMax: 129 },
+  { id: 'ultimatoma', rMin: 70, rMax: 99 }, { id: 'route4', rMin: 40, rMax: 69 },
+  { id: 'montaje', rMin: 18, rMax: 39 }, { id: 'route5', rMin: 8, rMax: 17 },
 ].map((zone) => ({ ...zone, nm: REGIONS[zone.id].name, ...REGIONS[zone.id].levels }));
 
 const SPECIAL_MAP_LEVELS = Object.fromEntries(
