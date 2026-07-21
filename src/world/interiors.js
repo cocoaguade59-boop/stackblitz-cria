@@ -91,6 +91,59 @@ const BUILDINGS = {
   },
 };
 
+// ─── PALETAS DE ESTILO POR REGIÓN (C1.5b-3) ──────────────────────
+// Cada estilo define colores de pared, piso, madera y acentos
+const STYLE_PALETTE = {
+  pitch: {
+    wallDark: '#5A5448', wallMid: '#6A6458', wallLight: '#5E584C',
+    floorA: '#C8A870', floorB: '#D4B880', woodGrain: '#B89860',
+    woodDark: '#5A3820', woodMid: '#8B6040', woodLight: '#9B7050',
+    accent: '#D8B840', rugBase: '#B83838', rugAccent: '#C84848',
+  },
+  storyboard: {
+    wallDark: '#4A5460', wallMid: '#5A6470', wallLight: '#4E5864',
+    floorA: '#B8B0C0', floorB: '#C8C0D0', woodGrain: '#A098B0',
+    woodDark: '#4A3860', woodMid: '#6A5080', woodLight: '#8A68A0',
+    accent: '#C880D0', rugBase: '#4058A0', rugAccent: '#5070B8',
+  },
+  rodaje: {
+    wallDark: '#5A5040', wallMid: '#6A6050', wallLight: '#5E5444',
+    floorA: '#A89880', floorB: '#B8A890', woodGrain: '#988870',
+    woodDark: '#5A4830', woodMid: '#8A7060', woodLight: '#A08870',
+    accent: '#E88030', rugBase: '#604030', rugAccent: '#805040',
+  },
+  feria: {
+    wallDark: '#3A3050', wallMid: '#4A4060', wallLight: '#3E3454',
+    floorA: '#C0A8B0', floorB: '#D0B8C0', woodGrain: '#A898A0',
+    woodDark: '#4A2840', woodMid: '#7A3860', woodLight: '#A04880',
+    accent: '#E8C830', rugBase: '#602050', rugAccent: '#803870',
+  },
+  montaje: {
+    wallDark: '#5A5A62', wallMid: '#6A6A72', wallLight: '#5E5E66',
+    floorA: '#C0C0C8', floorB: '#D0D0D8', woodGrain: '#B0B0B8',
+    woodDark: '#5A5A60', woodMid: '#8A8A90', woodLight: '#A8A8B0',
+    accent: '#88C0E8', rugBase: '#486880', rugAccent: '#6088A0',
+  },
+  mill: {
+    wallDark: '#4A4030', wallMid: '#5A5040', wallLight: '#4E4434',
+    floorA: '#B89868', floorB: '#C8A878', woodGrain: '#A88858',
+    woodDark: '#4A3010', woodMid: '#7A5828', woodLight: '#A07840',
+    accent: '#D8A030', rugBase: '#683818', rugAccent: '#885028',
+  },
+  proa: {
+    wallDark: '#3A3A4A', wallMid: '#4A4A5A', wallLight: '#3E3E4E',
+    floorA: '#C8C0B0', floorB: '#D8D0C0', woodGrain: '#B8B0A0',
+    woodDark: '#3A2A1A', woodMid: '#6A4A3A', woodLight: '#8A6A5A',
+    accent: '#C8A830', rugBase: '#303850', rugAccent: '#485068',
+  },
+};
+
+function getStylePalette(building) {
+  // Si el kind tiene paleta específica, úsala; sino usa la región
+  const key = STYLE_PALETTE[building.kind] ? building.kind : building.style || building.region || 'pitch';
+  return STYLE_PALETTE[key] || STYLE_PALETTE.pitch;
+}
+
 // ─── SÓLIDOS INTERIORES ────────────────────────────────────────────
 const INTERIOR_SOLID = new Set([
   IT.wall, IT.table, IT.bed, IT.hearth, IT.shelf,
@@ -210,11 +263,13 @@ function setActiveInterior(v) { activeInterior = v; }
 export {
   IT,
   BUILDINGS,
+  STYLE_PALETTE,
   isInteriorSolid,
   createInteriorMap,
   getInteriorSpawn,
   getBuildingAtDoor,
   getBuildingAt,
+  getStylePalette,
   getActiveInterior,
   setActiveInterior,
 };

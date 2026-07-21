@@ -197,7 +197,7 @@ import { dStarter } from './src/screens/starter.js';
 import { dMenu } from './src/screens/menu.js';
 
 // [refactor-phase5b-C1.5b] sistema de interiores importado
-import { IT, BUILDINGS, isInteriorSolid, createInteriorMap, getInteriorSpawn, getBuildingAtDoor, getBuildingAt, getActiveInterior, setActiveInterior } from './src/world/interiors.js';
+import { IT, BUILDINGS, isInteriorSolid, createInteriorMap, getInteriorSpawn, getBuildingAtDoor, getBuildingAt, getStylePalette, getActiveInterior, setActiveInterior } from './src/world/interiors.js';
 import { dTileI } from './src/render/tiles-interior.js';
 
 
@@ -1150,8 +1150,9 @@ function uWorld() {
       const building = getBuildingAt(pc, pr - 1);
       if (building) {
         const map = createInteriorMap(building);
+        const palette = getStylePalette(building);
         G._returnFromInterior = { ...building.exit };
-        setActiveInterior({ building, map, cols: building.size.cols, rows: building.size.rows });
+        setActiveInterior({ building, map, cols: building.size.cols, rows: building.size.rows, palette });
         G.prevCurMap = G.curMap;
         G.curMap = 'interior';
         const sp = getInteriorSpawn(building);
@@ -4647,7 +4648,7 @@ function drawMap() {
   if (G.curMap === 'interior') {
     const ai = getActiveInterior();
     if (!ai) { G.curMap = 'world'; return; }
-    const { map, cols, rows } = ai;
+    const { map, cols, rows, palette } = ai;
     // Fondo oscuro para bordes
     cx.fillStyle = '#1A1815';
     cx.fillRect(0, 0, 640, 480);
@@ -4656,7 +4657,7 @@ function drawMap() {
     const offY = Math.floor((480 - rows * T) / 2);
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        dTileI(map[r][c], offX + c * T, offY + r * T);
+        dTileI(map[r][c], offX + c * T, offY + r * T, palette);
       }
     }
     // Jugador
