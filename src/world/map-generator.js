@@ -477,6 +477,23 @@ function buildStoryboardC3() {
   // Calle central-este (col 62): paso lateral de plaza
   fillWorld(62, 213, 62, 222, 1);
 
+  // ─── RELLENO DE BALDOSAS ADICIONALES ──────────────────────
+  // Patios de acceso amplios frente a cada casa
+  fillWorld(37, 207, 42, 209, 1); // Fabiana
+  fillWorld(69, 207, 74, 209, 1); // Paulo
+  fillWorld(37, 229, 42, 229, 1); // Gabriela
+  fillWorld(69, 229, 74, 229, 1); // Claudia
+  fillWorld(48, 204, 51, 206, 1); // Proa Tamara
+  // Alrededor de la fuente
+  fillWorld(53, 216, 59, 218, 1);
+  // Callejon trasero norte
+  fillWorld(36, 202, 76, 202, 1);
+  // Conexiones plaza-casas
+  fillWorld(43, 211, 43, 213, 1);
+  fillWorld(70, 211, 70, 213, 1);
+  fillWorld(43, 222, 43, 224, 1);
+  fillWorld(70, 222, 70, 224, 1);
+
   // ─── CASAS IMPORTANTES (4×3) ──────────────────────────────
   // Fabiana (oeste superior): cols 38-41, rows 203-206
   for (let r = 203; r <= 206; r++) for (let c = 38; c <= 41; c++) setWorld(c, r, 4);

@@ -10,13 +10,13 @@ const EXPANDED_NPC_PLACEMENTS = {
     Nicole: { x: 55, y: 291 },
   },
   storyboard: {
-    Gabriela: { x: 56, y: 213 },
-    Fabiana: { x: 49, y: 216 },
-    Paulo: { x: 69, y: 216 },
-    Claudia: { x: 52, y: 220 },
-    Tamara: { x: 60, y: 211 }, // plaza Proa
-    DavidO: { x: 65, y: 220 },
-    Luas: { x: 58, y: 207 },
+    Gabriela: { x: 56, y: 216 },
+    Fabiana: { x: 50, y: 210 },
+    Paulo: { x: 69, y: 210 },
+    Claudia: { x: 56, y: 224 },
+    Tamara: { x: 49, y: 205 }, // frente a la Proa (cols 47-52, rows 200-203)
+    DavidO: { x: 60, y: 220 },
+    Luas: { x: 61, y: 220 },   // regla: David-O izquierda, Luas derecha
   },
   rodaje: {
     Luchito: { x: 60, y: 141 },
