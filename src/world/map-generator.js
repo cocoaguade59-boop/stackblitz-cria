@@ -494,7 +494,33 @@ function buildRoute4C5() {
   setWorld(38, 39, 19); setWorld(39, 39, 20); setWorld(45, 33, 15); setWorld(34, 30, 19);
 }
 
+function genExpandedTerrainC15a2b() {
+  // C1.5a-2b: terreno base del Reino ampliado. Pueblos/NPCs llegan en commits posteriores.
+  for (let r = 0; r < WR; r++) {
+    wMap[r] = [];
+    for (let c = 0; c < WC; c++) {
+      const edge = r < 2 || r >= WR - 2 || c < 2 || c >= WC - 2;
+      wMap[r][c] = edge ? 3 : ((c * 17 + r * 11) % 19 === 0 ? 5 : 0);
+    }
+  }
+  // Camino Real continuo: el esqueleto navegable del sur al norte.
+  for (let r = 2; r < WR - 2; r++) for (let dc = -1; dc <= 1; dc++) wMap[r][60 + dc] = 1;
+  // Plazas/descansos en los centros de las futuras regiones.
+  [285,250,215,180,145,115,85,55,28,12,5].forEach((r) => {
+    for (let y=r-2;y<=r+2;y++) for(let x=50;x<=70;x++) if(y>=2&&y<WR-2) wMap[y][x]=1;
+  });
+  // Río del sur y puentes provisionales transitables.
+  for(let r=255;r<WR-2;r++) for(let c=88;c<=96;c++) wMap[r][c]=2;
+  for (const r of [276,288]) for(let c=86;c<=98;c++) wMap[r][c]=1;
+  // Bosques laterales, sin tocar el camino principal.
+  for(let r=20;r<275;r++) for(let c=3;c<117;c++) {
+    if (Math.abs(c-60)<10 || wMap[r][c]!==0) continue;
+    if ((c*5+r*3)%13===0) wMap[r][c]=3;
+  }
+}
+
 function genWorld() {
+  if (WC === 120 && WR === 300) { genExpandedTerrainC15a2b(); return; }
   // Inicializar mapa con hierba y hierba alta aleatoria
   for (let r = 0; r < WR; r++) {
     wMap[r] = [];

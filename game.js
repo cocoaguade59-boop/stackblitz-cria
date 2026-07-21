@@ -2673,7 +2673,7 @@ function resetGame(startIntro = false) {
   // Reiniciar variables globales
   G.scr = 'title';
   G.curMap = 'world';
-  G.pl = { x: 20, y: 145, d: 0, f: 0, sprint: false, stepTarget: null, moving: false };
+  G.pl = { x: 60, y: 285, d: 0, f: 0, sprint: false, stepTarget: null, moving: false };
   G.party = [];
   G.gold = 200;
   G.pot = 5;
@@ -2733,7 +2733,7 @@ function resetGame(startIntro = false) {
   setTowerKey({ edison: false, roberto: false, gabriela: false, ximena: false });
   setDiplomas({ tamara: false, luchito: false, andrea: false, dan: false });
   setCaptureCount({});
-  setLastHealPos({ x: 20, y: 145, map: 'world' });
+  setLastHealPos({ x: 60, y: 285, map: 'world' });
 
   // Regenerar mapas
   // === HELPERS DE CAMINOS PARA EL MAPA GRANDE ===
@@ -5457,7 +5457,7 @@ function loadGame() {
     });
     setCaptureCount(save.captureCount || {});
     // Default de lastHealPos: y=145 (Aldea Pitch), no 32 que caía al norte
-    setLastHealPos(save.lastHealPos || { x: 20, y: 145, map: 'world' });
+    setLastHealPos(save.lastHealPos || { x: 60, y: 285, map: 'world' });
 
     G.prevPos = save.prevPos || null;
 
@@ -5942,8 +5942,8 @@ function startNewGameFlow() {
   G.hasSave = false;
   G.sSel = 0;
   G.curMap = 'world';
-  G.pl.x = 20;
-  G.pl.y = 145;
+  G.pl.x = 60;
+  G.pl.y = 285;
   G.pl.d = 3;
   G.pl.stepTarget = null;
   G.pl.moving = false;
