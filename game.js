@@ -504,9 +504,9 @@ function genTower() {
   // Salida abajo
   towerMap[TWR - 2][Math.floor(TWC / 2)] = 27;
 
-  // Cristales capturables
+  // Pines capturables (tile 28, se recogen con SPACE)
   let tc = 0;
-  while (tc < 3) {
+  while (tc < 5) {
     const c = 3 + Math.floor(Math.random() * (TWC - 6));
     const r = 3 + Math.floor(Math.random() * (TWR - 6));
     if (towerMap[r][c] === 20) {
@@ -2825,26 +2825,6 @@ function resetGame(startIntro = false) {
         if (r >= 2 && r < WR - 2 && cc >= 2 && cc < WC - 2) wMap[r][cc] = 1;
       }
   }
-  // === HELPERS DE CAMINOS (para el mapa grande) ===
-  function hPath(r, c1, c2, w = 2) {
-    const start = Math.min(c1, c2),
-      end = Math.max(c1, c2);
-    for (let c = start; c <= end; c++)
-      for (let dr = 0; dr < w; dr++) {
-        const rr = r + dr;
-        if (rr >= 2 && rr < WR - 2 && c >= 2 && c < WC - 2) wMap[rr][c] = 1;
-      }
-  }
-
-  function vPath(c, r1, r2, w = 2) {
-    const start = Math.min(r1, r2),
-      end = Math.max(r1, r2);
-    for (let r = start; r <= end; r++)
-      for (let dc = 0; dc < w; dc++) {
-        const cc = c + dc;
-        if (r >= 2 && r < WR - 2 && cc >= 2 && cc < WC - 2) wMap[r][cc] = 1;
-      }
-  }
   genWorld();
   applyExpandedNpcPlacements(npcs);
   genCave(cave1, CC, CR);
@@ -3787,34 +3767,36 @@ function procAct(act) {
       b.tm = 0;
       return;
     }
-    // T11a: mods con clamp ±6 + mensajes claros
-    if (mv.ef === 'spdUp') {
-      sfx.sel();
-      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['spd', 1]]);
-    }
-    if (mv.ef === 'atkUp2') {
-      sfx.sel();
-      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['atk', 2]]);
-    }
-    if (mv.ef === 'spdUp2') {
-      sfx.sel();
-      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['spd', 2]]);
-    }
-    if (mv.ef === 'defUp2') {
-      sfx.sel();
-      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['def', 2]]);
-    }
-    if (mv.ef === 'atkSpdUp') {
-      sfx.sel();
-      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['atk', 1], ['spd', 1]]);
-    }
-    if (mv.ef === 'atkDefUp') {
-      sfx.sel();
-      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['atk', 1], ['def', 1]]);
-    }
-    if (mv.ef === 'atkSpdUpDefDn') {
-      sfx.sel();
-      b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['atk', 1], ['spd', 1], ['def', -1]]);
+    // T11a: mods con clamp ±6 + mensajes claros (solo movimientos puros sin daño)
+    if (mv.pw === 0) {
+      if (mv.ef === 'spdUp') {
+        sfx.sel();
+        b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['spd', 1]]);
+      }
+      if (mv.ef === 'atkUp2') {
+        sfx.sel();
+        b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['atk', 2]]);
+      }
+      if (mv.ef === 'spdUp2') {
+        sfx.sel();
+        b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['spd', 2]]);
+      }
+      if (mv.ef === 'defUp2') {
+        sfx.sel();
+        b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['def', 2]]);
+      }
+      if (mv.ef === 'atkSpdUp') {
+        sfx.sel();
+        b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['atk', 1], ['spd', 1]]);
+      }
+      if (mv.ef === 'atkDefUp') {
+        sfx.sel();
+        b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['atk', 1], ['def', 1]]);
+      }
+      if (mv.ef === 'atkSpdUpDefDn') {
+        sfx.sel();
+        b.msg = withStatMsgs(`${c.nm}: ${mv.nm}!`, 'player', [['atk', 1], ['spd', 1], ['def', -1]]);
+      }
     }
     if (mv.ef === 'protect') {
       battleState.playerProtect = true;
@@ -5570,6 +5552,16 @@ function loadGame() {
     // Regenerar torre si post-game
     if (postGame) genTower();
 
+    // Actualizar cámara al punto de carga (antes quedaba desfasada)
+    if (G.curMap === 'world') updateCamera(WC, WR);
+    else if (G.curMap === 'cave1' || G.curMap === 'cave2') updateCamera(CC, CR);
+    else if (G.curMap === 'castle') updateCamera(KC, KR);
+    else if (G.curMap === 'tower') updateCamera(TWC, TWR);
+    else if (G.curMap === 'interior') {
+      // interior se centra solo en draw, pero limpiamos estado de movimiento
+      G.pl.stepTarget = null;
+    }
+
     // Verificaciones
     checkAllTalked();
     checkAllCaught();
@@ -6113,7 +6105,6 @@ function uTitle() {
 function uIntro() {
   if (!G.intro) G.intro = { phase: 0, y: 82, li: 0, ci: 0, tm: 0, full: false };
   const it = G.intro;
-  if (G.tFr % 60 === 0) console.log('[uIntro] phase:', it.phase, 'y:', it.y, 'scr:', G.scr);
   if (it.phase === 0) {
     it.y += 2.4;
     if (it.y >= 198 || kp(' ') || kp('Enter')) {

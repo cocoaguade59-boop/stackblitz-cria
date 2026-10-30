@@ -25,7 +25,7 @@ const STAGE_MAX = 6;
 // Multiplicadores por stage -6..+6 (índice = mod + 6)
 const STAGE_MULTS = [0.25, 0.28, 0.33, 0.4, 0.5, 0.66, 1, 1.5, 2, 2.5, 3, 3.5, 4];
 
-let battleState = {
+const _defaultBattleState = () => ({
   weather: null,
   weatherTurns: 0,
   playerStatus: null,
@@ -42,31 +42,30 @@ let battleState = {
   enemyShield: false,
   wishHealNext: false,
   learnMoveQueue: null,
-};
+});
+
+const _hasWindow = typeof window !== 'undefined';
+if (_hasWindow && !window.__bs) {
+  window.__bs = _defaultBattleState();
+}
+const _bsHost = _hasWindow ? window.__bs : _defaultBattleState();
+let battleState = _bsHost;
 
 function freshMods() {
   return { atk: 0, def: 0, spd: 0 };
 }
 
 function resetBattleState() {
-  battleState = {
-    weather: null,
-    weatherTurns: 0,
-    playerStatus: null,
-    playerStatusTurns: 0,
-    enemyStatus: null,
-    enemyStatusTurns: 0,
-    playerStatMods: freshMods(),
-    enemyStatMods: freshMods(),
-    lastDmgToPlayer: 0,
-    lastDmgToEnemy: 0,
-    playerProtect: false,
-    enemyProtect: false,
-    playerShield: false,
-    enemyShield: false,
-    wishHealNext: false,
-    learnMoveQueue: null,
-  };
+  // Mutar el objeto singleton en lugar de reasignar la referencia,
+  // para que todos los módulos que importaron `battleState` vean el reset
+  // incluso con el truco de StackBlitz (window.__bs) y sin romper live bindings.
+  const fresh = _defaultBattleState();
+  Object.keys(fresh).forEach((k) => {
+    battleState[k] = fresh[k];
+  });
+  if (_hasWindow) {
+    Object.assign(window.__bs, battleState);
+  }
 }
 
 /** Reset mods del jugador al cambiar de criatura (entra en 0/0/0). */
