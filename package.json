@@ -8,11 +8,12 @@
     "start": "vite --host 0.0.0.0",
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
-    "test": "node tests/test-save-transfer.mjs && node tests/test-menu-sync.mjs && node tests/test-proa-progress.mjs && node tests/test-sprite-cache.mjs && node tests/test-sprite-proxy.mjs && node tests/test-all-sprites.mjs && node tests/test-lerp-color.mjs && node tests/test-loop-timestep.mjs && node tests/test-standalone-boot.mjs && node tests/test-error-overlay.mjs && node tests/test-action-key.mjs && node tests/test-route-forest.mjs",
+    "test": "node tests/test-save-transfer.mjs && node tests/test-menu-sync.mjs && node tests/test-proa-progress.mjs && node tests/test-sprite-cache.mjs && node tests/test-sprite-proxy.mjs && node tests/test-all-sprites.mjs && node tests/test-lerp-color.mjs && node tests/test-loop-timestep.mjs && node tests/test-standalone-boot.mjs && node tests/test-error-overlay.mjs && node tests/test-action-key.mjs && node tests/test-route-forest.mjs && node tests/test-battle-ux.mjs && node tests/test-tile-ping.mjs && node tests/test-save-profile.mjs && node tests/test-move-frame-draw.mjs && node tests/test-in-game-profile.mjs && node tests/test-in-game-battle.mjs && node tests/test-in-game-ping.mjs",
     "test:e2e": "node tests/test-title.mjs && node tests/test-battle.mjs && node tests/test-interiors.mjs && node tests/test-phase5a.mjs && node tests/test-phase5b.mjs && node tests/test-fresh.mjs",
     "build:app": "vite build --mode app && node tools/make-standalone.mjs && node tools/make-zip.mjs",
     "test:standalone": "node tests/test-standalone-boot.mjs",
-    "zip": "node tools/make-zip.mjs"
+    "zip": "node tools/make-zip.mjs",
+    "test:visual": "node tests/test-in-game-profile.mjs && node tests/test-in-game-battle.mjs && node tests/test-in-game-ping.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1",

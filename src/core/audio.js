@@ -63,6 +63,12 @@ class SFX {
     this.n(880, 0.1, 'square', 0.12);
     setTimeout(() => this.n(1100, 0.1), 80);
   }
+  // Punto 11: campanita de "hay algo acá". Suave y corta (dos notas
+  // ascendentes) para no confundirse con el sonido de subir de nivel.
+  ping() {
+    this.n(784, 0.07, 'sine', 0.05);
+    setTimeout(() => this.n(1047, 0.09, 'sine', 0.045), 70);
+  }
   nef() {
     this.n(300, 0.2, 'triangle', 0.06);
     setTimeout(() => this.n(200, 0.3, 'triangle', 0.06), 150);

@@ -120,11 +120,40 @@ build falla: nunca se entrega un archivo que no abra.
 Sí, en el `localStorage` del navegador. Cada navegador tiene la suya. Para
 pasarla a otra computadora: menú → **Partida portátil** → exportar/importar.
 
+En la pantalla de título, debajo de «Continuar», vas a ver un resumen de la
+partida guardada:
+
+```
+Guardado 1 · Rodaje · 2h 14m · 3 insignias · Lv.18
+```
+
+Pueblo donde quedaste, tiempo jugado, insignias de los Proa y nivel del equipo.
+
 **¿Qué teclas se usan?**
 `Flechas` mover · **`C` acción** (hablar, confirmar, abrir pines) · `X` menú/volver
 · `Z` correr · `P` pausa.
 ESPACIO y ENTER siguen funcionando como acción (por si ya tenías la costumbre),
 pero el juego te va a pedir `C`.
+
+**Dentro de una batalla**, además:
+
+| Tecla | Qué hace |
+|---|---|
+| `V` | velocidad ×1 / ×2 (se mantiene entre combates) |
+| `C` | confirmar ataque |
+| `X` | volver |
+
+**¿Cómo sé si mi ataque va a servir?**
+Mirá el borde de la casilla del ataque: **naranja** = pega fuerte,
+**azul** = pega poco, **sin borde** = normal. Sin números, sin cuentas.
+
+**¿Y si un movimiento no tiene PP?**
+El cursor ya no se detiene en los movimientos agotados: las flechas los saltean
+y, si todos están sin PP, te avisa antes de elegir.
+
+**¿Por qué a veces suena una campanita?**
+Porque hay algo cerca: un pin para abrir con `C` o alguien con algo nuevo que
+contarte. Suena una sola vez por lugar.
 
 **¿Funciona en el celular?**
 Sí. En pantallas táctiles aparecen los controles en pantalla (D-pad + A/B).

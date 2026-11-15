@@ -3,7 +3,29 @@
 
 import { cx } from '../core/canvas.js';
 import { px } from './render-utils.js';
-import { tCol, tNam } from '../data/types.js';
+import { tCol, tNam, tEff } from '../data/types.js';
+
+// === EFECTIVIDAD VISIBLE EN LA CASILLA ===
+// En vez de mostrar "×2" (números en un juego de pixel art de 6px se leen
+// mal), se enmarca la casilla: naranja = pega fuerte, azul = pega poco.
+// El jugador aprende la tabla mirando, sin leer nada.
+// Sólo dos colores, como se pidió: naranja = pega fuerte, azul = pega poco.
+// La inmunidad (x0) es el caso extremo de "pega poco", así que también va azul;
+// agregar un tercer color rompería el minimalismo y no aporta información.
+const EFF_SUPER = '#F08A20';   // naranja: súper eficaz
+const EFF_WEAK = '#3C7AE0';    // azul: poco eficaz (incluye inmune)
+
+/**
+ * Color del marco según el tipo del movimiento contra el tipo del enemigo.
+ * Devuelve null si es neutral (no se dibuja marco, para no ensuciar la UI).
+ */
+function moveEffFrame(tp, enemyType) {
+  if (!tp || !enemyType) return null;
+  const eff = tEff(tp, enemyType);
+  if (eff > 1) return EFF_SUPER;
+  if (eff < 1) return EFF_WEAK; // incluye 0.5 y la inmunidad (0)
+  return null;
+}
 
 // === ICONO DE TIPO DE CRIATURA ===
 function dTypeIcon(x, y, tp) {
@@ -51,8 +73,9 @@ function movePpColor(pp, max) {
   return '#1A1A1A';
 }
 
-function dMoveButton(x, y, w, h, mv, selected) {
+function dMoveButton(x, y, w, h, mv, selected, enemyType) {
   const disabled = mv.pp <= 0;
+  const effFrame = disabled ? null : moveEffFrame(mv.tp, enemyType);
   const main = disabled ? '#777' : moveUiCol(mv.tp);
   const dark = disabled ? '#444' : moveUiCol(mv.tp, true);
   const inner = disabled ? '#C8C8C0' : '#E6EAD8';
@@ -75,6 +98,15 @@ function dMoveButton(x, y, w, h, mv, selected) {
   px(x + 8, y + 8, w - 16, h - 16, inner);
   px(x + 10, y + 10, w - 20, h - 20, inner2);
   px(x + 10, y + 10, w - 20, 2, 'rgba(255,255,255,.45)');
+
+  // Marco de efectividad: cuadrado de 2px por fuera de la casilla.
+  // Va antes que el brillo de seleccionado para que no lo tape.
+  if (effFrame) {
+    px(x - 2, y - 2, w + 4, 2, effFrame);          // arriba
+    px(x - 2, y + h, w + 4, 2, effFrame);          // abajo
+    px(x - 2, y - 2, 2, h + 4, effFrame);          // izquierda
+    px(x + w, y - 2, 2, h + 4, effFrame);          // derecha
+  }
 
   if (selected) {
     px(x + 8, y + 6, 8, 3, '#FFE870');
@@ -113,4 +145,7 @@ function dMoveButton(x, y, w, h, mv, selected) {
 }
 
 
-export { dTypeIcon, moveUiCol, movePpColor, dMoveButton };
+export {
+  dTypeIcon, moveUiCol, movePpColor, dMoveButton,
+  moveEffFrame, EFF_SUPER, EFF_WEAK,
+};

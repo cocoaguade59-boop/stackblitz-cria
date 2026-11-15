@@ -8,7 +8,8 @@ import { G } from '../core/game-state.js';
 import { sfx } from '../core/audio.js';
 import { fr } from '../core/frame.js';
 import { kp, kAction } from '../core/input.js';
-import { hasSaveGame, clearAllGameSaves } from '../core/save.js';
+import { SAVE_KEY, hasSaveGame, clearAllGameSaves } from '../core/save.js';
+import { profileFromSave } from '../core/save-profile.js';
 import { EXPANDED_SPAWN } from '../world/expanded-npc-placements.js';
 import { emptyFragments, emptyFragrances } from '../data/pins.js';
 import { CDB } from '../data/creatures.js';
@@ -35,6 +36,23 @@ function getLinearGradient(x0, y0, x1, y1, stops) {
 }
 
 // loadGame se toma de window (game.js lo asigna en init() antes del loop)
+
+// Perfil del guardado para la pantalla de título (punto 15).
+// Se cachea por el texto crudo del save: leer JSON + recorrer el equipo en
+// cada frame a 60 Hz sería tirar CPU al aire. Sólo cambia al guardar.
+let _profileCache = { raw: null, profile: null };
+function getSaveProfile() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    if (raw === _profileCache.raw) return _profileCache.profile;
+    const profile = profileFromSave(JSON.parse(raw), { slot: 1 });
+    _profileCache = { raw, profile };
+    return profile;
+  } catch (e) {
+    return null;
+  }
+}
 
 // === PANTALLA DE TÍTULO ===
 function playTitleHorn() {
@@ -75,6 +93,11 @@ function startNewGameFlow() {
   G.bagUpgrade = false;
   G.supervisor = false;
   G.batallador = false;
+  // Partida nueva = reloj a cero y avisos de "hay algo acá" en blanco.
+  G.playMs = 0;
+  G.ping = null;
+  G.stepsWalked = 0;
+  G.battleSpd = 1;
   G.scr = 'intro';
   G.intro = { phase: 0, y: 82, li: 0, ci: 0, tm: 0, full: false };
 }
@@ -323,12 +346,21 @@ function dTitle() {
       cx.font = '8px "Press Start 2P"';
       cx.fillText(`${G.titleSel === i ? '▶ ' : '  '}${o}`, 320, 396 + i * 28);
     });
+    // Perfil del guardado (punto 15): "Guardado 1 · Pitch · 2h 14m · 4 insignias".
+    const prof = getSaveProfile();
+    if (prof) {
+      const line = prof.topLevel > 0 ? `${prof.line} · Lv.${prof.topLevel}` : prof.line;
+      cx.fillStyle = '#9FB4C8';
+      cx.font = line.length > 46 ? '5px "Press Start 2P"' : '6px "Press Start 2P"';
+      cx.fillText(line, 320, 450);
+    }
   } else {
     cx.fillStyle = Math.sin(f * 0.1) > 0 ? '#fff' : '#A0B0C0';
     cx.font = '9px "Press Start 2P"';
     cx.fillText('C para comenzar', 320, 408);
   }
-  cx.fillStyle = '#606878'; cx.font = '6px "Press Start 2P"'; cx.fillText('Flechas = elegir | C = confirmar', 320, 460);
+  cx.fillStyle = '#606878'; cx.font = '6px "Press Start 2P"';
+  cx.fillText('Flechas = elegir | C = confirmar', 320, G.hasSave ? 476 : 460);
   cx.textAlign = 'left';
 }
 

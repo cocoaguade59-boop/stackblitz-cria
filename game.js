@@ -102,6 +102,12 @@ import {
   isCaveLikeMap,
 } from './src/world/pin-system.js';
 import {
+  findPingAt,
+  createPingState,
+  shouldPing,
+} from './src/world/tile-ping.js';
+import { profileFromSave } from './src/core/save-profile.js';
+import {
   CRYSTAL_INFO,
   rollPinLoot,
   emptyFragrances,
@@ -445,6 +451,41 @@ function showPinFind(loot) {
   G.scr = 'find';
   sfx.find(rarity);
   aN(`+${label}`);
+}
+
+// === PUNTO 11: "HAY ALGO ACÁ" ===
+// El estado vive en G para que sobreviva a los cambios de mapa, pero se
+// reinicia al empezar una partida nueva.
+function pingNpcAt(pos) {
+  for (const list of [npcs, caveNpcs, castNpcs]) {
+    for (const n of list) {
+      if (!npcVisible(n)) continue;
+      if (Math.round(n.x) === pos.c && Math.round(n.y) === pos.r) return n;
+    }
+  }
+  return null;
+}
+
+/** Ping al pisar una casilla: pitido + aviso si hay pin o NPC con novedad. */
+function pingTileContents(c, r) {
+  if (G.scr !== 'world') return;
+  if (G.supervisor || G.batallador || G.batalladorSel) return;
+  if (!G.ping) G.ping = createPingState();
+  G.stepsWalked = (G.stepsWalked || 0) + 1;
+  if (G.stepsWalked < 1) return;
+
+  const mapName = G.curMap;
+  const found = findPingAt({
+    cx: c,
+    cy: r,
+    isPinTile: (pc, pr) => isPinTile(mapName, tileAt(mapName, pc, pr)),
+    npcAt: (pc, pr) => pingNpcAt({ c: pc, r: pr }),
+    npcIsNew: (n) => !n.flag || !G.talkedTo[n.flag],
+  });
+  const hit = shouldPing(G.ping, found, G.stepsWalked, 6);
+  if (!hit) return;
+  sfx.ping();
+  aN(hit.label, 110);
 }
 
 /** Intenta recoger un pin en la casilla mirando. true si se recogió. */
@@ -1183,6 +1224,9 @@ function uWorld() {
 
     // (T3) Los pines ya NO se recogen al pisar: son sólidos y se abren con C.
 
+    // Punto 11: aviso de "hay algo acá" al pisar un tile con algo interesante.
+    pingTileContents(tc, tr);
+
     // Entrada cueva (fallback legacy por si el paso aterriza raro)
     if (kh('ArrowUp')) {
       const etc = Math.floor(G.pl.x),
@@ -1301,6 +1345,7 @@ function uCave() {
     const tc = Math.floor(G.pl.x);
     const tr = Math.floor(G.pl.y);
     let tile = map[tr]?.[tc];
+    pingTileContents(tc, tr);
 
     // Salida:
     // SOLO si vienes desde arriba y caminaste hacia abajo
@@ -1397,6 +1442,7 @@ function uCastle() {
 
   if (mv) {
     tickIncenseOnStep();
+    pingTileContents(Math.floor(G.pl.x), Math.floor(G.pl.y));
     const tile = castMap[Math.floor(G.pl.y)]?.[Math.floor(G.pl.x)];
     if (tile === 33) {
       const rx = G.prevPos ? G.prevPos.x : 20;
@@ -1429,6 +1475,7 @@ function uTower() {
     const tc = Math.floor(G.pl.x),
       tr = Math.floor(G.pl.y);
     const tile = towerMap[tr]?.[tc];
+    pingTileContents(tc, tr);
 
     // Encuentros (todos los tipos + Serafox raro)
     if (!G.supervisor && tile === 26 && Math.random() < 0.03) {
@@ -3107,7 +3154,35 @@ function finishCaptureAttempt() {
   b.tm = 0;
 }
 
+// === PUNTO 5: VELOCIDAD DE BATALLA ===
+// El juego simula a 60 pasos fijos por segundo (ver loop()). Para acelerar
+// SÓLO la batalla sin tocar el resto del mundo, se ejecutan los pasos de
+// batalla en un "acumulador propio": con x2 se procesa uBattle() dos veces por
+// paso. No se multiplica dt ni se saltean frames, así que las animaciones y
+// los tiempos de mensaje siguen siendo exactos, sólo que a doble ritmo.
+// La preferencia vive en G (no en G.bs) para que se recuerde entre batallas:
+// quien acelera una vez, quiere seguir acelerado.
+function battleSpeed() {
+  return G.battleSpd === 2 ? 2 : 1;
+}
+
+function toggleBattleSpeed() {
+  G.battleSpd = battleSpeed() === 2 ? 1 : 2;
+  aN(G.battleSpd === 2 ? 'Velocidad x2' : 'Velocidad x1');
+  sfx.sel();
+}
+
 function uBattle() {
+  // Se llama 1 o 2 veces según la velocidad elegida. Los pasos extra se
+  // ejecutan ANTES de dibujar, así que el resultado se ve igual de fluido.
+  const times = battleSpeed();
+  for (let i = 0; i < times; i++) {
+    if (G.scr !== 'battle' || !G.bs) break;
+    uBattleStep();
+  }
+}
+
+function uBattleStep() {
   const b = G.bs;
   b.af++;
   b.tm++;
@@ -3187,7 +3262,12 @@ function uBattle() {
         switch (b.ms) {
           case 0: // Luchar
             b.ph = 'move';
-            b.mvs = 0;
+            // Arrancar en el primer movimiento con PP: si el 1º está
+            // agotado, el cursor ya nace en uno usable en vez de en gris.
+            b.mvs = Math.max(
+              0,
+              pCre().mv.findIndex((m) => m.pp > 0)
+            );
             break;
           case 1: // Poción
             if (G.pot > 0) {
@@ -3313,20 +3393,29 @@ function uBattle() {
     case 'move':
       {
         const c = pCre();
-        if (kp('ArrowUp')) {
-          b.mvs = b.mvs < 2 ? (b.mvs + 2) % 4 : b.mvs - 2;
-          sfx.sel();
-        }
-        if (kp('ArrowDown')) {
-          b.mvs = b.mvs < 2 ? (b.mvs + 2) % 4 : b.mvs - 2;
+        // Navegación de la rejilla salteando movimientos sin PP.
+        // Si el movimiento de destino está agotado, se sigue avanzando en la
+        // misma dirección hasta encontrar uno usable (cómodo: un toque basta).
+        const stepGrid = (dir) => {
+          let idx = b.mvs;
+          for (let tries = 0; tries < 4; tries++) {
+            if (dir === 'up' || dir === 'down') idx = idx < 2 ? (idx + 2) % 4 : idx - 2;
+            else if (dir === 'left') idx = (idx + 3) % 4;
+            else idx = (idx + 1) % 4;
+            if (c.mv[idx] && c.mv[idx].pp > 0) break;
+          }
+          return idx;
+        };
+        if (kp('ArrowUp') || kp('ArrowDown')) {
+          b.mvs = stepGrid('up');
           sfx.sel();
         }
         if (kp('ArrowLeft')) {
-          b.mvs = (b.mvs + 3) % 4;
+          b.mvs = stepGrid('left');
           sfx.sel();
         }
         if (kp('ArrowRight')) {
-          b.mvs = (b.mvs + 1) % 4;
+          b.mvs = stepGrid('right');
           sfx.sel();
         }
         if (kp('x') || kp('Escape')) {
@@ -5029,6 +5118,22 @@ function dBattle() {
   // Stages del jugador (T11)
   dStatStages(384, 328, battleState.playerStatMods, true);
 
+  // Insignia de velocidad de batalla (punto 5). Sólo se dibuja en x2 para no
+  // ensuciar la pantalla cuando todo va normal; además recuerda que V existe.
+  if (battleSpeed() === 2) {
+    const bx = 566, by = 8;
+    px(bx + 2, by + 3, 64, 18, 'rgba(0,0,0,.45)');
+    px(bx + 3, by, 60, 18, '#7A5000');
+    px(bx, by + 3, 64, 12, '#7A5000');
+    px(bx + 7, by + 2, 50, 13, '#F0A020');
+    px(bx + 8, by + 3, 48, 3, '#FFD060');
+    cx.fillStyle = '#3A2000';
+    cx.font = '7px "Press Start 2P"';
+    cx.textAlign = 'center';
+    cx.fillText('x2', bx + 32, by + 13);
+    cx.textAlign = 'left';
+  }
+
   // === PANEL INFERIOR SEGÚN FASE ===
 
   if (b.ph === 'captureAnim') {
@@ -5148,6 +5253,14 @@ function dBattle() {
       25,
       456
     );
+    // Punto 5: la tecla V nunca se publicita sola, así que el menú de
+    // acciones recuerda que existe y en qué velocidad está.
+    cx.fillStyle = battleSpeed() === 2 ? '#F0A020' : '#888';
+    cx.font = '5px "Press Start 2P"';
+    cx.textAlign = 'right';
+    cx.fillText(`V: velocidad x${battleSpeed()}`, 617, 388);
+    cx.textAlign = 'left';
+
     if (b.ms === 4 && !(b.isMerch || b.isBoss || b.npcTeam)) {
       // Preview con el mejor cristal disponible
       const opts = availableCaptureCrystals();
@@ -5188,11 +5301,20 @@ function dBattle() {
     c.mv.forEach((m, i) => {
       const mx = 24 + (i % 2) * 296,
         my = 378 + Math.floor(i / 2) * 43;
-      dMoveButton(mx, my, 280, 40, m, b.mvs === i);
+      dMoveButton(mx, my, 280, 40, m, b.mvs === i, b.en.tp);
     });
     cx.fillStyle = '#777';
     cx.font = '5px "Press Start 2P"';
-    cx.fillText('X:Volver', 28, 464);
+    // Aviso extra: si TODOS los movimientos están agotados, el jugador
+    // necesita saberlo antes de elegir, no después de un "¡Sin PP!".
+    const allDry = c.mv.every((m) => m.pp <= 0);
+    if (allDry) {
+      cx.fillStyle = '#D02020';
+      cx.font = '6px "Press Start 2P"';
+      cx.fillText('¡Sin PP! Cambia de criatura o huye', 250, 464);
+    } else {
+      cx.fillText('X:Volver', 28, 464);
+    }
   } else if (b.ph === 'switch') {
     // Cambiar criatura
     dBox(10, 340, 620, 130, 'Cambiar criatura');
@@ -5435,6 +5557,10 @@ function buildSaveObject() {
     bossDialogs: G.bossDialogs,
     diplomas,
 
+    // Perfil de guardado (punto 15): cuánto se jugó en total. Se acumula en
+    // G.playMs desde el loop; sin esto el título no puede mostrar "2h 14m".
+    playMs: Math.floor(G.playMs || 0),
+
     // Post-game
     postGame,
     towerOpen,
@@ -5528,6 +5654,9 @@ function loadGame() {
       andrea: !!save.npcDefeats?.metAndrea,
       dan: !!save.npcDefeats?.metDan,
     });
+
+    // Tiempo jugado acumulado (punto 15). Los guardados viejos no lo tienen.
+    G.playMs = save.playMs ?? 0;
 
     // Post-game
     setPostGame(save.postGame || false);
@@ -6801,6 +6930,9 @@ function uObjects() {
 
 function update() {
   tickFrame();
+  // Tiempo jugado (punto 15). Se cuenta en el update de paso fijo, así que es
+  // tiempo REAL de juego y no depende de los fps del equipo.
+  if (G.scr !== 'title') G.playMs = (G.playMs || 0) + 1000 / 60;
   if (kp('y') && !['battle', 'dialog', '_dialogDone', 'starter', 'intro', 'confirmReset', 'vision', 'find', 'batalladorSelect'].includes(G.scr)) {
     toggleSupervisorMode();
   }
@@ -6822,6 +6954,8 @@ function update() {
     aN('Respawn de emergencia: Aldea Pitch');
     sfx.sel();
   }
+  // Tecla V: velocidad de batalla x1 / x2 (sólo dentro de la batalla).
+  if (kp('v') && G.scr === 'battle') toggleBattleSpeed();
   // Tecla T: partida portátil (exportar/importar save como texto).
   // Accesible desde el mundo para no depender del menú si algo se rompe.
   if (kp('t') && G.scr === 'world') {
