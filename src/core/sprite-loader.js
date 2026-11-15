@@ -2,6 +2,19 @@
 // Soporta rutas simples (ej: 'hydrapom' -> assets/sprites/hydrapom.png)
 // y con subcarpetas (ej: 'npcs/alejandro' -> assets/sprites/npcs/alejandro.png).
 // Sin dependencias externas.
+//
+// IMPORTANTE (build de un solo archivo):
+//   En dist-app/index.html, el build inyecta la variable global
+//   __INLINE_ASSETS__ = { 'assets/sprites/hydrapom.png': 'data:image/png;base64,...' }
+//   (ver el plugin inlineAssetImages de vite.config.js).
+//   Si la ruta está ahí, se usa el data: URI en vez del archivo suelto.
+//   Así el juego se ve completo con doble clic, cuando el HTML está solo en el
+//   escritorio y no hay ninguna carpeta assets/ al lado. En dev y en dist/ la
+//   variable no existe y se comporta exactamente igual que antes.
+function resolverSrc(ruta) {
+  const inline = typeof __INLINE_ASSETS__ !== 'undefined' ? __INLINE_ASSETS__ : null;
+  return (inline && inline[ruta]) || ruta;
+}
 
 const SPRITE_LOADER = {
   imgs: {},   // id -> HTMLImageElement
@@ -11,7 +24,7 @@ const SPRITE_LOADER = {
     const img = new Image();
     img.onload = () => { this.ready[id] = true; };
     img.onerror = () => { this.ready[id] = false; };
-    img.src = 'assets/sprites/' + id + '.png';
+    img.src = resolverSrc('assets/sprites/' + id + '.png');
     this.imgs[id] = img;
   },
   has(id) {
@@ -34,4 +47,4 @@ SPRITE_LOADER.load('npcs/alessandro');
 SPRITE_LOADER.load('trainers/alessandro');
 SPRITE_LOADER.load('trainers/alejandro');
 
-export { SPRITE_LOADER };
+export { SPRITE_LOADER, resolverSrc };

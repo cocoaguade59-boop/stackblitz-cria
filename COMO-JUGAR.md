@@ -5,6 +5,9 @@
 > cartel de "Windows protegió tu PC", tocá **"Más información" → "Ejecutar de
 > todas formas"** (es porque el archivo no tiene firma digital, no porque
 > tenga un virus — es tu propio juego).
+>
+> **Si no querés usar el `.bat`**, también podés hacer doble clic directo en
+> **`dist-app\index.html`**. Es lo mismo, un paso menos.
 
 ---
 
@@ -124,8 +127,31 @@ Sí. En pantallas táctiles aparecen los controles en pantalla (D-pad + A/B).
 `npm run build` y subí la carpeta `dist/` a GitHub Pages, Netlify o Vercel.
 `dist-app/index.html` también sirve suelto: es un archivo autónomo.
 
-**Se ve todo en blanco.**
+**Se ve un recuadro negro que no se mueve.**
+Ese fue un bug real (corregido en el PR #4). El `<script>` quedaba en el
+`<head>`, antes que el `<canvas>`. Como el script clásico no es diferido, corría
+cuando el canvas todavía no existía:
+
+```
+Cannot read properties of null (reading 'getContext')
+```
+
+El juego moría ahí y quedaba el canvas vacío: negro, sin dibujar, para siempre.
+Si te pasa, estás abriendo una versión vieja del archivo. Bajá de nuevo el ZIP.
+
+Para diagnosticar cualquier problema: **F12** → pestaña **Console**. Los
+mensajes en rojo dicen exactamente qué falló. Copiámelos.
+
+**Se ve todo en blanco / vacío.**
 Casi siempre es una de estas dos:
 1. Estás abriendo el archivo **de dentro del ZIP** sin descomprimir.
 2. Abriste `index.html` de la **raíz** del repo (ese es el de desarrollo y
    necesita servidor). El correcto es `dist-app\index.html`.
+
+**¿Y los gráficos de las criaturas?**
+El juego dibuja las criaturas por código (píxel a píxel), así que se ve igual
+sin ningún archivo externo. Los 6 PNG que hay en `assets/` (hydrapom, retratos
+de NPC y el fondo de batalla del bosque) van **embebidos en base64** dentro del
+HTML del build de un solo archivo, para que también aparezcan al abrirlo solo.
+Por eso ese archivo pesa 3,2 MB en vez de 620 KB: el fondo del bosque solo ya
+son 1,3 MB.
