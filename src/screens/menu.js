@@ -11,7 +11,7 @@
 
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';
-import { kp } from '../core/input.js';
+import { kp, kAction } from '../core/input.js';
 import { sfx } from '../core/audio.js';
 import { dBoxMenu } from '../render/ui-boxes.js';
 import { dHP, dEXP } from '../render/ui-bars.js';
@@ -54,7 +54,7 @@ function uMenu() {
     G.ms.s = (G.ms.s + 1) % n;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     sfx.sel();
     const label = opts[G.ms.s];
     switch (label) {

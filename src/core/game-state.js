@@ -38,6 +38,13 @@ if (!window.__gs) {
     pts: [],
     nots: [],
     tFr: 0,
+    // Velocidad de batalla preferida (1 o 2). Punto 5: se cambia con V.
+    battleSpd: 1,
+    // Tiempo jugado acumulado en ms (punto 15: perfil de guardado).
+    playMs: 0,
+    // Estado del aviso "hay algo acá" (punto 11).
+    ping: null,
+    stepsWalked: 0,
     titleSel: 0,
     titleHornPlayed: false,
     hasSave: false,

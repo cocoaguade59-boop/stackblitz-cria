@@ -176,7 +176,7 @@ function dGonchiTrade() {
     cx.font = '6px "Press Start 2P"';
     cx.fillText('Puede ser mejora… o no. ¡Así es el correo!', 320, 350);
     cx.fillStyle = '#C8A830';
-    cx.fillText('SPACE — continuar', 320, 400);
+    cx.fillText('C — continuar', 320, 400);
     cx.textAlign = 'left';
     return;
   }
@@ -187,7 +187,7 @@ function dGonchiTrade() {
   cx.fillText('Entregá 2 objetos → recibís 1 al azar (upgrade o downgrade).', 52, 56);
   cx.fillStyle = '#888';
   cx.font = '5px "Press Start 2P"';
-  cx.fillText('SPACE marca/desmarca  ·  ENTER confirma con 2  ·  X cancela', 52, 74);
+  cx.fillText('C marca/desmarca y confirma 2  ·  X cancela', 52, 74);
 
   const rows = buildTradeInventory();
   const sel = t.sel || 0;

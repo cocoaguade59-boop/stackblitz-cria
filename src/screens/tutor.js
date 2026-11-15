@@ -55,7 +55,7 @@ function dHernanChoice() {
 
   cx.fillStyle = '#808090';
   cx.font = '6px "Press Start 2P"';
-  cx.fillText('↑↓ elegir   SPACE confirmar   X salir', boxX + 18, boxY + 170);
+  cx.fillText('↑↓ elegir   C confirmar   X salir', boxX + 18, boxY + 170);
 }
 
 function dHernanPickCre() {
@@ -87,7 +87,7 @@ function dHernanPickCre() {
 
   cx.fillStyle = '#666';
   cx.font = '5px "Press Start 2P"';
-  cx.fillText(`Pergaminos: ${G.scrolls || 0}/${TUTOR_COST}   SPACE elegir   X cancelar`, 80, 420);
+  cx.fillText(`Pergaminos: ${G.scrolls || 0}/${TUTOR_COST}   C elegir   X cancelar`, 80, 420);
 }
 
 function dHernanPickMove() {
@@ -161,7 +161,7 @@ function dHernanPickMove() {
 
   cx.fillStyle = '#666';
   cx.font = '5px "Press Start 2P"';
-  cx.fillText('↑↓ mover   SPACE elegir   X volver', 60, 430);
+  cx.fillText('↑↓ mover   C elegir   X volver', 60, 430);
 }
 
 function dHernanPickSlot() {
@@ -217,7 +217,7 @@ function dHernanPickSlot() {
   cx.fillStyle = '#888';
   cx.font = '5px "Press Start 2P"';
   cx.fillText(`Costo: ${TUTOR_COST} pergaminos (tenés ${G.scrolls || 0})`, 70, 400);
-  cx.fillText('SPACE confirmar   X volver', 70, 420);
+  cx.fillText('C confirmar   X volver', 70, 420);
 }
 
 export {

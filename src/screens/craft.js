@@ -98,7 +98,7 @@ function dFabianaChoice() {
 
   cx.fillStyle = '#808090';
   cx.font = '6px "Press Start 2P"';
-  cx.fillText('↑↓ elegir   SPACE confirmar', boxX + 18, boxY + 144);
+  cx.fillText('↑↓ elegir   C confirmar', boxX + 18, boxY + 144);
 }
 
 // ── mini pantalla de selección de color ─────────────────────
@@ -174,7 +174,7 @@ function dFabianaCraft() {
     if (opt.can) {
       cx.fillStyle = '#30D848';
       cx.font = '6px "Press Start 2P"';
-      cx.fillText('LISTO · SPACE armar', 360, y + 8);
+      cx.fillText('LISTO · C armar', 360, y + 8);
     } else {
       cx.fillStyle = '#888';
       cx.font = '6px "Press Start 2P"';
@@ -184,7 +184,7 @@ function dFabianaCraft() {
 
   cx.fillStyle = '#666';
   cx.font = '5px "Press Start 2P"';
-  cx.fillText('↑↓ color   SPACE armar (si ×4+)   X cancelar', 90, 420);
+  cx.fillText('↑↓ color   C armar (si ×4+)   X cancelar', 90, 420);
 }
 
 // ── animación de fabricación ────────────────────────────────
@@ -318,7 +318,7 @@ function dFabianaAnim() {
     cx.fillStyle = '#666';
     cx.font = '6px "Press Start 2P"';
     if (c.tm > 40) {
-      cx.fillText('SPACE para continuar', 320, by + bh - 10);
+      cx.fillText('C para continuar', 320, by + bh - 10);
     }
     cx.textAlign = 'left';
   }
@@ -364,7 +364,7 @@ function dClaudiaChoice() {
 
   cx.fillStyle = '#808090';
   cx.font = '6px "Press Start 2P"';
-  cx.fillText(`Tu oro: ${G.gold || 0}G   ↑↓ elegir   SPACE confirmar`, boxX + 18, boxY + 156);
+  cx.fillText(`Tu oro: ${G.gold || 0}G   ↑↓ elegir   C confirmar`, boxX + 18, boxY + 156);
 }
 
 export {

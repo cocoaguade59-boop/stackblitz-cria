@@ -82,7 +82,7 @@ function dTheater() {
 
   cx.fillStyle = '#666';
   cx.font = '5px "Press Start 2P"';
-  cx.fillText('↑↓ elegir   SPACE representar   X salir', 56, 430);
+  cx.fillText('↑↓ elegir   C representar   X salir', 56, 430);
 }
 
 export { dTheater };

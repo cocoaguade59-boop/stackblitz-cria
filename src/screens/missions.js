@@ -3,13 +3,13 @@
 
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';
-import { kp } from '../core/input.js';
+import { kp, kAction } from '../core/input.js';
 import { dBoxMenu } from '../render/ui-boxes.js';
 import { tEmo } from '../data/types.js';
 import { postGame, pairBattles, towerKey, towerOpen, proa } from '../core/game-flags.js';
 
 function uMissions() {
-  if (kp('x') || kp('Escape') || kp(' ') || kp('Enter')) {
+  if (kp('x') || kp('Escape') || kAction()) {
     G.showMissions = false;
   }
 }
@@ -174,7 +174,7 @@ function dMissions() {
   // Instrucción
   cx.fillStyle = '#606878';
   cx.font = '6px "Press Start 2P"';
-  cx.fillText('SPACE/X: Cerrar', 60, 448);
+  cx.fillText('C/X: Cerrar', 60, 448);
 }
 
 export { uMissions, dMissions, drawMission, getTypeProgress, getStars, getTowerProgress };

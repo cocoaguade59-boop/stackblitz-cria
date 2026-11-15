@@ -13,6 +13,7 @@
  * cualquier apertura local.
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import vm from 'node:vm';
 
 const FILE = 'dist-app/index.html';
 if (!existsSync(FILE)) {
@@ -22,6 +23,14 @@ if (!existsSync(FILE)) {
 
 let html = readFileSync(FILE, 'utf8');
 const before = html.length;
+
+// Idempotencia: si ya fue procesado, no volver a mover nada.
+// Después de la primera pasada el bundle contiene "</body>" dentro de strings
+// SVG, así que reemplazar por /<\/body>/ otra vez lo rompería.
+if (html.includes('<script data-juego')) {
+  console.log(`✓ ${FILE} ya estaba listo (nada que hacer)`);
+  process.exit(0);
+}
 
 /**
  * Saca los <script> del <head> y los reinserta justo antes de </body>,
@@ -35,7 +44,15 @@ function moverScriptAlFinal(doc) {
   });
   if (!scripts.length) return doc;
   const bloque = scripts.map((c) => `    <script>${c}</script>`).join('\n');
-  return doc.replace(/[ \t]*<\/body>/, `${bloque}\n  </body>`);
+  // Función de reemplazo, NO cadena: el bundle contiene expresiones como
+  // `!$` y `$&` dentro de strings SVG. Con una cadena, String.replace las
+  // expande ($& = texto encontrado) y mete "</body>" DENTRO del JavaScript.
+  // Se ancla al ÚLTIMO </body> (el real, el del documento). El bundle ya
+  // puede contener la cadena "</body>" dentro de un string SVG.
+  const pos = doc.lastIndexOf('</body>');
+  if (pos === -1) return doc;
+  const antes = doc.slice(0, pos).replace(/[ \t]*$/, '');
+  return `${antes}${bloque}\n  </body>` + doc.slice(pos + '</body>'.length);
 }
 
 // 1) script inline → script clásico
@@ -83,7 +100,17 @@ const AVISO = readFileSync(new URL('./error-overlay.html', import.meta.url), 'ut
 // Se inserta justo antes del <script> del juego (que ya está antes de </body>).
 // El overlay NO usa el canvas, así que puede ir antes. Se marca para que la
 // verificación de orden de abajo no lo confunda con el script del juego.
-html = html.replace(/[ \t]*<script>/, AVISO.trim() + '\n    <script data-juego>');
+// OJO con el orden: primero se marca el <script> del juego, DESPUÉS se
+// inserta el overlay. Al revés, el overlay queda como PRIMER <script> y la
+// siguiente pasada del regex le come la primera letra al bundle ("var" → "ar").
+html = html.replace(/[ \t]*<script>/, '<script data-juego>');
+// Se usa una FUNCIÓN de reemplazo, no una cadena.
+// String.replace interpreta $ en el reemplazo: $& = el texto encontrado,
+// $' = todo lo que sigue. El bundle tiene expresiones como !$|| (negación de
+// la variable $), y con una cadena el HTML terminaba metido DENTRO del código:
+//     !    </body>&_&&(t.fillStyle=...
+// Usar una función desactiva ese parseo.
+html = html.replace(/<script data-juego>/, () => AVISO.trim() + '\n    <script data-juego>');
 
 // 7) verificación: el <canvas> tiene que existir antes de que corra el script
 const posCanvas = html.indexOf('<canvas');
@@ -96,6 +123,22 @@ if (posScript !== -1 && posScript < posCanvas) {
   console.error('ERROR: el <script> quedó antes del <canvas>.');
   console.error('  Un script clásico no es diferido: corre antes de que exista');
   console.error('  el canvas y el juego muere con "reading \'getContext\'".');
+  process.exit(1);
+}
+
+// 8) verificación: el bundle tiene que ser JavaScript VÁLIDO.
+//    Un `String.replace` con cadena de reemplazo expande $& y $' — el bundle
+//    tiene expresiones como !$ y strings SVG con "</body>", así que un
+//    reemplazo mal escrito mete HTML dentro del código y el juego no arranca
+//    con "Unexpected token '<'". Compilarlo acá lo detecta antes de entregar.
+try {
+  const tag = '<script data-juego>';
+  const inicio = html.indexOf(tag) + tag.length;
+  new vm.Script(html.slice(inicio, html.lastIndexOf('</script>')));
+  console.log('  bundle compila: OK');
+} catch (e) {
+  console.error('ERROR: el bundle generado no es JavaScript válido: ' + e.message);
+  console.error('  Casi siempre es un String.replace con $& o $\' en el reemplazo.');
   process.exit(1);
 }
 

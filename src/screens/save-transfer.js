@@ -11,7 +11,7 @@
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';
 import { sfx } from '../core/audio.js';
-import { kp } from '../core/input.js';
+import { kp, kAction } from '../core/input.js';
 import { dBoxMenu } from '../render/ui-boxes.js';
 import { exportSaveCode, inspectSaveCode, importSaveCode } from '../core/save-transfer.js';
 
@@ -126,7 +126,7 @@ function uSaveTransfer() {
     else if (opt === 'Importar partida') {
       st.mode = 'import';
       st.paste = '';
-      setMessage('Pegá el código y pulsá ENTER.', '#E8C020');
+      setMessage('Pegá el código y pulsá C.', '#E8C020');
     } else {
       G.scr = 'menu';
     }
@@ -136,10 +136,8 @@ function uSaveTransfer() {
 
 function kpEnter() {
   // OJO: no usar `||` con dos kp(): el primero consumiría el frame y el
-  // segundo devolvería false siempre. Se evaluan en secuencia a propósito.
-  const a = kp(' ');
-  const b = kp('Enter');
-  return a || b;
+  // segundo devolvería false siempre. kAction() ya evalúa en secuencia.
+  return kAction();
 }
 
 // ── draw ─────────────────────────────────────────────────────
@@ -192,7 +190,7 @@ function dSaveTransfer() {
 
     cx.fillStyle = '#888';
     cx.font = '7px "Press Start 2P"';
-    cx.fillText('Ctrl+C para copiar · ENTER / X para volver', 60, 300);
+    cx.fillText('Ctrl+C para copiar · C / X para volver', 60, 300);
 
     cx.fillStyle = st.messageColor;
     cx.font = '7px "Press Start 2P"';
@@ -204,7 +202,7 @@ function dSaveTransfer() {
     dBoxMenu(30, 50, 580, 380, 'IMPORTAR PARTIDA');
     cx.fillStyle = '#ddd';
     cx.font = '7px "Press Start 2P"';
-    cx.fillText('Pegá un código CR1- y pulsá ENTER.', 60, 96);
+    cx.fillText('Pegá un código CR1- y pulsá C.', 60, 96);
     cx.fillStyle = '#E8A020';
     cx.fillText('OJO: reemplaza la partida guardada actual.', 60, 116);
 
@@ -239,7 +237,7 @@ function dSaveTransfer() {
 
     cx.fillStyle = '#888';
     cx.font = '7px "Press Start 2P"';
-    cx.fillText('ENTER confirma · X cancela', 60, 330);
+    cx.fillText('C confirma · X cancela', 60, 330);
 
     cx.fillStyle = st.messageColor;
     cx.font = '7px "Press Start 2P"';
@@ -251,7 +249,7 @@ function dSaveTransfer() {
   dBoxMenu(150, 120, 340, 230, 'PARTIDA PORTÁTIL');
   cx.fillStyle = '#aaa';
   cx.font = '7px "Press Start 2P"';
-  cx.fillText('Movete con ↑↓ y confirmá con ESPACIO.', 172, 168);
+  cx.fillText('Movete con ↑↓ y confirmá con C.', 172, 168);
 
   OPTIONS.forEach((opt, i) => {
     const y = 205 + i * 34;
@@ -286,7 +284,7 @@ function hookPaste() {
     st.paste = text.trim();
     const check = inspectSaveCode(st.paste);
     if (check.ok) {
-      st.message = 'Código válido. ENTER para importar.';
+      st.message = 'Código válido. C para importar.';
       st.messageColor = '#30D848';
     } else {
       st.message = check.error;

@@ -4,7 +4,7 @@
 
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';
-import { kp } from '../core/input.js';
+import { kp, kAction } from '../core/input.js';
 import { sfx } from '../core/audio.js';
 import { fr } from '../core/frame.js';
 import { CDB } from '../data/creatures.js';
@@ -26,7 +26,7 @@ function uDex() {
   if (kp('ArrowRight')) { G.dexSel = (G.dexSel + 1) % ids.length; sfx.sel(); }
   if (kp('ArrowUp')) { G.dexSel = (G.dexSel + ids.length - cols) % ids.length; sfx.sel(); }
   if (kp('ArrowDown')) { G.dexSel = (G.dexSel + cols) % ids.length; sfx.sel(); }
-  if (kp('x') || kp('Escape') || kp(' ') || kp('Enter')) G.showDex = false;
+  if (kp('x') || kp('Escape') || kAction()) G.showDex = false;
 }
 
 function dDex() {
@@ -79,7 +79,7 @@ function dDex() {
   }
   cx.fillStyle = '#606878';
   cx.font = '5px "Press Start 2P"';
-  cx.fillText('Flechas: navegar | SPACE/X: volver', 360, 36);
+  cx.fillText('Flechas: navegar | C/X: volver', 360, 36);
 }
 
 export { uDex, dDex, hasCapturedSpecies };

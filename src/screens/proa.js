@@ -3,7 +3,7 @@
 
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';
-import { kp } from '../core/input.js';
+import { kp, kAction } from '../core/input.js';
 import { sfx } from '../core/audio.js';
 import { fr } from '../core/frame.js';
 import { dBoxMenu, dBox, wrapText } from '../render/ui-boxes.js';
@@ -56,7 +56,7 @@ function uProa() {
       G.proaSel = (G.proaSel + 1) % total;
       sfx.sel();
     }
-    if (kp(' ') || kp('Enter')) {
+    if (kAction()) {
       sfx.sel();
       G.proaMode = 'options';
       G.proaOptSel = 0;
@@ -66,7 +66,7 @@ function uProa() {
       G.proaOptSel = (G.proaOptSel + 2) % 3;
       sfx.sel();
     }
-    if (kp(' ') || kp('Enter')) {
+    if (kAction()) {
       sfx.sel();
       if (G.proaOptSel === 0) {
         // Mover
@@ -116,7 +116,7 @@ function uProa() {
       G.proaMode = 'view';
       return;
     }
-    if (kp(' ') || kp('Enter')) {
+    if (kAction()) {
       const allCre = [...G.party, ...proa];
       const temp = allCre[G.proaSwap];
       allCre[G.proaSwap] = allCre[G.proaSel];
@@ -161,7 +161,7 @@ function dProa() {
   } else {
     cx.fillStyle = '#aaa';
     cx.font = '6px "Press Start 2P"';
-    cx.fillText('SPACE: Opciones | X: Cerrar', 60, 64);
+    cx.fillText('C: Opciones | X: Cerrar', 60, 64);
   }
 
   const startY = 78;
@@ -255,7 +255,7 @@ function uCreData() {
     G.dataMvSel = (G.dataMvSel + 1) % cre.mv.length;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     sfx.sel();
     G.dataMvDetail = true;
   }
@@ -364,12 +364,12 @@ function dCreData() {
   // Instrucciones
   cx.fillStyle = '#606878';
   cx.font = '6px "Press Start 2P"';
-  cx.fillText('SPACE: Ver detalle de movimiento | X: Volver', 50, 455);
+  cx.fillText('C: Ver detalle de movimiento | X: Volver', 50, 455);
 }
 
 // === DETALLE DE MOVIMIENTO ===
 function uMoveDetail() {
-  if (kp('x') || kp('Escape') || kp(' ') || kp('Enter')) {
+  if (kp('x') || kp('Escape') || kAction()) {
     G.dataMvDetail = false;
   }
 }
@@ -475,7 +475,7 @@ function dMoveDetail() {
   // Instrucción
   cx.fillStyle = '#606878';
   cx.font = '6px "Press Start 2P"';
-  cx.fillText('SPACE/X: Cerrar', 60, 340);
+  cx.fillText('C/X: Cerrar', 60, 340);
 }
 
 // Función auxiliar para dibujar fondo de datos sin el overlay

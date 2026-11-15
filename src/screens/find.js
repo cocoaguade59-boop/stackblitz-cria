@@ -237,7 +237,7 @@ function dFind() {
   cx.fillStyle = '#C8A830';
   cx.font = '7px "Press Start 2P"';
   const bob = Math.sin(fr * 0.2) * 2;
-  cx.fillText('SPACE / ENTER — continuar', 320, 380 + bob);
+  cx.fillText('C — continuar', 320, 380 + bob);
   cx.textAlign = 'left';
 }
 

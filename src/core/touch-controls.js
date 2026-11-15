@@ -1,7 +1,7 @@
 // Controles táctiles para móvil.
 //
-// El juego se maneja con teclado (flechas, SPACE, X). En un teléfono no hay
-// teclado, así que este módulo dibuja un D-pad y dos botones (A = SPACE,
+// El juego se maneja con teclado (flechas, C, X). En un teléfono no hay
+// teclado, así que este módulo dibuja un D-pad y dos botones (A = C,
 // B = X) sobre el canvas y los traduce a los mismos eventos que dispara el
 // teclado, escribiendo directo en G.keys / G.held / G.kcd.
 //
@@ -25,7 +25,7 @@ const DPAD_KEYS = {
 
 // Geometría en coordenadas del canvas (640×480), no de pantalla.
 const DPAD = { x: 18, y: 352, size: 116, btn: 38, gap: 1 };
-const BTN_A = { x: 560, y: 400, r: 34, key: ' ' };
+const BTN_A = { x: 560, y: 400, r: 34, key: 'c' }; // acción = C
 const BTN_B = { x: 486, y: 434, r: 28, key: 'x' };
 
 let active = false;

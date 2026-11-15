@@ -109,7 +109,7 @@ function buildObjectRows() {
       type,
       name: `Incienso ${type}`,
       count: n,
-      desc: '200 pasos · 75% del tipo · SPACE activar',
+      desc: '200 pasos · 75% del tipo · C activar',
       color: FRAGRANCE_COLORS[type] || '#ccc',
     });
   }
@@ -330,7 +330,7 @@ function dObjects() {
     cx.fillText('Mochila vacía.', 56, 110);
     cx.fillStyle = '#555';
     cx.font = '6px "Press Start 2P"';
-    cx.fillText('Busca pines en el mapa (SPACE).', 56, 135);
+    cx.fillText('Busca pines en el mapa (C).', 56, 135);
     cx.fillText('Los pines dejan fragmentos, fragancias o pergaminos.', 56, 155);
     cx.fillText('Fabiana arma cristales con 4 fragmentos del mismo color.', 56, 175);
   } else {
@@ -396,11 +396,11 @@ function dObjects() {
   cx.fillStyle = '#666';
   cx.font = '5px "Press Start 2P"';
   if (G.bagUpgrade) {
-    cx.fillText('↑↓ navegar   SPACE: activar   X volver', 56, 440);
+    cx.fillText('↑↓ navegar   C: activar   X volver', 56, 440);
     cx.fillStyle = '#7AC0FF';
     cx.fillText('Crafting: Menú → LaFot (laboratorio de fotografía)', 56, 456);
   } else {
-    cx.fillText('↑↓ navegar   SPACE info/activar   X/Esc volver', 56, 440);
+    cx.fillText('↑↓ navegar   C info/activar   X/Esc volver', 56, 440);
     cx.fillStyle = '#555';
     cx.fillText('Claudia (Storyboard) desbloquea LaFot · 2000G', 56, 456);
   }
