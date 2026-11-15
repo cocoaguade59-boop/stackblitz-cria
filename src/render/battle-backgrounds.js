@@ -18,6 +18,7 @@ function _grad(x0, y0, x1, y1, stops) {
 }
 import { G } from '../core/game-state.js';
 import { fr } from '../core/frame.js';
+import { resolverSrc } from '../core/sprite-loader.js';
 
 // === ASSETS DE FONDOS DE BATALLA ===
 const BATTLE_BG_ASSETS = {
@@ -43,7 +44,7 @@ function initBattleBackgroundAssets() {
       bg.ready = false;
       bg.failed = true;
     };
-    img.src = bg.src;
+    img.src = resolverSrc(bg.src);
   });
 }
 

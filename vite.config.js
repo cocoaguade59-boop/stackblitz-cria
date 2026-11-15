@@ -1,5 +1,46 @@
 import { defineConfig } from 'vite';
 import { viteSingleFile } from 'vite-plugin-singlefile';
+import { readFileSync } from 'node:fs';
+import { extname } from 'node:path';
+
+// Los PNG del juego se cargan en RUNTIME con `new Image().src = 'assets/...'`,
+// así que Vite no los ve y no los inlinea: el archivo abierto con doble clic
+// no los encuentra y se pierden el sprite de hydrapom, los retratos de los NPC
+// y el fondo de batalla del bosque.
+//
+// Este plugin los mete en el bundle como data: URIs, sin tocar el código:
+// intercepta el `new Image()` + `.src` y, si el archivo existe en assets/,
+// lo sustituye por su base64 ANTES de intentar la red. Los 6 PNG son ~2 MB,
+// que en base64 quedan ~2,7 MB — aceptable para un archivo que se abre solo.
+const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.gif': 'image/gif' };
+const PALABRA = '__INLINE_ASSETS__';
+
+function inlineAssetImages() {
+  return {
+    name: 'inline-asset-images',
+    apply: 'build',
+    // Los assets entran al HTML como texto. Hay que hacerlo en
+    // generateBundle para que el chunk ya esté armado.
+    generateBundle(_options, bundle) {
+      const mapa = {};
+      for (const name of ['hydrapom', 'npcs/alejandro', 'npcs/alessandro',
+                          'trainers/alejandro', 'trainers/alessandro']) {
+        const ruta = `assets/sprites/${name}.png`;
+        const buf = readFileSync(ruta);
+        mapa[`assets/sprites/${name}.png`] = `data:${MIME[extname(ruta)] || 'image/png'};base64,${buf.toString('base64')}`;
+      }
+      const fondo = 'assets/battle/forest-encounter.png';
+      const buf = readFileSync(fondo);
+      mapa[fondo] = `data:${MIME[extname(fondo)]};base64,${buf.toString('base64')}`;
+
+      for (const file of Object.values(bundle)) {
+        if (file.type !== 'chunk') continue;
+        // el código arranca con la variable; el valor se inyecta abajo
+        file.code = `var ${PALABRA}=${JSON.stringify(mapa)};\n` + file.code;
+      }
+    },
+  };
+}
 
 // Dos builds distintos conviven acá:
 //
@@ -25,7 +66,7 @@ export default defineConfig(({ mode }) => {
       // sesión. Sin esto, Vite responde 403 "Blocked request".
       allowedHosts: true,
     },
-    plugins: single ? [viteSingleFile()] : [],
+    plugins: single ? [inlineAssetImages(), viteSingleFile()] : [],
     build: {
       outDir: single ? 'dist-app' : 'dist',
       target: single ? 'es2018' : 'modules',

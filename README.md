@@ -4,16 +4,23 @@ RPG de exploración y combate por turnos en HTML Canvas, construido con JavaScri
 
 ## Jugar (sin instalar nada)
 
-Doble clic en **`Jugar.bat`** (Windows), **`Jugar.command`** (macOS) o
-**`jugar.sh`** (Linux). Abre el juego en el navegador y funciona sin internet.
+| Sistema | Doble clic en |
+|---|---|
+| **Windows** | **`JUGAR-AQUI-WINDOWS.bat`** |
+| **macOS** | `2-MAC/Jugar-en-Mac.command` (clic derecho → Abrir la 1ª vez) |
+| **Linux** | `3-LINUX/jugar-en-Linux.sh` |
 
-Guía completa, opciones y preguntas frecuentes: **[COMO-JUGAR.md](COMO-JUGAR.md)**.
+Abre el juego en el navegador y funciona **sin internet**. Guía completa con
+solución de problemas: **[COMO-JUGAR.md](COMO-JUGAR.md)**.
+
+> Si Windows te pide *"elegir un programa para abrir .sh"*, abriste el lanzador
+> de Linux por error. Cerrá con Cancelar y usá el `.bat`.
 
 ## Desarrollo
 
 ```bash
-npm install
-npm run dev      # http://localhost:5173 con recarga en vivo
+npm install        # una sola vez
+npm run dev        # http://localhost:5173 con recarga en vivo
 npm run build:app  # un solo archivo jugable: dist-app/index.html
 ```
 
