@@ -1,3 +1,14 @@
+/* Fuente local: el juego usa Press Start 2P y antes la traía de Google Fonts.
+   Para que funcione SIN internet (doble clic en el HTML, avión, notebook
+   sin wifi) la embebemos desde assets/fonts/. */
+@font-face {
+  font-family: "Press Start 2P";
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  src: url("./assets/fonts/PressStart2P-Regular.ttf") format("truetype");
+}
+
 * {
   margin: 0;
   padding: 0;

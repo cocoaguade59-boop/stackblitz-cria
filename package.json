@@ -9,10 +9,15 @@
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "test": "node tests/test-save-transfer.mjs && node tests/test-menu-sync.mjs && node tests/test-proa-progress.mjs && node tests/test-sprite-cache.mjs && node tests/test-sprite-proxy.mjs && node tests/test-all-sprites.mjs && node tests/test-lerp-color.mjs && node tests/test-loop-timestep.mjs",
-    "test:e2e": "node tests/test-title.mjs && node tests/test-battle.mjs && node tests/test-interiors.mjs && node tests/test-phase5a.mjs && node tests/test-phase5b.mjs && node tests/test-fresh.mjs"
+    "test:e2e": "node tests/test-title.mjs && node tests/test-battle.mjs && node tests/test-interiors.mjs && node tests/test-phase5a.mjs && node tests/test-phase5b.mjs && node tests/test-fresh.mjs",
+    "build:app": "vite build --mode app && node tools/make-standalone.mjs",
+    "test:standalone": "node tests/test-standalone-boot.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1",
     "vite": "^5.4.11"
+  },
+  "devDependencies": {
+    "vite-plugin-singlefile": "^2.3.4"
   }
 }

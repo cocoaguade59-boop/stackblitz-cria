@@ -8,3 +8,7 @@ test-screenshots/
 .DS_Store
 .arena
 .cache
+
+# Build de un solo archivo: se commitea a propósito para que quien descargue
+# el repo pueda jugar con doble clic sin instalar Node.
+!dist-app/
