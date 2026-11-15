@@ -9,6 +9,8 @@ import { sfx } from '../core/audio.js';
 import { fr } from '../core/frame.js';
 import { kp } from '../core/input.js';
 import { hasSaveGame, clearAllGameSaves } from '../core/save.js';
+import { EXPANDED_SPAWN } from '../world/expanded-npc-placements.js';
+import { emptyFragments, emptyFragrances } from '../data/pins.js';
 import { CDB } from '../data/creatures.js';
 import { dexIds } from '../data/dex-order.js';
 import { dCre } from '../render/creature-sprites.js';
@@ -16,6 +18,21 @@ import { dShadow } from '../render/world-decor.js';
 import { dBoxMenu } from '../render/ui-boxes.js';
 import { px, pixelGlow } from '../render/render-utils.js';
 import { aN } from '../utils/particles.js';
+
+// Gradientes cacheados: createLinearGradient() creaba objetos nuevos cada
+// frame (120-180 por segundo entre título y batalla) y el recolector tenía
+// que limpiarlos. Son estáticos, así que se crean una vez.
+const _gradientCache = new Map();
+function getLinearGradient(x0, y0, x1, y1, stops) {
+  const key = [x0, y0, x1, y1, ...stops.flat()].join('|');
+  let g = _gradientCache.get(key);
+  if (!g) {
+    g = cx.createLinearGradient(x0, y0, x1, y1);
+    stops.forEach(([pos, col]) => g.addColorStop(pos, col));
+    _gradientCache.set(key, g);
+  }
+  return g;
+}
 
 // loadGame se toma de window (game.js lo asigna en init() antes del loop)
 
@@ -28,17 +45,36 @@ function playTitleHorn() {
   setTimeout(() => sfx.n(784, 0.45, 'triangle', 0.16), 420);
 }
 
+// ÚNICA copia de startNewGameFlow(). La versión inline que vivía en game.js
+// estaba desincronizada: reseteaba inventario/party pero spawneaba al jugador
+// con EXPANDED_SPAWN. Esta es la que se ejecuta, así que unifica ambas.
 function startNewGameFlow() {
   clearAllGameSaves();
   G.hasSave = false;
   G.sSel = 0;
   // El protagonista inicia centrado en Aldea Pitch mirando a Alessandro.
   G.curMap = 'world';
-  G.pl.x = 20;
-  G.pl.y = 145;
-  G.pl.d = 3;
+  G.pl.x = EXPANDED_SPAWN.player.x;
+  G.pl.y = EXPANDED_SPAWN.player.y;
+  G.pl.d = EXPANDED_SPAWN.player.d;
   G.pl.stepTarget = null;
   G.pl.moving = false;
+  // Inventario base de partida NORMAL (interactúa con ciudadanos)
+  G.party = [];
+  G.gold = 200;
+  G.pot = 5;
+  G.rev = 2;
+  G.crv = 3;
+  G.crvC = 0;
+  G.crvO = 0;
+  G.frag = emptyFragments();
+  G.scrolls = 0;
+  G.fragrances = emptyFragrances();
+  G.incense = emptyFragrances();
+  G.activeIncense = null;
+  G.bagUpgrade = false;
+  G.supervisor = false;
+  G.batallador = false;
   G.scr = 'intro';
   G.intro = { phase: 0, y: 82, li: 0, ci: 0, tm: 0, full: false };
 }
@@ -89,10 +125,11 @@ function dTitle() {
 
   if (phase === 'sky') {
     // Animación inicial: cielo bonito, nubes suaves y profundidad pixel-art.
-    const gr = cx.createLinearGradient(0, 0, 0, 480);
-    gr.addColorStop(0, '#79C8FF');
-    gr.addColorStop(0.55, '#BEE8FF');
-    gr.addColorStop(1, '#E8F8D8');
+    const gr = getLinearGradient(0, 0, 0, 480, [
+      [0, '#79C8FF'],
+      [0.55, '#BEE8FF'],
+      [1, '#E8F8D8'],
+    ]);
     cx.fillStyle = gr;
     cx.fillRect(0, 0, 640, 480);
 
@@ -167,10 +204,11 @@ function dTitle() {
 
   // Carrusel principal: criaturas desfilan de derecha a izquierda y se repite.
   const cf = f - 220;
-  const sky = cx.createLinearGradient(0, 0, 0, 480);
-  sky.addColorStop(0, '#07071C');
-  sky.addColorStop(0.45, '#111A3A');
-  sky.addColorStop(1, '#102B22');
+  const sky = getLinearGradient(0, 0, 0, 480, [
+    [0, '#07071C'],
+    [0.45, '#111A3A'],
+    [1, '#102B22'],
+  ]);
   cx.fillStyle = sky;
   cx.fillRect(0, 0, 640, 480);
 

@@ -4,8 +4,10 @@
 // para evitar fallos en cadena si alguno de esos módulos falla al cargar.
 // El dispatch a sub-pantallas lo maneja game.js en el switch de update/draw.
 //
-// NOTA: uMenu también vive INLINE en game.js (bug double-G). Si cambiás
-// opciones o índices, actualizá AMBOS.
+// IMPORTANTE: esta es la ÚNICA copia de uMenu()/getMenuOpts().
+// Antes existía una copia inline en game.js y se desincronizó
+// (dMenu mostraba "Reiniciar" en el índice 10 y uMenu ejecutaba "Volver").
+// No volver a duplicar esta lista: game.js importa uMenu desde acá.
 
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';
@@ -17,6 +19,7 @@ import { tCol, tEmo, tNam } from '../data/types.js';
 import { aN } from '../utils/particles.js';
 import { proa } from '../core/game-flags.js';
 import { openMapScreen } from './map-screen.js';
+import { hasCapturedSpecies } from './dex.js';
 
 // Opciones fijas + LaFot solo si bagUpgrade (Claudia).
 // Índices dinámicos: LaFot se inserta después de Objetos.

@@ -1,7 +1,7 @@
 // Test de integración Fase 5A: verifica que title/intro/starter/world funcionan
 // con los nuevos imports desde src/screens/ y src/core/ + src/data/
 
-import { chromium } from '/tmp/node_modules/playwright-core/index.mjs';
+import { chromium } from 'playwright';
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();

@@ -10,7 +10,12 @@ import { POOLS } from './src/data/pools.js';
 import { ALL_MOVES } from './src/data/moves.js';
 import { WORLD_LEVEL_ZONES, SPECIAL_MAP_LEVELS, TYPE_RESERVES } from './src/data/regions.js';
 import { MAP_LOCATIONS } from './src/data/map-markers.js';
-import { createProaMissions, resetProaMissionProgress } from './src/data/proa-missions.js';
+import {
+  createProaMissions,
+  resetProaMissionProgress,
+  getProaMissionProgress,
+  applyProaMissionProgress,
+} from './src/data/proa-missions.js';
 import { ROUTE_GATE_DEFINITIONS, isRouteAuthorized } from './src/world/route-missions.js';
 import { getValidRouteSigns, isGateTreeEligible } from './src/world/world-layout.js';
 import { EXPANDED_SPAWN, applyExpandedNpcPlacements } from './src/world/expanded-world-runtime.js';
@@ -191,10 +196,10 @@ import { uMissions, dMissions } from './src/screens/missions.js';
 import { uMapScreen, dMapScreen } from './src/screens/map-screen.js';
 import { uProa, dProa } from './src/screens/proa.js';
 import { uShop, dShop, shopExitDialog, setShopBattleStarter, shopLore } from './src/screens/shop.js';
-import { playTitleHorn, dTitle } from './src/screens/title.js';
-import { INTRO_LINES, dIntro } from './src/screens/intro.js';
-import { dStarter } from './src/screens/starter.js';
-import { dMenu } from './src/screens/menu.js';
+import { playTitleHorn, startNewGameFlow, uTitle, dTitle } from './src/screens/title.js';
+import { INTRO_LINES, uIntro, dIntro } from './src/screens/intro.js';
+import { uStarter, dStarter } from './src/screens/starter.js';
+import { uMenu, dMenu } from './src/screens/menu.js';
 import { initTouchControls, drawTouchControls } from './src/core/touch-controls.js';
 import { uSaveTransfer, dSaveTransfer, hookPaste, resetTransferState } from './src/screens/save-transfer.js';
 
@@ -632,34 +637,9 @@ function nearNPC(n) {
 }
 
 // === UTILIDAD: TILE ACTUAL DEL JUGADOR ===
-function playerTile() {
-  return {
-    c: Math.floor(G.pl.x),
-    r: Math.floor(G.pl.y),
-    tile:
-      G.curMap === 'world'
-        ? wMap[Math.floor(G.pl.y)]?.[Math.floor(G.pl.x)]
-        : G.curMap === 'cave1'
-        ? cave1[Math.floor(G.pl.y)]?.[Math.floor(G.pl.x)]
-        : G.curMap === 'cave2'
-        ? cave2[Math.floor(G.pl.y)]?.[Math.floor(G.pl.x)]
-        : G.curMap === 'castle'
-        ? castMap[Math.floor(G.pl.y)]?.[Math.floor(G.pl.x)]
-        : G.curMap === 'tower'
-        ? towerMap[Math.floor(G.pl.y)]?.[Math.floor(G.pl.x)]
-        : null,
-  };
-}
-
 // [refactor-phase5a] updateCamera movido a src/core/camera.js
 
 // === TELETRANSPORTE SIMPLE ===
-function tpPlayer(x, y, mapName = null) {
-  G.pl.x = x;
-  G.pl.y = y;
-  if (mapName) G.curMap = mapName;
-}
-
 // === CONTROL DE CICLO POST-GAME DE OLO-MAN ===
 function canRebattle(npc) {
   if (!postGame) return !npcDefeats[npc.flag];
@@ -683,9 +663,13 @@ function markNPCDefeated(npc) {
 }
 
 // ¿Se puede entrar a la sala del trono del Rey Navarrete?
-// Requisito: derrotar a Yam (que a su vez requiere haber derrotado a André/Ravell).
+// Requisito: derrotar a Yam (que a su vez requiere haber derrotado a André/Ravell)
+// y tener los 4 diplomas de los Proa. La segunda condición hace explícito el
+// camino completo: para llegar a Yam ya hubo que cruzar el puesto de Dan, así
+// que no cambia el flujo normal; sólo evita que un save inconsistente (o un
+// salto con modo supervisor) abra el trono sin haber hecho el recorrido.
 function canEnterThroneRoom() {
-  return !!npcDefeats.metYamCastle;
+  return !!npcDefeats.metYamCastle && hasAllDiplomas();
 }
 
 // Reinicia re-batallas tras vencer a Olo-Man
@@ -2742,6 +2726,9 @@ function resetGame(startIntro = false) {
   // Borrar save de forma robusta
   clearAllGameSaves();
   resetTransferState();
+  // Sin esto el contador de golpes/chismes/preguntas de los Proa sobrevivía
+  // al reinicio total y regalaba diplomas en una partida nueva.
+  resetLeaderMissions();
 
   // Reiniciar variables globales
   G.scr = 'title';
@@ -5402,29 +5389,9 @@ function dBattle() {
 // ============================================================
 
 // Nicole crucificada - modificar sprite según estado
-function isNicoleCrucified() {
-  return postGame;
-}
-
 // Hernán sin barba post-game
-function isHernanShaved() {
-  return postGame;
-}
-
 // Gabriela con armadura post-game
-function isGabrielaArmored() {
-  return postGame;
-}
-
 // Obtener NPCs que pueden combatir solitarios post-game
-function getSoloFighters() {
-  return [
-    npcs.find((n) => n.flag === 'metHer'),
-    npcs.find((n) => n.flag === 'metDaniel'),
-    npcs.find((n) => n.flag === 'metNic'),
-  ].filter((n) => n);
-}
-
 // ============================================================
 // BLOQUE 23: GUARDADO/CARGA localStorage
 // ============================================================
@@ -5477,6 +5444,10 @@ function buildSaveObject() {
     towerKey,
     captureCount,
     lastHealPos,
+
+    // Progreso de las misiones de los jefes Proa (Luchito/Andrea/Dan).
+    // Sin esto, acumular golpes súper efectivos se perdía al cargar.
+    proaProgress: getProaMissionProgress(LEADER_MISSIONS),
 
     // Mapas: no se guarda semilla; genWorld/genCastle son deterministas y
     // las cuevas sólo varían en decoración. Se guarda sólo la posición.
@@ -5575,6 +5546,9 @@ function loadGame() {
     setLastHealPos(save.lastHealPos || { x: 60, y: 285, map: 'world' });
 
     G.prevPos = save.prevPos || null;
+
+    // Progreso de misiones Proa (saves viejos no lo tienen: quedan en 0)
+    applyProaMissionProgress(LEADER_MISSIONS, save.proaProgress);
 
     // Regenerar torre si post-game
     if (postGame) genTower();
@@ -6062,145 +6036,7 @@ function dBatalladorSelect() {
 // ============================================================
 // LOCAL TITLE FUNCTIONS (usan la misma G de game.js)
 // ============================================================
-function startNewGameFlow() {
-  clearAllGameSaves();
-  G.hasSave = false;
-  G.sSel = 0;
-  G.curMap = 'world';
-  G.pl.x = EXPANDED_SPAWN.player.x;
-  G.pl.y = EXPANDED_SPAWN.player.y;
-  G.pl.d = 3;
-  G.pl.stepTarget = null;
-  G.pl.moving = false;
-  // Inventario base de partida NORMAL (interactúa con ciudadanos)
-  G.party = [];
-  G.gold = 200;
-  G.pot = 5;
-  G.rev = 2;
-  G.crv = 3;
-  G.crvC = 0;
-  G.crvO = 0;
-  G.frag = emptyFragments();
-  G.scrolls = 0;
-  G.fragrances = emptyFragrances();
-  G.incense = emptyFragrances();
-  G.activeIncense = null;
-  G.bagUpgrade = false;
-  G.supervisor = false;
-  G.batallador = false;
-  G.scr = 'intro';
-  G.intro = { phase: 0, y: 82, li: 0, ci: 0, tm: 0, full: false };
-}
-
-function uTitle() {
-  G.tFr++;
-  if (G.tFr > 182 && !G.titleHornPlayed) {
-    playTitleHorn();
-    G.titleHornPlayed = true;
-  }
-  const optCount = 2; // Siempre 2 opciones: Continuar y Nueva partida
-  if (kp('ArrowUp') || kp('ArrowLeft')) {
-    G.titleSel = (G.titleSel + optCount - 1) % optCount;
-    sfx.sel();
-  }
-  if (kp('ArrowDown') || kp('ArrowRight')) {
-    G.titleSel = (G.titleSel + 1) % optCount;
-    sfx.sel();
-  }
-  if (kp(' ') || kp('Enter')) {
-    sfx.sel();
-    G.hasSave = hasSaveGame(); // refrescar cada vez
-    if (G.hasSave && G.titleSel === 0) {
-      const fn = window.__gameLoadGame;
-      if (fn && fn()) {
-        G.scr = 'world';
-        aN('¡Partida cargada!');
-      } else {
-        startNewGameFlow();
-      }
-    } else if (G.hasSave && G.titleSel === 1) {
-      G.scr = 'confirmReset';
-      G.resetSel = 1;
-      G.resetFromTitle = true;
-    } else {
-      startNewGameFlow();
-    }
-  }
-}
-
 // ============================================================
-function uIntro() {
-  if (!G.intro) G.intro = { phase: 0, y: 82, li: 0, ci: 0, tm: 0, full: false };
-  const it = G.intro;
-  if (it.phase === 0) {
-    it.y += 2.4;
-    if (it.y >= 198 || kp(' ') || kp('Enter')) {
-      it.y = 198;
-      it.phase = 1;
-      it.tm = 0;
-    }
-    return;
-  }
-  it.tm++;
-  const line = INTRO_LINES[it.li];
-  if (!it.full && it.tm % 2 === 0) {
-    it.ci++;
-    if (it.ci >= line.length) it.full = true;
-  }
-  if (kp(' ') || kp('Enter')) {
-    if (!it.full) {
-      it.ci = line.length;
-      it.full = true;
-    } else {
-      it.li++;
-      if (it.li >= INTRO_LINES.length) {
-        G.sSel = 0;
-        G.scr = 'starter';
-        G.intro = null;
-        return;
-      }
-      it.ci = 0;
-      it.tm = 0;
-      it.full = false;
-      sfx.sel();
-    }
-  }
-}
-
-function uStarter() {
-  if (kp('ArrowLeft')) {
-    G.sSel = (G.sSel + 2) % 3;
-    sfx.sel();
-  }
-  if (kp('ArrowRight')) {
-    G.sSel = (G.sSel + 1) % 3;
-    sfx.sel();
-  }
-  if (kp(' ') || kp('Enter')) {
-    const ids = ['flameye', 'axolotl', 'gorilan'];
-    const c = new Cre(ids[G.sSel], 5);
-    G.party = [c];
-    setProa([]);
-    sfx.cap();
-    G.curMap = 'world';
-    G.pl.x = EXPANDED_SPAWN.player.x;
-    G.pl.y = EXPANDED_SPAWN.player.y;
-    G.pl.d = EXPANDED_SPAWN.player.d;
-    G.pl.stepTarget = null;
-    G.pl.moving = false;
-    updateCamera(WC, WR);
-    // Evita que el SPACE usado para confirmar dispare otra acción en el primer frame del mundo.
-    G.keys[' '] = false;
-    G.keys['Enter'] = false;
-    G.held[' '] = false;
-    G.held['Enter'] = false;
-    G.kcd[' '] = false;
-    G.kcd['Enter'] = false;
-    G.scr = 'world';
-    aN(`¡${c.nm} se unió a tu equipo!`);
-  }
-}
-
 // ============================================================
 // T5: FABIANA CRAFTING (lógica INLINE por bug double-G)
 // ============================================================
@@ -6891,100 +6727,6 @@ function uFabianaAnim() {
 }
 
 // Menú inline (bug double-G). LaFot aparece solo con bagUpgrade.
-function getMenuOpts() {
-  const opts = [
-    'Poción',
-    'Revivir',
-    'Equipo',
-    'Mapa',
-    'Misiones',
-    'Criaturario',
-    'Objetos',
-  ];
-  if (G.bagUpgrade) opts.push('LaFot');
-  opts.push('Guardar', 'Volver', 'Reiniciar toda la partida');
-  return opts;
-}
-
-function uMenu() {
-  if (G.showMap || G.proaOpen || G.showMissions || G.showDex || G.showObjects) return;
-  const opts = getMenuOpts();
-  const n = opts.length;
-  if (G.ms.s >= n) G.ms.s = 0;
-  if (kp('ArrowUp') || kp('ArrowLeft')) { G.ms.s = (G.ms.s + n - 1) % n; sfx.sel(); }
-  if (kp('ArrowDown') || kp('ArrowRight')) { G.ms.s = (G.ms.s + 1) % n; sfx.sel(); }
-  if (kp(' ') || kp('Enter')) {
-    sfx.sel();
-    const label = opts[G.ms.s];
-    switch (label) {
-      case 'Poción':
-        if (G.pot > 0 && G.party.length > 0) {
-          G.pot--;
-          G.party[0].heal(Math.floor(G.party[0].mHp * 0.2));
-          sfx.heal();
-          aN('+HP!');
-        } else aN('¡Sin pociones!');
-        break;
-      case 'Revivir': {
-        const f = G.party.find((c) => c.hp <= 0);
-        if (f && G.rev > 0) {
-          G.rev--;
-          f.hp = Math.floor(f.mHp * 0.5);
-          sfx.heal();
-          aN(`${f.nm} revivió!`);
-        } else aN('Nadie caído o sin revivir.');
-        break;
-      }
-      case 'Equipo':
-        G.proaOpen = true;
-        G.proaSel = 0;
-        G.proaMode = 'view';
-        break;
-      case 'Mapa':
-        G.showMap = true;
-        break;
-      case 'Misiones':
-        G.showMissions = true;
-        break;
-      case 'Criaturario':
-        G.showDex = true;
-        G.dexSel = 0;
-        break;
-      case 'Objetos':
-        G.showObjects = true;
-        G.os = { s: 0, scroll: 0 };
-        break;
-      case 'LaFot':
-        // Laboratorio de fotografía (crafting portátil, mochila reforzada)
-        G.craftFromBag = true;
-        G.craftSel = 0;
-        G.scr = 'fabianaCraft';
-        break;
-      case 'Guardar':
-        if (G.batallador) {
-          aN('Batallador: no se puede guardar en modo test.');
-          sfx.nef();
-        } else if (window.__gameSaveGame) {
-          window.__gameSaveGame();
-        }
-        break;
-      case 'Volver':
-        G.scr = 'world';
-        break;
-      case 'Reiniciar toda la partida':
-        if (G.batallador) {
-          aN('Batallador: sal del modo test antes de reiniciar.');
-          sfx.nef();
-        } else {
-          G.scr = 'confirmReset';
-          G.resetSel = 0;
-        }
-        break;
-    }
-  }
-  if (kp('x') || kp('Escape')) G.scr = 'world';
-}
-
 /** Input de la pantalla Objetos (inline: toca G.scr / flags). */
 function uObjects() {
   if (!G.os) G.os = { s: 0, scroll: 0 };
@@ -7380,12 +7122,47 @@ function draw() {
   drawTouchControls(cx);
 }
 
-function loop() {
+// Bucle con paso fijo a 60 Hz.
+//
+// Antes se llamaba update() una vez por requestAnimationFrame, asumiendo 60 Hz.
+// En monitores de 120/144 Hz eso duplicaba o triplicaba la velocidad del
+// jugador, de las animaciones y de la tasa de encuentros por segundo real
+// (la probabilidad es por paso, y hay más pasos por segundo). En equipos que
+// no llegan a 60 fps, el juego perdía frames enteros.
+//
+// Ahora se acumula el tiempo real y se ejecutan tantos updates de 16.67 ms
+// como hagan falta. MAX_STEPS evita la "espiral de la muerte" cuando la
+// pestaña estuvo en segundo plano: si se acumula demasiado, se descarta.
+const STEP_MS = 1000 / 60;
+const MAX_STEPS = 5; // más de ~83 ms de retraso → se descarta, no se acumula
+let _lastTime = 0;
+let _accumulator = 0;
+
+function loop(ts) {
+  if (!_lastTime) _lastTime = ts || performance.now();
+  const now = ts || performance.now();
+  const elapsed = now - _lastTime;
+  _lastTime = now;
+
+  // Primer frame o retorno de pestaña en background: no ejecutar una ráfaga.
+  _accumulator += Math.min(elapsed, STEP_MS * MAX_STEPS);
+
+  let steps = 0;
+  while (_accumulator >= STEP_MS && steps < MAX_STEPS) {
+    try {
+      update();
+    } catch (e) {
+      console.error('[loop] ERROR:', e.message, e.stack);
+    }
+    _accumulator -= STEP_MS;
+    steps++;
+  }
+  if (steps === MAX_STEPS) _accumulator = 0;
+
   try {
-    update();
     draw();
-  } catch(e) {
-    console.error('[loop] ERROR:', e.message, e.stack);
+  } catch (e) {
+    console.error('[draw] ERROR:', e.message, e.stack);
   }
   requestAnimationFrame(loop);
 }

@@ -1,4 +1,4 @@
-import { chromium } from '/tmp/node_modules/playwright-core/index.mjs';
+import { chromium } from 'playwright';
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage();
 const errs = [];

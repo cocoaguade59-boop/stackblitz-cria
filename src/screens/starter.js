@@ -16,6 +16,7 @@ import { aN } from '../utils/particles.js';
 import { setProa } from '../core/game-flags.js';
 import { WC, WR } from '../core/world-constants.js';
 import { updateCamera } from '../core/camera.js';
+import { EXPANDED_SPAWN } from '../world/expanded-npc-placements.js';
 
 // === PANTALLA DE SELECCIÓN DE INICIAL ===
 function uStarter() {
@@ -34,9 +35,9 @@ function uStarter() {
     setProa([]);
     sfx.cap();
     G.curMap = 'world';
-    G.pl.x = 20;
-    G.pl.y = 145;
-    G.pl.d = 3;
+    G.pl.x = EXPANDED_SPAWN.player.x;
+    G.pl.y = EXPANDED_SPAWN.player.y;
+    G.pl.d = EXPANDED_SPAWN.player.d;
     G.pl.stepTarget = null;
     G.pl.moving = false;
     updateCamera(WC, WR);
