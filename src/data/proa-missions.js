@@ -137,6 +137,10 @@ function createProaMissions(getParty) {
       '¡Felicidades!',
     ],
     gossip: 0,
+    // Lista de índices de DAN_GOSSIP_LIST ya reportados. Sin este array,
+    // `LEADER_MISSIONS.dan.reported.push(...)` lanzaba TypeError al
+    // reportar el primer chisme (undefined.push).
+    reported: [],
     gossipNeeded: 3,
     check: function () {
       return missions.dan.gossip >= missions.dan.gossipNeeded;
@@ -155,4 +159,59 @@ function resetProaMissionProgress(missions) {
   missions.dan.reported = [];
 }
 
-export { createProaMissions, resetProaMissionProgress };
+// ── PERSISTENCIA ────────────────────────────────────────────
+// El avance de estas misiones vivía sólo en memoria: guardar partida no lo
+// incluía y resetGame() tampoco lo limpiaba. Consecuencias reales:
+//   1. Acumulabas 2 golpes para Luchito, guardabas y cerrabas → volvía a 0,
+//      así que el diploma "Documental" era imposible en varias sesiones.
+//   2. Reiniciar toda la partida conservaba el contador viejo → un amigo
+//      podía empezar de cero y sacar el diploma sin pelear.
+// Sólo se serializan los campos de progreso; textos, preguntas y check()
+// siguen viviendo en este módulo.
+
+const MISSION_PROGRESS_FIELDS = {
+  luchito: ['superEffectiveHits'],
+  andrea: ['quizScore', 'quizIdx', 'quizActive'],
+  dan: ['gossip', 'reported'],
+};
+
+/** Progreso serializable (para el save). */
+function getProaMissionProgress(missions) {
+  const out = {};
+  for (const [id, fields] of Object.entries(MISSION_PROGRESS_FIELDS)) {
+    out[id] = {};
+    for (const f of fields) out[id][f] = missions[id]?.[f];
+  }
+  return out;
+}
+
+/**
+ * Restaura el progreso guardado. Tolerante a saves viejos o corruptos:
+ * cualquier campo faltante o de tipo incorrecto conserva su valor por defecto.
+ */
+function applyProaMissionProgress(missions, progress) {
+  if (!progress || typeof progress !== 'object') return false;
+  let restored = false;
+  for (const [id, fields] of Object.entries(MISSION_PROGRESS_FIELDS)) {
+    const src = progress[id];
+    if (!src || typeof src !== 'object' || !missions[id]) continue;
+    for (const f of fields) {
+      if (!(f in src)) continue;
+      const def = missions[id][f];
+      const val = src[f];
+      if (Array.isArray(def) ? Array.isArray(val) : typeof val === typeof def) {
+        missions[id][f] = val;
+        restored = true;
+      }
+    }
+  }
+  return restored;
+}
+
+export {
+  createProaMissions,
+  resetProaMissionProgress,
+  getProaMissionProgress,
+  applyProaMissionProgress,
+  MISSION_PROGRESS_FIELDS,
+};

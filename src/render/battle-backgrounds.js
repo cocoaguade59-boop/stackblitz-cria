@@ -2,6 +2,20 @@
 // Depende de cx, del game state G, y del contador de frames fr.
 
 import { cx } from '../core/canvas.js';
+
+// Gradientes cacheados: en batalla se creaban 1-3 objetos nuevos por frame
+// (60-180 por segundo). Son estáticos, así que se crean una sola vez.
+const _gradCache = new Map();
+function _grad(x0, y0, x1, y1, stops) {
+  const key = [x0, y0, x1, y1, ...stops.flat()].join('|');
+  let g = _gradCache.get(key);
+  if (!g) {
+    g = cx.createLinearGradient(x0, y0, x1, y1);
+    stops.forEach(([pos, col]) => g.addColorStop(pos, col));
+    _gradCache.set(key, g);
+  }
+  return g;
+}
 import { G } from '../core/game-state.js';
 import { fr } from '../core/frame.js';
 
@@ -59,10 +73,11 @@ function dWorldEncounterBG() {
   if (drawBattleBackgroundAsset('forest')) return;
 
   // Cielo pixel-art del bosque exterior
-  const gr = cx.createLinearGradient(0, 0, 0, 250);
-  gr.addColorStop(0, '#6FB8E8');
-  gr.addColorStop(0.55, '#B8E0F0');
-  gr.addColorStop(1, '#D8F0D0');
+  const gr = _grad(0, 0, 0, 250, [
+    [0, '#6FB8E8'],
+    [0.55, '#B8E0F0'],
+    [1, '#D8F0D0'],
+  ]);
   cx.fillStyle = gr;
   cx.fillRect(0, 0, 640, 245);
 
@@ -165,10 +180,11 @@ function dBattleBG() {
     dWorldEncounterBG();
     return;
   }
-  const gr = cx.createLinearGradient(0, 0, 0, 240);
-  gr.addColorStop(0, '#1a0a3a');
-  gr.addColorStop(0.5, '#2a1a4a');
-  gr.addColorStop(1, '#3a2a5a');
+  const gr = _grad(0, 0, 0, 240, [
+    [0, '#1a0a3a'],
+    [0.5, '#2a1a4a'],
+    [1, '#3a2a5a'],
+  ]);
   cx.fillStyle = gr;
   cx.fillRect(0, 0, 640, 240);
 
@@ -195,10 +211,11 @@ function dBattleBG() {
 
 // === FONDO PARA INTRO DE BATALLA NPC ===
 function dBattleIntroBG() {
-  const gr = cx.createLinearGradient(0, 0, 0, 480);
-  gr.addColorStop(0, '#0a0a2e');
-  gr.addColorStop(0.5, '#1a1a4e');
-  gr.addColorStop(1, '#0a0a2e');
+  const gr = _grad(0, 0, 0, 480, [
+    [0, '#0a0a2e'],
+    [0.5, '#1a1a4e'],
+    [1, '#0a0a2e'],
+  ]);
   cx.fillStyle = gr;
   cx.fillRect(0, 0, 640, 480);
 

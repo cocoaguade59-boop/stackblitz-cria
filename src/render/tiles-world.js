@@ -13,14 +13,29 @@ import { T, cam, wMap } from '../core/world-constants.js';
 import { towerOpen } from '../core/game-flags.js';
 
 // Mezcla dos colores hex (#RRGGBB) en el factor t (0..1)
+// Caché de colores interpolados. El degradado de nieve del pasto se recalcula
+// 3 veces por tile visible (≈459 veces por frame) y siempre con el mismo par
+// de colores y el mismo `t` por fila → hay 47 resultados posibles en total.
+// Se redondea `t` a 1/256 para no depender de la posición exacta de la fila.
+const _lerpCache = new Map();
+const LERP_STEPS = 256;
+
 function lerpColor(a, b, t) {
   t = Math.max(0, Math.min(1, t));
+  const step = Math.round(t * LERP_STEPS);
+  const key = a + b + step;
+  const hit = _lerpCache.get(key);
+  if (hit !== undefined) return hit;
+  const s = step / LERP_STEPS;
   const pa = [parseInt(a.slice(1, 3), 16), parseInt(a.slice(3, 5), 16), parseInt(a.slice(5, 7), 16)];
   const pb = [parseInt(b.slice(1, 3), 16), parseInt(b.slice(3, 5), 16), parseInt(b.slice(5, 7), 16)];
-  const R = Math.round(pa[0] + (pb[0] - pa[0]) * t);
-  const G = Math.round(pa[1] + (pb[1] - pa[1]) * t);
-  const B = Math.round(pa[2] + (pb[2] - pa[2]) * t);
-  return 'rgb(' + R + ',' + G + ',' + B + ')';
+  const R = Math.round(pa[0] + (pb[0] - pa[0]) * s);
+  const G = Math.round(pa[1] + (pb[1] - pa[1]) * s);
+  const B = Math.round(pa[2] + (pb[2] - pa[2]) * s);
+  const out = 'rgb(' + R + ',' + G + ',' + B + ')';
+  if (_lerpCache.size > 4096) _lerpCache.clear();
+  _lerpCache.set(key, out);
+  return out;
 }
 
 
