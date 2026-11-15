@@ -31,10 +31,13 @@ class Cre {
   }
 
   calc() {
-    this.mHp = Math.floor(this.bHp + this.lv * 6 + this.lv * this.lv * 0.3);
-    this.ak = Math.floor(this.bAk + this.lv * 2.5);
-    this.df = Math.floor(this.bDf + this.lv * 2);
-    this.sp = Math.floor(this.bSp + this.lv * 1.5);
+    // Balanceado: crecimiento lineal + suave curva, evita explosión cuadrática
+    // Antes: lv*6 + lv^2*0.3 → en lv100 +3600 HP extra (desbalance)
+    // Ahora: lv*4 + lv^2*0.12 → en lv100 ~ +1600, más controlable
+    this.mHp = Math.floor(this.bHp + this.lv * 4 + this.lv * this.lv * 0.12);
+    this.ak = Math.floor(this.bAk + this.lv * 2.2);
+    this.df = Math.floor(this.bDf + this.lv * 1.8);
+    this.sp = Math.floor(this.bSp + this.lv * 1.4);
   }
 
   gMv() {

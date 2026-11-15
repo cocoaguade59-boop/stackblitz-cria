@@ -6,7 +6,7 @@
 import { WC, WR, CC, CR, wMap, cave1, cave2 } from '../core/world-constants.js';
 import { isWorldPinAllowed } from './world-layout.js';
 
-const WORLD_PIN_COUNT = 35;
+const WORLD_PIN_COUNT = 50;
 const CAVE_PIN_COUNT = 5;
 const TOWER_PIN_COUNT = 5;
 
