@@ -31,7 +31,7 @@ function getMenuOpts() {
     'Objetos',
   ];
   if (G.bagUpgrade) opts.push('LaFot');
-  opts.push('Guardar', 'Volver', 'Reiniciar toda la partida');
+  opts.push('Guardar', 'Partida portátil', 'Volver', 'Reiniciar toda la partida');
   return opts;
 }
 
@@ -106,6 +106,11 @@ function uMenu() {
         } else if (window.__gameSaveGame) {
           window.__gameSaveGame();
         }
+        break;
+      case 'Partida portátil':
+        // Exportar / importar el save como texto (ver save-transfer.js).
+        G.transfer = null;
+        G.scr = 'saveTransfer';
         break;
       case 'Volver':
         G.scr = 'world';

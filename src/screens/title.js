@@ -64,7 +64,6 @@ function uTitle() {
     try {
       if (G.hasSave && G.titleSel === 0) {
         const fn = window.__gameLoadGame;
-        console.log('[title] loadGame available:', typeof fn);
         if (fn && fn()) {
           G.scr = 'world';
           aN('¡Partida cargada!');
@@ -76,9 +75,7 @@ function uTitle() {
         G.resetSel = 1;
         G.resetFromTitle = true;
       } else {
-        console.log('[title] calling startNewGameFlow');
         startNewGameFlow();
-        console.log('[title] G.scr after:', G.scr);
       }
     } catch(e) {
       console.error('[title] ERROR en SPACE:', e.message, e.stack);

@@ -7,7 +7,8 @@
   "scripts": {
     "start": "vite --host 0.0.0.0",
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build"
+    "build": "vite build",
+    "test": "node tests/test-save-transfer.mjs"
   },
   "dependencies": {
     "playwright": "^1.61.1",

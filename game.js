@@ -195,6 +195,8 @@ import { playTitleHorn, dTitle } from './src/screens/title.js';
 import { INTRO_LINES, dIntro } from './src/screens/intro.js';
 import { dStarter } from './src/screens/starter.js';
 import { dMenu } from './src/screens/menu.js';
+import { initTouchControls, drawTouchControls } from './src/core/touch-controls.js';
+import { uSaveTransfer, dSaveTransfer, hookPaste, resetTransferState } from './src/screens/save-transfer.js';
 
 // [refactor-phase5b-C1.5b] sistema de interiores importado
 import { IT, BUILDINGS, isInteriorSolid, createInteriorMap, getInteriorSpawn, getBuildingAtDoor, getBuildingAt, getStylePalette, getActiveInterior, setActiveInterior } from './src/world/interiors.js';
@@ -842,6 +844,7 @@ function hasDiploma(leader) {
 function giveDiploma(leader) {
   diplomas[leader] = true;
   sfx.cap();
+  autoSaveGame('diploma:' + leader);
   const d = LEADER_MISSIONS[leader];
   aN(`¡Diploma "${d.diploma}" obtenido!`);
 }
@@ -2738,6 +2741,7 @@ function dConfirmReset() {
 function resetGame(startIntro = false) {
   // Borrar save de forma robusta
   clearAllGameSaves();
+  resetTransferState();
 
   // Reiniciar variables globales
   G.scr = 'title';
@@ -3102,6 +3106,7 @@ function finishCaptureAttempt() {
       G.party.push(nc);
     }
     checkAllCaught();
+    autoSaveGame('captura:' + b.en.id);
     b.mq = [{ a: 'end' }];
     sfx.cap();
   } else {
@@ -4615,12 +4620,28 @@ function activatePostGame() {
 
   // Generar torre
   genTower();
+  autoSaveGame('post-game');
 
   // Notificaciones
   aN('¡El reino ha cambiado!');
   setTimeout(() => aN('Nuevos diálogos disponibles.'), 2000);
   setTimeout(() => aN('Busca a Edison en Villa Guión.'), 4000);
 }
+// === AUTOGUARDADO ===
+// Guardar es barato (<4KB de JSON) y evita perder diplomas o capturas
+// importantes si el navegador se cierra. No avisa con notificación para
+// no romper el ritmo; el mensaje se muestra sólo si el jugador guarda a mano.
+function autoSaveGame(reason = '') {
+  if (G.batallador || G.supervisor) return;
+  try {
+    const save = buildSaveObject();
+    localStorage.setItem(SAVE_KEY, JSON.stringify(save));
+    G.lastAutoSave = { at: Date.now(), reason };
+  } catch (e) {
+    console.error('Autosave error:', e);
+  }
+}
+
 // ============================================================
 // BLOQUE 19A: DIBUJAR MAPA DEL MUNDO
 // ============================================================
@@ -5408,58 +5429,64 @@ function getSoloFighters() {
 // BLOQUE 23: GUARDADO/CARGA localStorage
 // ============================================================
 
+// Construye el objeto serializable de la partida.
+// Lo usan saveGame(), autoSaveGame() y la exportación de partida portátil.
+function buildSaveObject() {
+  return {
+    // Posición
+    plx: G.pl.x,
+    ply: G.pl.y,
+    curMap: G.curMap,
+    plD: G.pl.d,
+
+    // Equipo
+    party: G.party.map((c) => c.toJSON()),
+    proa: proa.map((c) => c.toJSON()),
+
+    // Inventario
+    gold: G.gold,
+    pot: G.pot,
+    rev: G.rev,
+    crv: G.crv,
+    crvC: G.crvC || 0,
+    crvO: G.crvO || 0,
+    frag: G.frag || emptyFragments(),
+    scrolls: G.scrolls || 0,
+    fragrances: G.fragrances || emptyFragrances(),
+    incense: G.incense || emptyFragrances(),
+    activeIncense: G.activeIncense || null,
+    bagUpgrade: !!G.bagUpgrade,
+
+    // Progreso
+    talkedTo: G.talkedTo,
+    bossOk: G.bossOk,
+    allTalked: G.allTalked,
+    allCaught: G.allCaught,
+    bWon: G.bWon,
+    tExp: G.tExp,
+    mFriend: G.mFriend,
+    bossDialogs: G.bossDialogs,
+    diplomas,
+
+    // Post-game
+    postGame,
+    towerOpen,
+    oloDefeated,
+    pairBattles,
+    npcDefeats,
+    towerKey,
+    captureCount,
+    lastHealPos,
+
+    // Mapas: no se guarda semilla; genWorld/genCastle son deterministas y
+    // las cuevas sólo varían en decoración. Se guarda sólo la posición.
+    prevPos: G.prevPos,
+    };
+}
+
 function saveGame() {
   try {
-    const save = {
-      // Posición
-      plx: G.pl.x,
-      ply: G.pl.y,
-      curMap: G.curMap,
-      plD: G.pl.d,
-
-      // Equipo
-      party: G.party.map((c) => c.toJSON()),
-      proa: proa.map((c) => c.toJSON()),
-
-      // Inventario
-      gold: G.gold,
-      pot: G.pot,
-      rev: G.rev,
-      crv: G.crv,
-      crvC: G.crvC || 0,
-      crvO: G.crvO || 0,
-      frag: G.frag || emptyFragments(),
-      scrolls: G.scrolls || 0,
-      fragrances: G.fragrances || emptyFragrances(),
-      incense: G.incense || emptyFragrances(),
-      activeIncense: G.activeIncense || null,
-      bagUpgrade: !!G.bagUpgrade,
-
-      // Progreso
-      talkedTo: G.talkedTo,
-      bossOk: G.bossOk,
-      allTalked: G.allTalked,
-      allCaught: G.allCaught,
-      bWon: G.bWon,
-      tExp: G.tExp,
-      mFriend: G.mFriend,
-      bossDialogs: G.bossDialogs,
-      diplomas,
-
-      // Post-game
-      postGame,
-      towerOpen,
-      oloDefeated,
-      pairBattles,
-      npcDefeats,
-      towerKey,
-      captureCount,
-      lastHealPos,
-
-      // Mapas (semilla no, se regeneran pero guardamos posición)
-      prevPos: G.prevPos,
-    };
-
+    const save = buildSaveObject();
     localStorage.setItem(SAVE_KEY, JSON.stringify(save));
     aN('¡Partida guardada!');
     sfx.sel();
@@ -7053,6 +7080,13 @@ function update() {
     aN('Respawn de emergencia: Aldea Pitch');
     sfx.sel();
   }
+  // Tecla T: partida portátil (exportar/importar save como texto).
+  // Accesible desde el mundo para no depender del menú si algo se rompe.
+  if (kp('t') && G.scr === 'world') {
+    G.transfer = null;
+    G.scr = 'saveTransfer';
+    sfx.sel();
+  }
   // Dev cheat: I = +2000G (partida normal; no se publicita en HUD)
   if (kp('i') && !['title', 'intro', 'starter', 'battle'].includes(G.scr)) {
     G.gold = (G.gold || 0) + 2000;
@@ -7155,6 +7189,9 @@ function update() {
         G.scr = 'world';
       }
       break;
+    case 'saveTransfer':
+      uSaveTransfer();
+      break;
     case 'menu':
       if (G.showMap) { uMapScreen(); break; }
       if (G.proaOpen) { uProa(); break; }
@@ -7252,6 +7289,10 @@ function draw() {
     case '_dialogDone':
       drawMap();
       break;
+    case 'saveTransfer':
+      drawMap();
+      dSaveTransfer();
+      break;
     case 'menu':
       if (G.showMap) { drawMap(); dMapScreen(); break; }
       if (G.proaOpen) { drawMap(); dProa(); break; }
@@ -7334,6 +7375,9 @@ function draw() {
       dGonchiTrade();
       break;
   }
+
+  // Overlay táctil: se dibuja encima de todo y sólo en dispositivos táctiles.
+  drawTouchControls(cx);
 }
 
 function loop() {
@@ -7373,6 +7417,10 @@ function init() {
   window.__gameSaveGame = saveGame;
   window.__G = G; // debugging / tests
   setShopBattleStarter(startNPCBattle);
+  // Pantalla de partida portátil: engancha el pegado de portapapeles una vez.
+  hookPaste();
+  // Controles táctiles (sólo si el dispositivo es táctil o la ventana es angosta).
+  initTouchControls();
 
   // Iniciar loop
   loop();
@@ -7389,5 +7437,4 @@ addEventListener('resize', resize);
 
 // === ARRANCAR ===
 window.addEventListener('error', e => console.error('[GLOBAL ERROR]', e.message, e.filename, e.lineno));
-console.log('[game.js] calling init()');
 init();
