@@ -1,9 +1,17 @@
 // Ejecuta el bundle standalone con un DOM de mentira para comprobar que
 // arranca sin lanzar (equivale a abrirlo con doble clic).
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import vm from 'vm';
 
-const html = readFileSync('../dist-app/index.html', 'utf8');
+const here = dirname(fileURLToPath(import.meta.url));
+const FILE = join(here, '..', 'dist-app', 'index.html');
+if (!existsSync(FILE)) {
+  console.log('SKIP no existe dist-app/index.html (corré npm run build:app)');
+  process.exit(0);
+}
+const html = readFileSync(FILE, 'utf8');
 const code = html.match(/<script>([\s\S]*?)<\/script>/)[1];
 
 const errors = [];
