@@ -27,7 +27,8 @@ const ok = (c, l) => { console.log((c ? 'PASS ' : 'FAIL ') + l); if (!c) fails++
 
 // ---------------------------------------------------------------- orden DOM
 const posCanvas = html.indexOf('<canvas');
-const posScript = html.indexOf('<script');
+// el script del juego está marcado con data-juego; el overlay va aparte
+const posScript = html.indexOf('<script data-juego');
 ok(posCanvas !== -1, 'el HTML tiene un <canvas>');
 ok(
   posCanvas !== -1 && posScript !== -1 && posCanvas < posScript,
@@ -35,7 +36,7 @@ ok(
 );
 
 // ------------------------------------------------------- ejecutar el bundle
-const match = html.match(/<script>([\s\S]*?)<\/script>/);
+const match = html.match(/<script data-juego>([\s\S]*?)<\/script>/);
 if (!match) {
   console.log('FAIL no se encontró el <script> inline');
   process.exit(1);

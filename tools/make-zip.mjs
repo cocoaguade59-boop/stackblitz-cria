@@ -26,8 +26,10 @@ for (const dir of ['1-WINDOWS', '2-MAC', '3-LINUX']) {
   if (existsSync(dir)) cpSync(dir, join(RAIZ, dir), { recursive: true });
 }
 
+const VERSION = new Date().toISOString().slice(0, 16).replace('T', ' ');
 writeFileSync(join(RAIZ, 'LEEME.txt'), `CRIATURAS DEL REINO
 ===================
+Version: ${VERSION}  (si un archivo dice index.html:7, es viejo)
 
 WINDOWS
   Doble clic en:  JUGAR-AQUI-WINDOWS.bat

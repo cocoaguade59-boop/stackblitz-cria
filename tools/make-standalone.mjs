@@ -72,9 +72,22 @@ if (esm.length) {
   process.exit(1);
 }
 
-// 6) verificación: el <canvas> tiene que existir antes de que corra el script
+// 6) red de seguridad visible: si algo revienta al arrancar, que se VEA.
+//    Un canvas negro no dice nada. Un mensaje en pantalla con el error y qué
+//    hacer convierte "no anda" en un reporte útil.
+//    Va ANTES que el script del juego para poder capturar su excepción.
+const AVISO = readFileSync(new URL('./error-overlay.html', import.meta.url), 'utf8').trim();
+
+// La red de seguridad tiene que ejecutarse ANTES que el juego: si el juego
+// lanza al correr, el listener 'error' ya tiene que estar registrado.
+// Se inserta justo antes del <script> del juego (que ya está antes de </body>).
+// El overlay NO usa el canvas, así que puede ir antes. Se marca para que la
+// verificación de orden de abajo no lo confunda con el script del juego.
+html = html.replace(/[ \t]*<script>/, AVISO.trim() + '\n    <script data-juego>');
+
+// 7) verificación: el <canvas> tiene que existir antes de que corra el script
 const posCanvas = html.indexOf('<canvas');
-const posScript = html.indexOf('<script>');
+const posScript = html.indexOf('<script data-juego>');
 if (posCanvas === -1) {
   console.error('ERROR: no hay <canvas> en el HTML generado.');
   process.exit(1);
