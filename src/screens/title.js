@@ -7,7 +7,7 @@ import { cx } from '../core/canvas.js';
 import { G } from '../core/game-state.js';
 import { sfx } from '../core/audio.js';
 import { fr } from '../core/frame.js';
-import { kp } from '../core/input.js';
+import { kp, kAction } from '../core/input.js';
 import { hasSaveGame, clearAllGameSaves } from '../core/save.js';
 import { EXPANDED_SPAWN } from '../world/expanded-npc-placements.js';
 import { emptyFragments, emptyFragrances } from '../data/pins.js';
@@ -95,7 +95,7 @@ function uTitle() {
     G.titleSel = (G.titleSel + 1) % optCount;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     sfx.sel();
     try {
       if (G.hasSave && G.titleSel === 0) {
@@ -114,7 +114,7 @@ function uTitle() {
         startNewGameFlow();
       }
     } catch(e) {
-      console.error('[title] ERROR en SPACE:', e.message, e.stack);
+      console.error('[title] ERROR en accion:', e.message, e.stack);
     }
   }
 }
@@ -326,9 +326,9 @@ function dTitle() {
   } else {
     cx.fillStyle = Math.sin(f * 0.1) > 0 ? '#fff' : '#A0B0C0';
     cx.font = '9px "Press Start 2P"';
-    cx.fillText('ESPACIO para comenzar', 320, 408);
+    cx.fillText('C para comenzar', 320, 408);
   }
-  cx.fillStyle = '#606878'; cx.font = '6px "Press Start 2P"'; cx.fillText('Flechas = elegir | SPACE = confirmar', 320, 460);
+  cx.fillStyle = '#606878'; cx.font = '6px "Press Start 2P"'; cx.fillText('Flechas = elegir | C = confirmar', 320, 460);
   cx.textAlign = 'left';
 }
 

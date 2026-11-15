@@ -8,7 +8,7 @@
 
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';
-import { kp } from '../core/input.js';
+import { kp, kAction } from '../core/input.js';
 import { sfx } from '../core/audio.js';
 import { fr } from '../core/frame.js';
 import { dDialogBox, wrapText } from '../render/ui-boxes.js';
@@ -37,8 +37,8 @@ function uDialog() {
     }
   }
 
-  // Avanzar con SPACE o ENTER
-  if (kp(' ') || kp('Enter')) {
+  // Avanzar con C (alias: ESPACIO/ENTER)
+  if (kAction()) {
     if (!d.full) {
       // Mostrar texto completo inmediatamente
       d.full = true;

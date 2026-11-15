@@ -118,10 +118,10 @@ const npcs = [
         'Z sirve para correr.',
       ],
       [
-        'SPACE es acción:',
+        'C es acción:',
         'hablar, leer carteles,',
         'abrir cosas importantes.',
-        'Si dudas, presiona SPACE.',
+        'Si dudas, presiona C.',
       ],
       [
         'X abre el menú.',

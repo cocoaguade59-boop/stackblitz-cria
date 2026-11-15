@@ -174,7 +174,7 @@ import {
 import { dBattleHud } from './src/render/battle-hud.js';
 
 // [refactor-phase5a] input + camara + dex-order + screens importados
-import { kp, kh, normKey } from './src/core/input.js';
+import { kp, kh, normKey, kAction } from './src/core/input.js';
 import {
   updateCamera,
   beginWorldCamera,
@@ -377,7 +377,7 @@ function solidW(c, r) {
   // Torre cerrada es sólida
   if (t === 2 || t === 3 || t === 7) return true;
   if (t === 4 || t === 32 || t === 33) return true; // casas, molino y almacenes
-  // Pin de hallazgo (antes cristal): sólido, se recoge con SPACE
+  // Pin de hallazgo (antes cristal): sólido, se recoge con C
   if (t === 10) return true;
   // Decoración sólida del mundo: puestos, estatuas, cercas, cajas, pozos, muñecos y cámara/set.
   if ([18, 19, 20, 21, 22, 23, 25, 27, 30, 31].includes(t)) return true;
@@ -394,7 +394,7 @@ function solidC(c, r, map, cols, rows) {
   const t = map[r][c];
   // Paredes, agua subterránea, lava, puerta bloqueada y PINES (28) son sólidos.
   // Tile 27/33 NO son sólidos (salidas). Tile 34 = puerta del rey.
-  // Los pines (28) se recogen con SPACE, no al pisar.
+  // Los pines (28) se recogen con C, no al pisar.
   return t === 21 || t === 23 || t === 24 || t === 28 || t === 29 || t === 31 || t === 34;
 }
 
@@ -465,7 +465,7 @@ function uFind() {
     G.scr = 'world';
     return;
   }
-  if (kp(' ') || kp('Enter') || kp('x') || kp('Escape')) {
+  if (kAction() || kp('x') || kp('Escape')) {
     G.find = null;
     G.scr = 'world';
     sfx.sel();
@@ -511,7 +511,7 @@ function genTower() {
   // Salida abajo
   towerMap[TWR - 2][Math.floor(TWC / 2)] = 27;
 
-  // Pines capturables (tile 28, se recogen con SPACE)
+  // Pines capturables (tile 28, se recogen con C)
   let tc = 0;
   while (tc < 5) {
     const c = 3 + Math.floor(Math.random() * (TWC - 6));
@@ -1181,7 +1181,7 @@ function uWorld() {
       }
     }
 
-    // (T3) Los pines ya NO se recogen al pisar: son sólidos y se abren con SPACE.
+    // (T3) Los pines ya NO se recogen al pisar: son sólidos y se abren con C.
 
     // Entrada cueva (fallback legacy por si el paso aterriza raro)
     if (kh('ArrowUp')) {
@@ -1254,8 +1254,8 @@ function uWorld() {
     }
   }
 
-  // Acción (SPACE o ENTER para hablar / recoger pin)
-  if (kp(' ') || kp('Enter')) {
+  // Acción (C o ENTER para hablar / recoger pin)
+  if (kAction()) {
     if (tryCollectPin()) return;
     if (checkRouteSign()) return;
     if (G.supervisor) {
@@ -1351,7 +1351,7 @@ function uCave() {
     }
   }
 
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     if (tryCollectPin()) return;
     if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.');
     else if (G.batallador) aN('Batallador: interacción con NPCs desactivada.');
@@ -1406,7 +1406,7 @@ function uCastle() {
     }
   }
 
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     if (G.supervisor) aN('Supervisor: interacción con NPCs desactivada.');
     else if (G.batallador) aN('Batallador: interacción con NPCs desactivada.');
     else checkNPC(castNpcs);
@@ -1441,7 +1441,7 @@ function uTower() {
       }
     }
 
-    // (T3) Pines (28) son sólidos: se recogen con SPACE, no al pisar.
+    // (T3) Pines (28) son sólidos: se recogen con C, no al pisar.
 
     // Salida
     if (tile === 27 && tr > Math.floor(CR / 2)) {
@@ -1452,7 +1452,7 @@ function uTower() {
     }
   }
 
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     if (tryCollectPin()) return;
   }
 
@@ -1554,14 +1554,14 @@ function uAndreaQuiz() {
   if (s.phase === 'select') {
     if (kp('ArrowUp')) { s.sel = (s.sel + q.opts.length - 1) % q.opts.length; sfx.sel(); }
     if (kp('ArrowDown')) { s.sel = (s.sel + 1) % q.opts.length; sfx.sel(); }
-    if (kp(' ') || kp('Enter')) {
+    if (kAction()) {
       if (s.sel === q.correct) { s.score++; s.fb = 'ok'; sfx.cap(); }
       else { s.fb = 'bad'; sfx.nef(); }
       s.phase = 'feedback';
     }
     if (kp('x') || kp('Escape')) { G.scr = 'world'; }
   } else if (s.phase === 'feedback') {
-    if (kp(' ') || kp('Enter')) {
+    if (kAction()) {
       sfx.sel();
       s.idx++;
       if (s.idx >= M.questions.length) {
@@ -1640,7 +1640,7 @@ function uDanGossip() {
   }
   if (kp('ArrowUp')) { s.sel = (s.sel + D.length - 1) % D.length; sfx.sel(); }
   if (kp('ArrowDown')) { s.sel = (s.sel + 1) % D.length; sfx.sel(); }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     const it = D[s.sel];
     const already = (LEADER_MISSIONS.dan.reported || []).indexOf(s.sel) !== -1;
     if (it.valid && !already) {
@@ -2447,7 +2447,7 @@ function uVision() {
     v.ci++;
     if (v.ci >= text.length) v.full = true;
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     if (!v.full) {
       v.ci = text.length;
       v.full = true;
@@ -2505,7 +2505,7 @@ function dVision() {
 function showChronicle(npc, pages) { G.scr = 'chronicle'; G.chronicle = { npc, idx: 0, ci: 0, tm: 0, full: false, pages }; sfx.sel(); }
 function showOscarChronicle(npc) { showChronicle(npc, [{ title: 'LAS TRES ÓRDENES', lines: ['En este reino, las personas','se agrupan en tres órdenes','principales. No son reglas','rígidas... pero ayudan a','entender quién es quién.'] }, { title: 'LOS MATERIALIZADORES', lines: ['Crean con sus manos e ideas.','Alessandro, Luis, Fabiana,','Nicole, Deyna, Dayana, Dante,','Alexandro, Hernán, Chrys,','Claudia, Gabriela, David,','Alejandro, Nahuel, André,','Ravell, Yam, Pachi, Paulo,','Edison, SaloGon, los Juglares.'] }, { title: 'LOS CRONISTAS', lines: ['Somos los que registramos','todos los acontecimientos.','Yo (Oscar), Mr. Olo-Man,','Piero, Manuel (caído) y','Jairo. Buenos amigos de','las Monas también.'] }, { title: 'LOS PREGONEROS', lines: ['Transmiten la información','del Rey a los pobladores.','Brisa, Roberto y Gonchi.','Sin ellos, las noticias','no llegarían a nadie.'] } ]); }
 function showPieroChronicle(npc) { showChronicle(npc, [{ title: 'LOS SUBGRUPOS', lines: ['El mundo no se divide solo','en 3 órdenes. Las personas','son más complejas que eso.','También existen subgrupos.'] }, { title: 'LOS CTM', lines: ['Más experiencia que el','promedio. Hernán, Pachi,','Alejandro, Ravell, Chrys,','Nahuel, André, Yam, y su','miembro más joven: Dante.'] }, { title: 'LAS MONAS', lines: ['Amigas inseparables de','alta fidelidad entre ellas.','Dayana, Deyna y Nicole.','Un grupo muy misterioso,','de alto enigma y peligro.'] }, { title: 'BRANDCUT', lines: ['Algo inexpertos, pero son','la siguiente generación.','Alessandro, Luis, Alexandro,','Gabriela, Claudia, Edison,','David y Fabiana.'] }, { title: 'LOS REBATA', lines: ['Extremadamente ruidosos...','definitivamente la pasan','bien juntos. Dayana, Deyna,','Oscar, Piero, Jairo,','Manuel y Nicole.'] }, { title: 'LOS PROAS', lines: ['Los jefes de cada pueblo.','Parecen malhumorados, pero','son muy sabios. Controlan','el orden y enseñan. Tamara,','Luchito, Andrea y Dan.'] }, { title: 'LOS OUTSAIDERS', lines: ['Muy misteriosos. Sin','conexión con alguien más','que no sean entre ellos.','Luas, Angelly y Ximena.','Nadie sabe de dónde vienen.'] }, { title: 'NOTA FINAL', lines: ['Cada grupo tiene su propia','historia. Algunos pertenecen','a varios a la vez. Dayana y','Deyna son Monas y Rebata.','Nicole es Monas, Rebata y','Materializadora. Así es el','Reino. — Piero, Cronista.'] } ]); }
-function uChronicle() { const v = G.chronicle; if (!v) { G.scr = 'world'; return; } v.tm++; const text = v.pages[v.idx].lines.join(' '); if (!v.full && v.tm % 2 === 0) { v.ci++; if (v.ci >= text.length) v.full = true; } if (kp(' ') || kp('Enter')) { if (!v.full) { v.ci = text.length; v.full = true; } else { v.idx++; if (v.idx >= v.pages.length) { G.scr = 'world'; G.chronicle = null; } else { v.ci = 0; v.tm = 0; v.full = false; sfx.sel(); } } } if (kp('x') || kp('Escape')) { G.scr = 'world'; G.chronicle = null; } }
+function uChronicle() { const v = G.chronicle; if (!v) { G.scr = 'world'; return; } v.tm++; const text = v.pages[v.idx].lines.join(' '); if (!v.full && v.tm % 2 === 0) { v.ci++; if (v.ci >= text.length) v.full = true; } if (kAction()) { if (!v.full) { v.ci = text.length; v.full = true; } else { v.idx++; if (v.idx >= v.pages.length) { G.scr = 'world'; G.chronicle = null; } else { v.ci = 0; v.tm = 0; v.full = false; sfx.sel(); } } } if (kp('x') || kp('Escape')) { G.scr = 'world'; G.chronicle = null; } }
 function dChronicle() { drawMap(); const v = G.chronicle; if (!v) return; const page = v.pages[v.idx]; cx.fillStyle = '#2A2218'; cx.fillRect(40, 20, 560, 390); px(36, 16, 568, 398, '#5A4A30'); px(38, 18, 564, 394, '#3A2A18'); px(40, 20, 560, 390, '#2A2218'); px(36, 16, 12, 12, '#C8A830'); px(588, 16, 12, 12, '#C8A830'); px(36, 406, 12, 12, '#C8A830'); px(588, 406, 12, 12, '#C8A830'); cx.fillStyle = '#C8A830'; cx.font = '10px "Press Start 2P"'; cx.textAlign = 'center'; cx.fillText(page.title, 320, 48); cx.textAlign = 'left'; cx.fillStyle = '#5A4A30'; cx.fillRect(60, 56, 520, 1); cx.fillStyle = '#D8C8A0'; cx.font = '7px "Press Start 2P"'; const allText = page.lines.join(' '); const shown = allText.substring(0, v.ci); const lines = wrapText(shown, 52); lines.slice(0, 9).forEach((ln, i) => cx.fillText(ln, 60, 80 + i * 16)); cx.fillStyle = '#8A7A50'; cx.font = '6px "Press Start 2P"'; cx.fillText(v.idx + 1 + '/' + v.pages.length, 560, 426); if (v.full) { cx.fillStyle = '#C8A830'; cx.font = '10px "Press Start 2P"'; cx.textAlign = 'center'; cx.fillText('▼', 600, 430 + Math.sin(fr * 0.2) * 2); cx.textAlign = 'left'; } }
 
 // === MOSTRAR OPCIONES DE EDISON ===
@@ -2523,7 +2523,7 @@ function uEdisonChoice() {
     G.edisonSel = (G.edisonSel + 1) % 2;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     sfx.sel();
     if (G.edisonSel === 0) {
       // Combatir contra Edison
@@ -2586,7 +2586,7 @@ function uPairSelect() {
     G.pairSel = (G.pairSel + 1) % pairBattleData.length;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     sfx.sel();
     startPairBattle(G.pairSel);
   }
@@ -2667,7 +2667,7 @@ function uConfirmReset() {
     G.resetSel = (G.resetSel + 1) % 2;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     sfx.sel();
     if (G.resetSel === 0) {
       // No reiniciar
@@ -3123,7 +3123,7 @@ function uBattle() {
         if (b.introCi >= b.npcIntro[b.introLine].length) b.introFull = true;
       }
     }
-    if (kp(' ') || kp('Enter')) {
+    if (kAction()) {
       if (!b.introFull) {
         b.introFull = true;
         b.introCi = b.npcIntro[b.introLine].length;
@@ -3144,7 +3144,7 @@ function uBattle() {
 
   // === FASE INTRO NORMAL ===
   if (b.ph === 'intro') {
-    if (b.tm > 50 || kp(' ') || kp('Enter')) {
+    if (b.tm > 50 || kAction()) {
       b.ph = 'act';
       b.tm = 0;
     }
@@ -3160,7 +3160,7 @@ function uBattle() {
     case 'captureAnim':
       {
         const total = 48 + (b.cap?.shakes || 0) * 28 + 28;
-        if (kp(' ') || kp('Enter') || b.tm > total) finishCaptureAttempt();
+        if (kAction() || b.tm > total) finishCaptureAttempt();
       }
       break;
 
@@ -3182,7 +3182,7 @@ function uBattle() {
         b.ms = (b.ms + 1) % 6;
         sfx.sel();
       }
-      if (kp(' ') || kp('Enter')) {
+      if (kAction()) {
         sfx.sel();
         switch (b.ms) {
           case 0: // Luchar
@@ -3302,7 +3302,7 @@ function uBattle() {
           b.ph = 'act';
           sfx.sel();
         }
-        if (kp(' ') || kp('Enter')) {
+        if (kAction()) {
           const code = opts[b.capSel] || opts[0];
           startCaptureAttempt(code);
         }
@@ -3332,7 +3332,7 @@ function uBattle() {
         if (kp('x') || kp('Escape')) {
           b.ph = 'act';
         }
-        if (kp(' ') || kp('Enter')) {
+        if (kAction()) {
           const mv = c.mv[b.mvs];
           if (mv.pp > 0) execTurn(mv);
           else {
@@ -3358,7 +3358,7 @@ function uBattle() {
       if (kp('x') || kp('Escape')) {
         b.ph = 'act';
       }
-      if (kp(' ') || kp('Enter')) {
+      if (kAction()) {
         if (b.ss !== b.pi && G.party[b.ss].hp > 0) {
           b.pi = b.ss;
           // T11b: la criatura nueva entra con mods en 0
@@ -3375,7 +3375,7 @@ function uBattle() {
 
     // === MENSAJE ===
     case 'msg':
-      if (b.tm > 90 || kp(' ') || kp('Enter')) {
+      if (b.tm > 90 || kAction()) {
         if (b.mq.length > 0) {
           procAct(b.mq.shift());
         } else {
@@ -3391,7 +3391,7 @@ function uBattle() {
 
     // === VICTORIA ===
     case 'win':
-      if (b.tm > 90 || kp(' ') || kp('Enter')) {
+      if (b.tm > 90 || kAction()) {
         if (b.mq.length > 0) {
           const n = b.mq.shift();
           if (n.a === 'lvl') {
@@ -3456,7 +3456,7 @@ function uBattle() {
       b.tm++;
       if (b.evoPhase === 0) {
         // Mostrar pregunta
-        if (b.tm > 30 || kp(' ') || kp('Enter')) {
+        if (b.tm > 30 || kAction()) {
           b.evoPhase = 1;
           b.tm = 0;
           b.evoSel = 0;
@@ -3472,7 +3472,7 @@ function uBattle() {
           b.evoSel = (b.evoSel + 1) % 2;
           sfx.sel();
         }
-        if (kp(' ') || kp('Enter')) {
+        if (kAction()) {
           sfx.sel();
           if (b.evoSel === 0) {
             // Sí evolucionar
@@ -3496,7 +3496,7 @@ function uBattle() {
         }
       } else if (b.evoPhase === 2) {
         // Mostrar resultado
-        if (b.tm > 60 || kp(' ') || kp('Enter')) {
+        if (b.tm > 60 || kAction()) {
           b.ph = 'win';
           b.tm = 0;
         }
@@ -3516,7 +3516,7 @@ function uBattle() {
           b.learnSel = (b.learnSel + 1) % 5;
           sfx.sel();
         }
-        if (kp(' ') || kp('Enter')) {
+        if (kAction()) {
           sfx.sel();
           if (b.learnSel < 4) {
             const oldName = cre.mv[b.learnSel].nm;
@@ -3540,7 +3540,7 @@ function uBattle() {
 
     // === DERROTA ===
     case 'defeat':
-      if (b.tm > 50 || kp(' ') || kp('Enter')) {
+      if (b.tm > 50 || kAction()) {
         G.party.forEach((c) => c.full());
         resetBattleState();
         // Warp al último curandero + RESET TOTAL de movimiento.
@@ -3557,7 +3557,7 @@ function uBattle() {
         G.pl.sprint = false;
         G.pl.f = 0;
         G.pl.d = 0;
-        // Limpiar teclas residuales (flechas/SPACE que quedaron held
+        // Limpiar teclas residuales (flechas/C que quedaron held
         // del combate o del mensaje de derrota).
         G.keys = {};
         G.held = {};
@@ -4929,7 +4929,7 @@ function drawMap() {
   cx.fillStyle = '#666';
   cx.font = '5px "Press Start 2P"';
   // No publicitar Y/P (modos de prueba) en el HUD: se descubren por error y se abusan.
-  cx.fillText('Flechas:Mover  Z:Sprint  SPACE:Acción  X:Menú', 8, 473);
+  cx.fillText('Flechas:Mover  Z:Sprint  C:Acción  X:Menú', 8, 473);
 
   // === PARTÍCULAS Y NOTIFICACIONES ===
   drawParticles();
@@ -5267,7 +5267,7 @@ function dBattle() {
 
     cx.fillStyle = '#555';
     cx.font = '5px "Press Start 2P"';
-    cx.fillText('SPACE:Confirmar  X:Cancelar', 30, 460);
+    cx.fillText('C:Confirmar  X:Cancelar', 30, 460);
   } else if (b.ph === 'evolve') {
     // Fondo especial de evolución
     cx.fillStyle = '#0a0a2e';
@@ -5299,7 +5299,7 @@ function dBattle() {
       cx.fillText(`¡${b.evoData.oldName} quiere evolucionar!`, 100, 368);
       cx.fillStyle = '#fff';
       cx.font = '8px "Press Start 2P"';
-      cx.fillText('SPACE para continuar...', 100, 410);
+      cx.fillText('C para continuar...', 100, 410);
     } else if (b.evoPhase === 1) {
       // Selección sí/no
       // Brillo de fondo
@@ -5359,7 +5359,7 @@ function dBattle() {
       cx.fillText(`¡${cre.nm} ha nacido!`, 90, 378);
       cx.fillStyle = '#aaa';
       cx.font = '7px "Press Start 2P"';
-      cx.fillText('SPACE para continuar...', 90, 418);
+      cx.fillText('C para continuar...', 90, 418);
     }
   } else {
     // Mensaje de batalla (adaptativo)
@@ -5809,7 +5809,7 @@ function uBatalladorSelect() {
     if (cursorRow < s.scrollRow) s.scrollRow = cursorRow;
     if (cursorRow >= s.scrollRow + visRows) s.scrollRow = cursorRow - visRows + 1;
 
-    if (kp(' ')) {
+    if (kAction()) {
       const id = s.candidates[s.cursor];
       const idx = s.selected.indexOf(id);
       if (idx >= 0) {
@@ -5830,7 +5830,7 @@ function uBatalladorSelect() {
       return;
     }
     // Enter sin 'o': entrar al mundo sin pelear
-    if (kp('Enter') && s.selected.length >= 6) {
+    if (kAction() && s.selected.length >= 6) {
       const ids = s.selected.slice();
       G.batalladorSel = null;
       enterBatalladorMode(ids, null);
@@ -5863,7 +5863,7 @@ function uBatalladorSelect() {
       s.opponentScroll = 0;
       sfx.sel();
     }
-    if (kp(' ') || kp('Enter')) {
+    if (kAction()) {
       const opp = opps[s.opponentCursor];
       const ids = s.selected.slice();
       G.batalladorSel = null;
@@ -5959,7 +5959,7 @@ function dBatalladorSelect() {
     cx.fillStyle = '#D8D8E8';
     cx.font = '6px "Press Start 2P"';
     cx.textAlign = 'center';
-    cx.fillText('Flechas: mover  |  SPACE: agregar/quitar  |  O: elegir oponente', 320, 456);
+    cx.fillText('Flechas: mover  |  C: agregar/quitar  |  O: elegir oponente', 320, 456);
     cx.fillText('X: cancelar  |  ENTER (6 criaturas): ir al mundo sin pelear', 320, 470);
     cx.textAlign = 'left';
   }
@@ -6027,7 +6027,7 @@ function dBatalladorSelect() {
     cx.fillStyle = '#D8D8E8';
     cx.font = '6px "Press Start 2P"';
     cx.textAlign = 'center';
-    cx.fillText('Flechas: elegir  |  SPACE: confirmar  |  X: volver', 320, 456);
+    cx.fillText('Flechas: elegir  |  C: confirmar  |  X: volver', 320, 456);
     cx.fillText('El oponente usará su equipo real a nivel 20', 320, 470);
     cx.textAlign = 'left';
   }
@@ -6046,7 +6046,7 @@ function uFabianaChoice() {
     G.fabSel = (G.fabSel + 1) % 2;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     sfx.sel();
     if (G.fabSel === 0) {
       // Sí → mini pantalla de crafting
@@ -6101,7 +6101,7 @@ function uGonchiTrade() {
   }
 
   if (t.phase === 'result') {
-    if (kp(' ') || kp('Enter') || kp('x') || kp('Escape')) {
+    if (kAction() || kp('x') || kp('Escape')) {
       G.trade = null;
       G.scr = 'world';
       sfx.sel();
@@ -6114,7 +6114,7 @@ function uGonchiTrade() {
   const VIS = 9;
 
   if (!n) {
-    if (kp('x') || kp('Escape') || kp(' ') || kp('Enter')) {
+    if (kp('x') || kp('Escape') || kAction()) {
       G.trade = null;
       G.scr = 'dialog';
       G.ds = {
@@ -6145,9 +6145,9 @@ function uGonchiTrade() {
   if (t.sel < (t.scroll || 0)) t.scroll = t.sel;
   if (t.sel >= (t.scroll || 0) + VIS) t.scroll = t.sel - VIS + 1;
 
-  // SPACE: agregar 1 unidad del objeto (máx 2 total; mismo id 2× si hay stock).
+  // C: agregar 1 unidad del objeto (máx 2 total; mismo id 2× si hay stock).
   // Si no se puede agregar y este id ya está marcado → quitar 1.
-  if (kp(' ')) {
+  if (kAction()) {
     const row = rows[t.sel];
     if (!row) return;
     if (!t.picked) t.picked = [];
@@ -6171,9 +6171,9 @@ function uGonchiTrade() {
   }
 
   // ENTER: confirmar trueque
-  if (kp('Enter')) {
+  if (kAction()) {
     if ((t.picked || []).length < 2) {
-      aN('Elegí 2 objetos (SPACE).');
+      aN('Elegí 2 objetos (C).');
       sfx.nef();
       return;
     }
@@ -6248,7 +6248,7 @@ function uTheater() {
   const n = bill.length;
   const VIS = 7;
   if (!n) {
-    if (kp('x') || kp('Escape') || kp(' ') || kp('Enter')) {
+    if (kp('x') || kp('Escape') || kAction()) {
       G.theater = null;
       G.scr = 'world';
     }
@@ -6266,7 +6266,7 @@ function uTheater() {
   if (t.sel < (t.scroll || 0)) t.scroll = t.sel;
   if (t.sel >= (t.scroll || 0) + VIS) t.scroll = t.sel - VIS + 1;
 
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     const act = bill[t.sel];
     if (act) startTheaterBattle(act, t.host);
   }
@@ -6377,7 +6377,7 @@ function uHernanChoice() {
     G.herSel = (G.herSel + 1) % 2;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     sfx.sel();
     if (G.herSel === 0) {
       if ((G.scrolls || 0) < TUTOR_COST) {
@@ -6435,7 +6435,7 @@ function uHernanPickCre() {
     G.herCreSel = (G.herCreSel + 1) % n;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     const cre = G.party[G.herCreSel];
     const moves = getTutorMoves(cre);
     if (!moves.length) {
@@ -6476,7 +6476,7 @@ function uHernanPickMove() {
   if (G.herMoveSel >= (G.herMoveScroll || 0) + VIS) {
     G.herMoveScroll = G.herMoveSel - VIS + 1;
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     const row = moves[G.herMoveSel];
     if (!row) return;
     if (row.known) {
@@ -6512,7 +6512,7 @@ function uHernanPickSlot() {
     G.herSlotSel = (G.herSlotSel + 1) % total;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     if (G.herSlotSel >= slots) {
       // cancelar
       G.scr = 'hernanPickMove';
@@ -6559,7 +6559,7 @@ function uClaudiaChoice() {
     G.claSel = (G.claSel + 1) % 2;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     sfx.sel();
     if (G.claSel === 0) {
       if (G.bagUpgrade) {
@@ -6629,7 +6629,7 @@ function uFabianaCraft() {
     G.craftSel = (G.craftSel + 1) % n;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     const opt = opts[G.craftSel];
     if (!opt || !opt.can) {
       aN(`Necesitas 4 ${opt ? opt.fragLabel : 'fragmentos'}.`);
@@ -6714,8 +6714,8 @@ function uFabianaAnim() {
       }
     }
   } else if (c.phase === 'reveal') {
-    // SPACE para salir (o auto a ~4s total)
-    if (c.tm > 40 && (kp(' ') || kp('Enter') || kp('x') || kp('Escape'))) {
+    // C para salir (o auto a ~4s total)
+    if (c.tm > 40 && (kAction() || kp('x') || kp('Escape'))) {
       finishCraftToCaller();
       sfx.sel();
     }
@@ -6735,7 +6735,7 @@ function uObjects() {
   const VISIBLE = 8;
 
   if (n === 0) {
-    if (kp('x') || kp('Escape') || kp(' ') || kp('Enter')) {
+    if (kp('x') || kp('Escape') || kAction()) {
       G.showObjects = false;
       G.os = null;
       sfx.sel();
@@ -6759,8 +6759,8 @@ function uObjects() {
   if (G.os.s < G.os.scroll) G.os.scroll = G.os.s;
   if (G.os.s >= G.os.scroll + VISIBLE) G.os.scroll = G.os.s - VISIBLE + 1;
 
-  // SPACE: info / activar incienso
-  if (kp(' ') || kp('Enter')) {
+  // C: info / activar incienso
+  if (kAction()) {
     const row = rows[G.os.s];
     if (!row) {
       aN('Mochila vacía.');

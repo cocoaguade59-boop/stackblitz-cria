@@ -6,7 +6,7 @@ import { cx } from '../core/canvas.js';
 import { G } from '../core/game-state.js';
 import { sfx } from '../core/audio.js';
 import { fr } from '../core/frame.js';
-import { kp } from '../core/input.js';
+import { kp, kAction } from '../core/input.js';
 import { Cre } from '../entities/creature.js';
 import { CDB } from '../data/creatures.js';
 import { tCol, tEmo, tNam } from '../data/types.js';
@@ -28,7 +28,7 @@ function uStarter() {
     G.sSel = (G.sSel + 1) % 3;
     sfx.sel();
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     const ids = ['flameye', 'axolotl', 'gorilan'];
     const c = new Cre(ids[G.sSel], 5);
     G.party = [c];
@@ -41,7 +41,7 @@ function uStarter() {
     G.pl.stepTarget = null;
     G.pl.moving = false;
     updateCamera(WC, WR);
-    // Evita que el SPACE usado para confirmar dispare otra acción en el primer frame del mundo.
+    // Evita que la tecla C usada para confirmar dispare otra acción en el primer frame del mundo.
     G.keys[' '] = false;
     G.keys['Enter'] = false;
     G.held[' '] = false;
@@ -65,7 +65,7 @@ function dStarter() {
   cx.fillText('Alessandro te entrega un compañero', 320, 34);
   cx.fillStyle = '#aaa';
   cx.font = '7px "Press Start 2P"';
-  cx.fillText('Solo Fuego, Agua o Planta | SPACE confirmar', 320, 48);
+  cx.fillText('Solo Fuego, Agua o Planta | C confirmar', 320, 48);
 
   const starters = [
     {

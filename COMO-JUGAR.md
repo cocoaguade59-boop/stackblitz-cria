@@ -120,6 +120,12 @@ build falla: nunca se entrega un archivo que no abra.
 Sí, en el `localStorage` del navegador. Cada navegador tiene la suya. Para
 pasarla a otra computadora: menú → **Partida portátil** → exportar/importar.
 
+**¿Qué teclas se usan?**
+`Flechas` mover · **`C` acción** (hablar, confirmar, abrir pines) · `X` menú/volver
+· `Z` correr · `P` pausa.
+ESPACIO y ENTER siguen funcionando como acción (por si ya tenías la costumbre),
+pero el juego te va a pedir `C`.
+
 **¿Funciona en el celular?**
 Sí. En pantallas táctiles aparecen los controles en pantalla (D-pad + A/B).
 

@@ -43,6 +43,7 @@ document.addEventListener('keydown', (e) => {
       'y',
       'p',
       'i',
+      'c',
     ].includes(key)
   ) {
     e.preventDefault();
@@ -56,6 +57,19 @@ document.addEventListener('keyup', (e) => {
   G.held[key] = false;
   G.kcd[key] = false;
 });
+
+// === TECLAS DE ACCIÓN ===
+// La acción (confirmar, hablar, abrir cofres) es C. Antes era ESPACIO/ENTER.
+// Se mantienen como alias para que nadie que ya jugó se quede trabado, pero
+// toda la UI anuncia C.
+const ACTION_KEYS = ['c'];
+const ACTION_ALIASES = ['c', ' ', 'Enter'];
+
+/** ¿Se acaba de presionar la tecla de acción? */
+function kAction() {
+  for (const k of ACTION_ALIASES) if (kp(k)) return true;
+  return false;
+}
 
 function kp(k) {
   k = normKey(k);
@@ -71,4 +85,4 @@ function kh(k) {
   return !!G.keys[k];
 }
 
-export { kp, kh, normKey };
+export { kp, kh, normKey, kAction, ACTION_KEYS, ACTION_ALIASES };

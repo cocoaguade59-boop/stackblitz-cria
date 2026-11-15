@@ -1,7 +1,7 @@
 // Mapa vertical a escala del reino. No intenta comprimir el mundo completo.
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';
-import { kp, kh } from '../core/input.js';
+import { kp, kh, kAction } from '../core/input.js';
 import { fr } from '../core/frame.js';
 import { wMap, WC, WR } from '../core/world-constants.js';
 import { diplomas } from '../core/game-flags.js';
@@ -19,7 +19,7 @@ function centerMapOnPlayer() { return clampScroll(G.pl.y * SCALE - VIEW_H / 2); 
 function openMapScreen() { G.mapScrollY = centerMapOnPlayer(); }
 
 function uMapScreen() {
-  if (kp('x') || kp('Escape') || kp(' ') || kp('Enter')) { G.showMap = false; return; }
+  if (kp('x') || kp('Escape') || kAction()) { G.showMap = false; return; }
   const step = kh('z') ? 10 : 3;
   if (kh('ArrowUp')) G.mapScrollY = clampScroll((G.mapScrollY ?? centerMapOnPlayer()) - step);
   if (kh('ArrowDown')) G.mapScrollY = clampScroll((G.mapScrollY ?? centerMapOnPlayer()) + step);

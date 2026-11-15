@@ -4,7 +4,7 @@
 
 import { G } from '../core/game-state.js';
 import { cx } from '../core/canvas.js';
-import { kp } from '../core/input.js';
+import { kp, kAction } from '../core/input.js';
 import { sfx } from '../core/audio.js';
 import { fr } from '../core/frame.js';
 import { dBoxMenu } from '../render/ui-boxes.js';
@@ -93,7 +93,7 @@ function uShop() {
       s.s = (s.s + 1) % n;
       sfx.sel();
     }
-    if (kp(' ') || kp('Enter')) {
+    if (kAction()) {
       sfx.sel();
       if (s.s === 0) {
         s.page = 'buy';
@@ -133,7 +133,7 @@ function uShop() {
       s.s = (s.s + 1) % items.length;
       sfx.sel();
     }
-    if (kp(' ') || kp('Enter')) {
+    if (kAction()) {
       const it = items[s.s];
       const price = Math.floor(it.base * (1 - disc / 100));
       if (G.gold >= price) {
@@ -161,7 +161,7 @@ function uShop() {
       s.s = (s.s + 1) % rows.length;
       sfx.sel();
     }
-    if (kp(' ') || kp('Enter')) {
+    if (kAction()) {
       const row = rows[s.s];
       if (!row) return;
       if (row.frag <= 0) {
@@ -329,7 +329,7 @@ function dShop() {
 
     cx.fillStyle = '#888';
     cx.font = '6px "Press Start 2P"';
-    cx.fillText('SPACE: fabricar   X: volver', 120, 380);
+    cx.fillText('C: fabricar   X: volver', 120, 380);
     cx.fillStyle = '#666';
     cx.font = '5px "Press Start 2P"';
     cx.fillText('Activá el incienso desde Menú → Objetos.', 120, 400);

@@ -3,6 +3,7 @@
 import { WC, WR, CC, CR, KC, KR, wMap, cave1, cave2, castMap } from '../core/world-constants.js';
 import { isWorldPinAllowed } from './world-layout.js';
 import { applyExpandedWorldPoints } from './expanded-world-runtime.js';
+import { embellecerBosque } from './route-forest.js';
 
 function hPath(r, c1, c2, w = 2) {
   const start = Math.min(c1, c2),
@@ -844,6 +845,10 @@ function genExpandedTerrainC15a2b() {
   buildRoute3C4();
   buildUltimaTomaC5();
   buildRoute4C5();
+
+  // Último paso: los árboles acompañan al camino en vez de estar tirados al
+  // azar. Va acá, cuando pueblos y rutas ya existen, para no tapar nada.
+  embellecerBosque();
 }
 
 function genWorld() {
@@ -1234,7 +1239,7 @@ function genCave(map, cols, rows) {
   }
 
   // === PINES (antes cristales vínculo capturables) ===
-  // Tile 28: pin sólido, se recoge con SPACE. Reaparecen al reentrar.
+  // Tile 28: pin sólido, se recoge con C. Reaparecen al reentrar.
   let cp = 0;
   let attempts = 0;
   while (cp < 5 && attempts < 100) {

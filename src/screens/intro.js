@@ -6,7 +6,7 @@ import { cx } from '../core/canvas.js';
 import { G } from '../core/game-state.js';
 import { sfx } from '../core/audio.js';
 import { fr } from '../core/frame.js';
-import { kp } from '../core/input.js';
+import { kp, kAction } from '../core/input.js';
 import { dNPC } from '../render/npc-sprites.js';
 import { dPlayerGBA } from '../render/player-sprite.js';
 import { dDialogBox, wrapText } from '../render/ui-boxes.js';
@@ -26,7 +26,7 @@ function uIntro() {
   const it = G.intro;
   if (it.phase === 0) {
     it.y += 2.4;
-    if (it.y >= 198 || kp(' ') || kp('Enter')) {
+    if (it.y >= 198 || kAction()) {
       it.y = 198;
       it.phase = 1;
       it.tm = 0;
@@ -39,7 +39,7 @@ function uIntro() {
     it.ci++;
     if (it.ci >= line.length) it.full = true;
   }
-  if (kp(' ') || kp('Enter')) {
+  if (kAction()) {
     if (!it.full) {
       it.ci = line.length;
       it.full = true;
@@ -117,7 +117,7 @@ function dIntro() {
     cx.fillText('Alessandro se acerca para darte la bienvenida...', 36, 420);
     cx.fillStyle = '#888';
     cx.font = '6px "Press Start 2P"';
-    cx.fillText('SPACE: acelerar', 36, 448);
+    cx.fillText('C: acelerar', 36, 448);
     return;
   }
 
