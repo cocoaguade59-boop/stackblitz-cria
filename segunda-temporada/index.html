@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Criaturas del Reino: Segunda Temporada</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="wrap" class="stack">
+    <canvas id="top" width="256" height="192"></canvas>
+    <canvas id="bot" width="256" height="192"></canvas>
+  </div>
+  <div id="pad">
+    <div id="dpad">
+      <button data-b="up" class="up">▲</button>
+      <button data-b="left" class="left">◀</button>
+      <button data-b="right" class="right">▶</button>
+      <button data-b="down" class="down">▼</button>
+    </div>
+    <div id="mid"><button data-b="start" class="sm">MENÚ</button><button data-b="run" class="sm">CORRER</button></div>
+    <div id="ab"><button data-b="b" class="b">B</button><button data-b="a" class="a">A</button></div>
+  </div>
+  <div id="boot">Cargando el Reino…</div>
+  <!-- Scripts clásicos (sin módulos): así el juego abre con doble clic, sin servidor. -->
+  <script src="js/font.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/gfx.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/battle.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/maps.js"></script>
+  <script src="js/story.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

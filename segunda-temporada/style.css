@@ -1,0 +1,39 @@
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; background: #14161f; color: #ddd;
+  font-family: system-ui, sans-serif; overflow: hidden;
+  -webkit-user-select: none; user-select: none; touch-action: manipulation;
+}
+#wrap {
+  position: absolute; left: 50%; top: 0; transform: translateX(-50%);
+  display: flex; gap: 6px; align-items: center; justify-content: center;
+}
+#wrap.stack { flex-direction: column; }
+#wrap.side { flex-direction: row; }
+canvas {
+  image-rendering: pixelated; image-rendering: crisp-edges;
+  background: #000; border-radius: 4px;
+  box-shadow: 0 0 0 3px #2c3040, 0 8px 24px #0008;
+}
+#bot { cursor: pointer; }
+#boot {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 14px; letter-spacing: 1px; color: #9ab;
+}
+#pad { display: none; position: absolute; left: 0; right: 0; bottom: 0; height: 150px; padding: 8px 14px; }
+body.touch #pad { display: flex; justify-content: space-between; align-items: center; }
+#pad button {
+  background: #3a4058; color: #fff; border: 0; border-radius: 10px; font-weight: bold;
+  box-shadow: 0 3px 0 #1c2030; font-size: 16px; touch-action: none;
+}
+#pad button:active, #pad button.on { background: #5a6890; transform: translateY(2px); box-shadow: none; }
+#dpad { position: relative; width: 132px; height: 132px; }
+#dpad button { position: absolute; width: 44px; height: 44px; }
+#dpad .up { left: 44px; top: 0; } #dpad .down { left: 44px; top: 88px; }
+#dpad .left { left: 0; top: 44px; } #dpad .right { left: 88px; top: 44px; }
+#mid { display: flex; flex-direction: column; gap: 10px; }
+#mid .sm { font-size: 11px; padding: 8px 10px; }
+#ab { position: relative; width: 132px; height: 110px; }
+#ab .a, #ab .b { position: absolute; width: 58px; height: 58px; border-radius: 50%; font-size: 20px; }
+#ab .a { right: 0; top: 4px; background: #c84848; box-shadow: 0 3px 0 #702020; }
+#ab .b { left: 0; top: 44px; background: #4868c8; box-shadow: 0 3px 0 #203070; }

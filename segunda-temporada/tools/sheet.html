@@ -1,0 +1,21 @@
+<!DOCTYPE html><html><body style="margin:0;background:#888">
+<div id="wrap"></div><canvas id="top" width="256" height="192" style="display:none"></canvas><canvas id="bot" width="256" height="192" style="display:none"></canvas>
+<div id="pad"></div>
+<canvas id="sheet"></canvas>
+<script src="../js/font.js"></script><script src="../js/core.js"></script><script src="../js/audio.js"></script><script src="../js/data.js"></script><script src="../js/gfx.js"></script>
+<script>
+(async()=>{await loadFont();
+const mode=location.hash.slice(1)||'mons';
+const S=document.getElementById('sheet'),x=S.getContext('2d');x.imageSmoothingEnabled=false;
+if(mode==='mons'){const ids=DEX_ORDER;const cols=8;S.width=cols*84*3;S.height=Math.ceil(ids.length/cols)*80*3;x.scale(3,3);
+x.fillStyle='#d8e8d0';x.fillRect(0,0,S.width,S.height);
+ids.forEach((id,i)=>{const cx=(i%cols)*84,cy=Math.floor(i/cols)*80;x.drawImage(creatureSprite(id),cx-6,cy-12);;txt(x,SPECIES[id].n.slice(0,8),cx+2,cy+68,'#000',null);});}
+if(mode==='people'){const ks=Object.keys(LOOKS);S.width=ks.length*20*4;S.height=4*24*4+40;x.scale(4,4);x.fillStyle='#78c858';x.fillRect(0,0,S.width,S.height);
+ks.forEach((k,i)=>{for(let d=0;d<4;d++)x.drawImage(personSprite(k,d,d==0?0:1),i*20,d*24);});}
+if(mode==='tiles'){const ts=['grass','tall','flower','path','sand','quarry','plaza','water','tree','pine','fence','rock','ledge','sign','bridge','cave','cwall','lava','boulder','crystal','kfloor','kwall','carpet','pillar','ldoor','floor','tilefloor','iwall','iwall2','mat','bed','table','pot','shelf','counter','pc','heal','stage','curtain','seat','stairs'];
+S.width=12*18*4;S.height=4*18*4+300*2;x.scale(2,2);x.fillStyle='#222';x.fillRect(0,0,S.width,S.height);
+ts.forEach((t,i)=>x.drawImage(tileCanvas(t,i),(i%12)*18*2,Math.floor(i/12)*18*2,32,32));
+let bx=0;for(const b of [{kind:'house',w:5,h:4},{kind:'house',w:5,h:4,roof:'#48a058',broken:true},{kind:'proa',w:7,h:4},{kind:'studio',w:7,h:5},{kind:'theater',w:9,h:5},{kind:'tower',w:5,h:7},{kind:'castle',w:11,h:7}]){const c=buildingCanvas(b);x.drawImage(c,bx,150);bx+=c.width+4;}
+x.drawImage(battleBg('grass'),0,300);x.drawImage(battleBg('cave'),260,300);x.drawImage(battleBg('castle'),520,300);}
+document.title='ok';})();
+</script></body></html>
