@@ -1,5 +1,8 @@
 # Criaturas del Reino
 
+> **Nuevo:** [`segunda-temporada/`](segunda-temporada/) — *Criaturas del Reino: Segunda Temporada*,
+> un RPG nuevo estilo DS (dos pantallas). Doble clic en `segunda-temporada/index.html` para jugar.
+
 RPG de exploración y combate por turnos en HTML Canvas, construido con JavaScript ES Modules y Vite.
 
 ## Jugar (sin instalar nada)

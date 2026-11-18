@@ -319,7 +319,7 @@ class World {
     txt(ctx, 'OBJETIVO', 10, 57, COL.gold, '#000');
     wrapText(currentObjective(), 29).slice(0, 2).forEach((l, i) => txt(ctx, l, 10, 67 + i * 10, '#e8ecf8', '#000'));
     this.menuButtons().forEach((b, i) => pill(ctx, b.x, b.y, b.w, b.h, b.c, b.l, { sel: this.menuOpen && i === this.menuSel }));
-    if (!this.menuOpen) { ctx.fillStyle = '#00000060'; ctx.fillRect(0, 90, W, 102); txt(ctx, IS_TOUCH ? 'Tocá un botón o MENÚ' : 'ENTER:menú Z:hablar X:correr', 128, 180, '#c8d0e8', '#000', 'center'); }
+    if (!this.menuOpen) { ctx.fillStyle = '#00000048'; ctx.fillRect(0, 90, W, 102); }
   }
 }
 let WORLD = null;

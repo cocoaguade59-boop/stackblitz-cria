@@ -146,7 +146,7 @@ registerMap('ruta1', {
     { id: 'r1b', look: 'chica', name: 'Rebata Lula', x: 4, y: 12, dir: 'right', trainer: { id: 'r1b', sight: 4, team: [['hedroca', 5], ['pinguieson', 5]], money: 200, intro: '¡Los Rebata venimos a hacer ruido! ¡Y a pelear! ¡Y a hacer ruido peleando!', lose: '¡Bueno! ¡Igual hicimos ruido!', after: 'Shhh. Bueno, no: ¡HOLA!' } },
     { id: 'r1c', look: 'kid2', name: 'Peque Mora', x: 15, y: 5, dir: 'down', text: 'Para atrapar una criatura, primero bajale la vida. Si la dormís o paralizás, ¡mejor todavía! Me lo dijo mi mamá. Ella atrapó a mi papá así. Creo que era una metáfora.' },
   ],
-  finds: [{ x: 1, y: 22, item: 'cristal', n: 2 }, { x: 16, y: 2, item: 'cafe' }, { x: 3, y: 27, item: 'fragmento', hidden: true }, { x: 15, y: 21, item: 'fragmento', hidden: true }],
+  finds: [{ x: 1, y: 22, item: 'cristal', n: 2 }, { x: 16, y: 2, item: 'cafe' }, { x: 4, y: 27, item: 'fragmento', hidden: true }, { x: 15, y: 21, item: 'fragmento', hidden: true }],
 });
 
 // =====================================================================
@@ -304,7 +304,7 @@ registerMap('rodaje', {
     { id: 'gate2', look: 'obrero', name: 'Capataz', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_docu'), text: 'La Cueva Volcánica está al norte, pero sin el diploma Documental no pasa nadie. Ahí adentro hace un calor que te derrite las convicciones.' },
     { id: 'dante', look: 'dante', name: 'Dante', x: 14, y: 6, dir: 'down', talk: () => S.dante(), trainer: null },
     { id: 'gonchi', look: 'obrero', name: 'Gonchi', x: 9, y: 15, dir: 'right', talk: () => S.gonchi() },
-    { id: 'rd1', look: 'punk', name: 'Rocco', x: 20, y: 10, move: 'turn', text: 'Luchito anota todos los combates en un cuaderno. Dice que el amor lo es todo. Yo le pregunté "¿y la defensa?". Me miró feo.' },
+    { id: 'rd1', look: 'punk', name: 'Rocco', x: 19, y: 11, move: 'turn', text: 'Luchito anota todos los combates en un cuaderno. Dice que el amor lo es todo. Yo le pregunté "¿y la defensa?". Me miró feo.' },
   ],
   finds: [{ x: 22, y: 2, item: 'cristal', n: 2 }, { x: 1, y: 17, item: 'fragmento', hidden: true }, { x: 22, y: 17, item: 'fragoro', hidden: true }],
 });
@@ -362,7 +362,7 @@ registerMap('cueva', {
     { id: 'cv2', look: 'punk', name: 'Rebata Toto', x: 16, y: 16, dir: 'left', trainer: { id: 'cv2', sight: 4, team: [['salamandro', 17], ['doblecan', 18], ['claquetin', 17]], money: 540, intro: '¡¿QUÉ HACÉS EN MI CUEVA?! Bueno, no es mía. ¡¿QUÉ HACÉS EN LA CUEVA?!', lose: '¡PERDÍ! (se escucha el eco: perdí, perdí, perdí...)', after: 'El eco me hace sentir acompañado.' } },
     { id: 'cv3', look: 'obrero', name: 'Minero Paco', x: 3, y: 14, dir: 'right', text: 'Dicen que en esta cueva vive un dragoncito que muerde todo. Si lo encontrás, cuidá tus calcetines. Los Duendecillos ya se llevaron uno de cada par.' },
   ],
-  finds: [{ x: 21, y: 2, item: 'guion' }, { x: 1, y: 13, item: 'cafedoble' }, { x: 3, y: 18, item: 'fragoro', hidden: true }, { x: 21, y: 15, item: 'cristal', n: 3 }, { x: 14, y: 18, item: 'fragmento', hidden: true }],
+  finds: [{ x: 21, y: 2, item: 'guion' }, { x: 2, y: 13, item: 'cafedoble' }, { x: 4, y: 18, item: 'fragoro', hidden: true }, { x: 21, y: 15, item: 'cristal', n: 3 }, { x: 14, y: 18, item: 'fragmento', hidden: true }],
 });
 
 // =====================================================================
@@ -405,7 +405,7 @@ registerMap('feria', {
     { id: 'pachi', look: 'pachi', name: 'Pachi', x: 20, y: 9, dir: 'down', talk: () => S.pachiOut() },
     { id: 'andre_f', look: 'andre', name: 'André', x: 21, y: 9, dir: 'down', cond: POST, talk: () => S.andrePost() },
     { id: 'ft1', look: 'cocinero', name: 'Puestero', x: 13, y: 11, dir: 'left', text: '¡Choripán de utilería! No, mentira, es de verdad. ¿Querés? No te puedo vender, no tengo licencia. Pero olelo.' },
-    { id: 'ft2', look: 'dama', name: 'Romina', x: 7, y: 15, move: 'wander', text: 'Andrea quiere ser profe. Ya lo es, pero quiere que le digan "profe" en la calle. Decíselo y te sonríe.' },
+    { id: 'ft2', look: 'dama', name: 'Romina', x: 9, y: 15, move: 'wander', text: 'Andrea quiere ser profe. Ya lo es, pero quiere que le digan "profe" en la calle. Decíselo y te sonríe.' },
     { id: 'ft3', look: 'kid', name: 'Benja', x: 20, y: 17, move: 'wander', text: '¡Pachi hace funciones de combate en el teatro! Peleás contra versiones de actuación de gente famosa. ¡Y no perdés nada si perdés!' },
   ],
   finds: [{ x: 22, y: 2, item: 'cristalest' }, { x: 1, y: 13, item: 'fragmento', hidden: true }],
@@ -586,7 +586,7 @@ registerMap('ruta5', {
   enc: { grass: [['wyvernito', 30, 34, 14], ['boomguru', 31, 35, 16], ['espinardo', 31, 35, 16], ['tripodin', 31, 34, 14], ['dobleriesgo', 32, 35, 12], ['hedroble', 31, 34, 12], ['serafox', 33, 36, 4], ['flamigaro', 31, 34, 12]] },
   npcs: [
     { id: 'r5a', look: 'vieja', name: 'Veterana CTM Rosa', x: 12, y: 20, dir: 'left', trainer: { id: 'r5a', sight: 4, team: [['glaciolote', 33], ['alquimero', 33]], money: 1100, intro: 'Los CTM somos veteranos. Hicimos esto antes de que vos nacieras. Bueno, no tanto. Pero casi.', lose: 'Bien, bien. Tenés oficio.', after: 'La experiencia no se compra. Se pierde peleando, como ahora.' } },
-    { id: 'r5b', look: 'actor', name: 'Outsider ???', x: 3, y: 12, dir: 'right', trainer: { id: 'r5b', sight: 4, team: [['duendecillo', 33], ['tripodin', 34], ['serafox', 33]], money: 1200, intro: '...No conozco a nadie. Nadie me conoce. Peleemos sin presentarnos.', lose: '...Igual no me presento.', after: 'Los Outsiders no tenemos conexión con nadie. Es tranquilo. A veces, demasiado.' } },
+    { id: 'r5b', look: 'actor', name: 'Outsider ???', x: 4, y: 12, dir: 'right', trainer: { id: 'r5b', sight: 4, team: [['duendecillo', 33], ['tripodin', 34], ['serafox', 33]], money: 1200, intro: '...No conozco a nadie. Nadie me conoce. Peleemos sin presentarnos.', lose: '...Igual no me presento.', after: 'Los Outsiders no tenemos conexión con nadie. Es tranquilo. A veces, demasiado.' } },
     { id: 'r5c', look: 'punk', name: 'Monas Fan Club', x: 13, y: 4, dir: 'left', trainer: { id: 'r5c', sight: 3, team: [['zumbaccino', 34], ['medubass', 34], ['lucilente', 35]], money: 1250, intro: '¡Las Monas son inseparables y de alta fidelidad! Yo soy su fan número uno. Y dos. Y tres.', lose: 'Las Monas me van a consolar. En mi imaginación.', after: 'Algún día voy a formar mi propio grupo inseparable. Ya tengo el nombre. Me falta la gente.' } },
     { id: 'gab3', look: 'gabriela', name: 'Gabriela', x: 7, y: 8, dir: 'down', cond: () => !flag('tr_gab3'), talk: () => S.gabriela3() },
   ],
