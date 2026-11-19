@@ -257,21 +257,27 @@ class World {
     const outside = !m.inside && m.kind !== 'cave';
     ctx.fillStyle = m.inside ? '#101018' : m.kind === 'cave' ? '#201810' : '#2c6a30'; ctx.fillRect(0, 0, W, H);
     const x0 = Math.floor(cx / TS) - 1, y0 = Math.floor(cy / TS) - 1;
-    for (let y = y0; y <= y0 + 13; y++) for (let x = x0; x <= x0 + 17; x++) {
+    const items = [];
+    for (let y = y0; y <= y0 + 14; y++) for (let x = x0; x <= x0 + 17; x++) {
       let c = this.ch(x, y);
       if (c == null) { if (m.inside || m.kind === 'cave') continue; c = m.border || 'T'; }
       const L = LEGEND[c] || ['grass'];
-      const frame = L[0] === 'water' || L[0] === 'lava' ? fr4 : L[0] === 'flower' || L[0] === 'pc' || L[0] === 'heal' ? fr : 0;
-      ctx.drawImage(tileCanvas(L[0], ((x * 7 + y * 13) & 7), frame), x * TS - cx, y * TS - cy);
+      const frame = L[0] === 'water' || L[0] === 'lava' ? fr4 : L[0] === 'flower' || L[0] === 'pc' || L[0] === 'heal' || L[0] === 'tall' ? fr : 0;
+      const sx = x * TS - cx, sy = y * TS - cy;
+      ctx.drawImage(tileCanvas(L[0], ((x * 7 + y * 13) & 7), frame), sx, sy);
+      if (EDGE_GROUP[c]) drawEdges(ctx, c, [this.ch(x, y - 1), this.ch(x, y + 1), this.ch(x - 1, y), this.ch(x + 1, y)], sx, sy, fr);
+      if (L[0] === 'tree' || L[0] === 'pine') { const v = (x * 5 + y * 3) & 7, kind = L[0]; items.push({ y: (y + 1) * TS - 0.5, draw: () => ctx.drawImage(treeSprite(kind, v), sx - 2, sy - 14) }); }
     }
+    // sombras proyectadas de los edificios
+    ctx.fillStyle = '#00000030';
+    for (const b of m.buildings) if (!b.cond || b.cond()) { const bx = b.x * TS - cx, by = b.y * TS - cy; ctx.fillRect(bx + b.w * TS, by + 10, 4, b.h * TS - 8); ctx.fillRect(bx + 4, by + b.h * TS, b.w * TS, 3); }
     // hallazgos visibles + brillos de los ocultos
     for (const f of this.finds()) {
       const sx = f.x * TS - cx, sy = f.y * TS - cy;
       if (!f.hidden) { ctx.fillStyle = '#00000040'; ctx.fillRect(sx + 3, sy + 12, 10, 3); drawSpriteScaled(ctx, itemIcon('cristal'), sx, sy - 2 + ((this.anim >> 4) & 1), 1); }
       else if ((this.anim + f.x * 13) % 90 < 8) { ctx.fillStyle = '#fff'; ctx.fillRect(sx + 7, sy + 4, 2, 8); ctx.fillRect(sx + 4, sy + 7, 8, 2); }
     }
-    // edificios + entidades ordenados por profundidad
-    const items = [];
+    // edificios + árboles + entidades ordenados por profundidad
     for (const b of m.buildings) if (!b.cond || b.cond()) items.push({ y: (b.y + b.h) * TS, draw: () => { const cv = buildingCanvas({ ...b, broken: typeof b.broken === 'function' ? b.broken() : b.broken }); ctx.drawImage(cv, b.x * TS - cx, (b.y + b.h) * TS - cv.height - cy); } });
     for (const e of this.ents.concat([this.player])) items.push({ y: e.y * TS + e.oy + 1 + (e.isPlayer ? 0.5 : 0), draw: () => this.drawEnt(ctx, e, cx, cy) });
     items.sort((a, b) => a.y - b.y).forEach((i) => i.draw());
@@ -288,13 +294,13 @@ class World {
     const sx = e.x * TS + e.ox - cx, sy = e.y * TS + e.oy - cy + (e.jumpY || 0);
     const di = DIRS[e.dir][2];
     const step = e.moving ? (e.prog < 8 || e.jump ? e.step : 0) : 0;
-    ctx.fillStyle = '#00000038'; ctx.fillRect(sx + 3, e.y * TS + e.oy - cy + 13, 10, 3);
+    ctx.fillStyle = '#00000038'; ctx.beginPath(); ctx.ellipse(sx + 8, e.y * TS + e.oy - cy + 14, 6, 2.5, 0, 0, Math.PI * 2); ctx.fill();
     const look = e.isPlayer ? G.look : e.look;
     if (e.def && e.def.mon) { const b = (this.anim >> 4) & 1; ctx.drawImage(creatureIcon(e.def.mon), sx - 8, sy - 18 - b); }
     else ctx.drawImage(personSprite(look, di, step), sx, sy - 7);
     // pasto alto tapa los pies
     const c = this.ch(Math.round((e.x * TS + e.ox) / TS), Math.round((e.y * TS + e.oy) / TS));
-    if (c === ',' && !e.jump) { const t = tileCanvas('tall', 0, 0); ctx.drawImage(t, 0, 9, 16, 7, sx, sy + 9, 16, 7); }
+    if (c === ',' && !e.jump) { const t = tileCanvas('tall', 0, (this.anim >> 5) & 1); ctx.drawImage(t, 0, 9, 16, 7, sx, sy + 9, 16, 7); }
     if (e.bubble > 0) { e.bubble--; box(ctx, sx + 2, sy - 22, 12, 14, '#fff', '#c03030', '#f8f8f8'); ctx.fillStyle = '#e03030'; ctx.fillRect(sx + 7, sy - 19, 2, 5); ctx.fillRect(sx + 7, sy - 12, 2, 2); }
     if (e.def && e.def.mark && e.def.mark()) { const o = (this.anim >> 3) & 1; ctx.fillStyle = '#f8d040'; ctx.fillRect(sx + 6, sy - 16 - o, 4, 6); ctx.fillRect(sx + 6, sy - 9 - o, 4, 2); }
   }

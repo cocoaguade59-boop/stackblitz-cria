@@ -61,6 +61,8 @@ class Battle {
     ctx.drawImage(battleBg(this.bg), 0, 0);
     platform(ctx, 190 + this.fx.foe.dx * 0, 96, 50, 11, this.bg);
     platform(ctx, 70, 152, 66, 13, this.bg);
+    ctx.fillStyle = '#00000038';
+    if (!this.showTrainer && !this.fx.foe.hide) { ctx.beginPath(); ctx.ellipse(190 + this.fx.foe.dx, 95, 26 * this.fx.foe.sc, 5 * this.fx.foe.sc, 0, 0, Math.PI * 2); ctx.fill(); }
     const bob = (FRAME >> 4) & 1;
     // rival
     if (this.showTrainer) {
@@ -86,8 +88,8 @@ class Battle {
     ctx.restore();
     if (this.flash) { ctx.fillStyle = `rgba(255,255,255,${this.flash / 10})`; ctx.fillRect(0, 0, W, H); }
     // cajas de PS
-    if (!this.showTrainer && this.foe && this.fx.foe.dx < 100) this.hpBox(ctx, this.foe, 'foe', 4, 8);
-    if (this.me && this.fx.me.dx > -100) this.hpBox(ctx, this.me, 'me', 130, 100);
+    if (!this.showTrainer && this.foe && this.fx.foe.dx < 100) this.hpBox(ctx, this.foe, 'foe', 0, 10);
+    if (this.me && this.fx.me.dx > -100) this.hpBox(ctx, this.me, 'me', 0, 96);
     if (this.mode === 'cmd' || this.mode === 'moves') {
       box(ctx, TB.x, TB.y, TB.w, TB.h);
       txt(ctx, '¿Qué hará ' + this.me.name + '?', TB.x + 9, TB.y + 8);
@@ -95,22 +97,32 @@ class Battle {
     }
   }
   hpBox(ctx, m, side, x, y) {
-    const w = 122, h = side === 'me' ? 36 : 28;
-    ctx.fillStyle = '#283040'; ctx.fillRect(x, y, w, h); ctx.fillStyle = '#f8f8f0'; ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
-    ctx.fillStyle = TYPES[m.type].c; ctx.fillRect(x + 1, y + 1, 3, h - 2);
-    txt(ctx, m.name.slice(0, 10), x + 7, y + 4);
-    txt(ctx, 'Nv' + m.lv, x + w - 4, y + 4, COL.ink, COL.inkSh, 'right');
+    // placa estilo BW: oscura, con corte en diagonal hacia el centro de la pantalla
+    const me = side === 'me', w = 142, h = me ? 38 : 30;
+    const x0 = me ? W - w : 0, y0 = y;
+    const slant = 10;
+    const path = () => { ctx.beginPath(); if (me) { ctx.moveTo(x0 + slant, y0); ctx.lineTo(W, y0); ctx.lineTo(W, y0 + h); ctx.lineTo(x0, y0 + h); } else { ctx.moveTo(0, y0); ctx.lineTo(x0 + w, y0); ctx.lineTo(x0 + w - slant, y0 + h); ctx.lineTo(0, y0 + h); } ctx.closePath(); };
+    ctx.save(); ctx.translate(0, 2); ctx.fillStyle = '#00000050'; path(); ctx.fill(); ctx.restore();
+    const g = ctx.createLinearGradient(0, y0, 0, y0 + h); g.addColorStop(0, '#4a5878'); g.addColorStop(0.5, '#2c3650'); g.addColorStop(1, '#1e2638');
+    ctx.fillStyle = g; path(); ctx.fill();
+    ctx.strokeStyle = '#8898c0'; ctx.lineWidth = 1; ctx.save(); ctx.translate(0.5, 0.5); path(); ctx.stroke(); ctx.restore();
+    ctx.fillStyle = TYPES[m.type].c; ctx.fillRect(me ? x0 + slant + 2 : 2, y0 + 3, 3, 9);
+    const tx = me ? x0 + slant + 8 : 8;
+    const lvS = 'Nv' + m.lv, maxC = Math.floor((w - slant - 14 - txtW(lvS) - 4) / 8);
+    txt(ctx, m.name.slice(0, maxC), tx, y0 + 4, '#ffffff', '#101420');
+    txt(ctx, 'Nv' + m.lv, (me ? W : x0 + w - slant) - 4, y0 + 4, '#f8e8a0', '#101420', 'right');
     const shown = (this.hpShow[side] += (m.hp - this.hpShow[side]) * 0.12);
     if (Math.abs(shown - m.hp) < 0.5) this.hpShow[side] = m.hp;
-    txt(ctx, 'PS', x + 7, y + 16, '#e8a030', null);
-    hpBar(ctx, x + 26, y + 17, 76, clamp(this.hpShow[side] / m.maxhp, 0, 1));
-    statusBadge(ctx, m.status, x + w - 32, y + 15 + (side === 'me' ? 0 : 0) - 1);
-    if (side === 'me') {
-      txt(ctx, Math.round(this.hpShow.me) + '/' + m.maxhp, x + 26, y + 25, COL.ink, null);
+    const bx = tx + 18, by = y0 + 17, bw = 92;
+    txt(ctx, 'PS', tx, by - 2, '#f8c040', '#101420');
+    hpBar(ctx, bx, by, bw, clamp(this.hpShow[side] / m.maxhp, 0, 1));
+    if (me) statusBadge(ctx, m.status, x0 + slant + 6, y0 + 25); else if (m.status) statusBadge(ctx, m.status, x0 + w - 34, y0 + h + 2);
+    if (me) {
+      txt(ctx, Math.round(this.hpShow.me) + '/' + m.maxhp, W - 6, y0 + 25, '#ffffff', '#101420', 'right');
       const need = xpFor(m.lv + 1) - xpFor(m.lv);
       this.xpShow += (m.xp - this.xpShow) * 0.1;
       const fr = clamp((this.xpShow - xpFor(m.lv)) / need, 0, 1);
-      ctx.fillStyle = '#303040'; ctx.fillRect(x + 4, y + h - 4, w - 8, 3); ctx.fillStyle = '#48b0f0'; ctx.fillRect(x + 5, y + h - 3, Math.round((w - 10) * fr), 1);
+      ctx.fillStyle = '#101420'; ctx.fillRect(x0 + 6, y0 + h - 4, w - 10, 3); ctx.fillStyle = '#58c0ff'; ctx.fillRect(x0 + 7, y0 + h - 3, Math.round((w - 12) * fr), 1);
     }
   }
   drawBot(ctx) {
