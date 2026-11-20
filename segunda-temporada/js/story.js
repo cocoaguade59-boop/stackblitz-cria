@@ -449,6 +449,40 @@ const S = {
       WORLD.refreshNpcs();
     }
   },
+  // ---------- PRADOS MONTAJE: la gente de los prados y los colonos ----------
+  async alejandro() {
+    if (POST() && flag('tr_alejandro')) return say(['¡Mi hermano y yo juntos! ¡Somos imparables!', '¡Vení cuando quieras! La olla siempre tiene lugar para uno más.'], 'Alejandro');
+    if (!flag('metAlej')) {
+      setFlag('metAlej');
+      await say(['¡Hermanito! ¡Un abrazo! Sí, a vos. Acá abrazamos primero y preguntamos el nombre después.',
+        'Soy Alejandro. Mi gente vive en estos prados desde mucho antes de que alguien dibujara un mapa. Sembramos maíz, frijol y zapallo juntos, porque se cuidan entre sí.',
+        'Cuando llegaron los colonos de casaca roja, no sabían ni dónde quedaba el norte. Les enseñamos a sembrar. Ellos nos enseñaron a tocar el tambor. Bueno... lo intentan.',
+        'No fue fácil al principio. Pero acá elegimos escucharnos. Y ahora compartimos el fuego, la cosecha y los chismes de Dan.'], 'Alejandro');
+    }
+    if (!flag('tr_alejandro')) {
+      await say('¿Querés pelear? ¡Vamos! Y escuchá bien: ¡no te rindas NUNCA!', 'Alejandro');
+      if ((await ask('¿Combatís con Alejandro?', ['¡Vamos!', 'Ahora no'])) !== 0) return say('Cuando quieras. Acá voy a estar, con los brazos abiertos.', 'Alejandro');
+      const won = await trainerBattle({ def: { trainer: { id: 'alejandro', name: 'Alejandro', team: [['zumbaccino', 31], ['crisalmanza', 31], ['hedroble', 32]], money: 1600, intro: '¡Hermanito! ¡A pelear!', lose: '¡Qué buen combate! Perder así también es ganar algo.' } }, look: 'alejandro' });
+      if (won) await giveItem('cafedoble', 2);
+      return;
+    }
+    await say(pick([['Mi hermano Nahuel anda por el sur, en la Feria. Si lo ves, decile que lo espero con un abrazo de esos que crujen.'], ['El fuego del medio del pueblo es de todos. Ahí se cuentan las historias. Las de mi abuela, las de los colonos y las de Dan, que siempre exagera.'], ['¿Ves el maizal? Lo sembramos juntos el año pasado. Los colonos querían plantarlo en filas rectas. El maíz no sabe de filas. El maíz sabe de compañía.']]), 'Alejandro');
+  },
+  async nahuel() {
+    if (!flag('tr_nahuel')) {
+      await say(['¡Oye! ¿Querés trabajo? ...Es broma, no tengo.', '¿O sí? No, no tengo. ¿Peleamos, mejor?'], 'Nahuel');
+      if ((await ask('¿Combatís con Nahuel?', ['Sí', 'No'])) === 0) return trainerBattle({ def: { trainer: { id: 'nahuel', name: 'Nahuel', team: [['alquimero', 24], ['flamigaro', 24]], money: 900, intro: '¡Las piernas libres pelean mejor! ¡Vamos!', lose: 'Perdí, pero con estilo. Y con las piernas al sol.' } }, look: 'nahuel' });
+      return;
+    }
+    await say(pick([['Mi hermano Alejandro está mucho más al norte, en los Prados Montaje.', 'Tiene el pelo largo. No falla.'], ['¿Por qué uso shorts?', 'Porque las piernas también merecen ver el sol.'], ['Voy a ir a ver a mi hermano cuando termine de recorrer la Feria. O sea, nunca. Hay demasiada comida.']]), 'Nahuel');
+  },
+  async nahuelPost() { await say(['¡Al final vine! Mi hermano me abrazó tan fuerte que me sonaron tres vértebras.', 'Valió cada una.'], 'Nahuel'); },
+  async tomas() {
+    await say(pick([['Cuando llegamos no sabíamos ni sembrar maíz. La gente de los prados nos enseñó, con paciencia.', 'Ahora yo les enseño a tocar el tambor. Mal, pero con ganas.'], ['La casaca roja da calor en verano. Nina me hizo un sombrero de fibras. No es reglamentario. Es mucho mejor.'], ['Mi capitán es Dan. Bueno, capitán... Dirige el pueblo, la banda y los chismes. Más que nada los chismes.']]), 'Cabo Tomás');
+  },
+  async nina() {
+    await say(pick([['Los de casaca roja hablan raro y comen raro.', 'Pero el invierno de la gran helada compartieron su pan con nosotros. Y nosotros nuestra leña. Así se arman las familias.'], ['Acá nadie es de afuera: o sembrás, o cocinás, o contás historias junto al fuego. Yo hago las tres.'], ['Tomás toca el tambor todas las mañanas. Le dije que suena como un Rollín cayéndose por la escalera. Se puso contento. No entendió.']]), 'Nina');
+  },
   // ---------- CASTILLO ----------
   async andreCastle() {
     if (flag('tr_andre')) return say(['Decile a Pachi... que ya casi. Que guarde mi lugar.', 'Y que no se coma mi pizza.'], 'André');

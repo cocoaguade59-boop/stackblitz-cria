@@ -10,6 +10,7 @@ const LEGEND = {
   'c': ['cave', 0, 'cave'], 'W': ['cwall', 1], 'l': ['lava', 1], 'o': ['boulder', 1], 'x': ['crystal', 1],
   'k': ['kfloor'], 'K': ['kwall', 1], 'R': ['carpet'], 'P': ['pillar', 1], 'D': ['ldoor', 1, 'lock'],
   'n': ['floor'], 'w': ['iwall', 1], 'i': ['iwall2', 1], 'm': ['mat', 0, 'exit'], 'b': ['bed', 1], 't': ['table', 1], 'p': ['pot', 1], 'h': ['shelf', 1],
+  'A': ['hay', 1], 'O': ['well', 1], 'B': ['barrel', 1], 'E': ['runestone', 1], 'J': ['fire', 1], 'N': ['corn', 1], 'u': ['incawall_o', 1], 'g': ['sunstela', 1],
   'C': ['counter', 1, 'counter'], 'Q': ['pc', 1, 'pc'], 'H': ['heal', 1], 'z': ['stage'], 'Z': ['curtain', 1], 's': ['seat', 1], 'e': ['tilefloor'], '^': ['stairs', 0, 'stairs'], ' ': ['void', 1],
 };
 const DIRS = { down: [0, 1, 0], up: [0, -1, 1], left: [-1, 0, 2], right: [1, 0, 3] };
@@ -26,7 +27,7 @@ function registerMap(id, m) {
 function linkInteriors() {
   for (const m of Object.values(MAPS)) for (const b of m.buildings) {
     b.door = { x: b.x + Math.floor(b.w / 2), y: b.y + b.h - 1 };
-    if (b.to && MAPS[b.to]) MAPS[b.to].out = { map: m.id, x: b.door.x, y: b.door.y + 1 };
+    if (b.to && MAPS[b.to]) { MAPS[b.to].out = { map: m.id, x: b.door.x, y: b.door.y + 1 }; if (!MAPS[b.to].theme) MAPS[b.to].theme = m.theme; }
   }
 }
 
@@ -39,6 +40,7 @@ class World {
   constructor() { this.opaque = true; this.lock = 0; this.menuOpen = false; this.menuSel = 0; this.ents = []; this.player = null; this.map = null; this.camX = 0; this.camY = 0; this.anim = 0; this.stepToggle = 0; }
   // ---------- carga ----------
   load(id, x, y, dir) {
+    this.releaseEnts();
     const m = MAPS[id]; this.map = m;
     G.pos = { map: id, x, y, dir };
     this.player = new Ent({ x, y, dir, look: G.look }); this.player.isPlayer = true;
@@ -75,6 +77,9 @@ class World {
     this.stepEnt(this.player);
     if (this.player.moving) return this.snapCam();
     this.snapCam();
+    const idle = this.lock > 0 && Scenes.top() === this && !Timers.length && !this.ents.some((e) => e.moving) && Fade.a < 0.01;
+    this.stuck = idle ? (this.stuck || 0) + 1 : 0;
+    if (this.stuck > 240) { console.warn('Mundo destrabado (lock=' + this.lock + ')'); this.lock = 0; this.stuck = 0; }
     if (this.lock || Scenes.top() !== this) return;
     // menú en pantalla inferior
     if (this.menuOpen) return this.updateMenu();
@@ -99,8 +104,12 @@ class World {
     if (e.jump) e.jumpY = -Math.sin((e.prog / dist) * Math.PI) * 10;
   }
   beginMove(e, dir, speed, jump = false) {
+    // si ya se estaba moviendo, se cierra el paso anterior para que ningún guion quede esperando
+    if (e.moving && e.onArrive) { const f = e.onArrive; e.onArrive = null; e.x += DIRS[e.dir][0] * (e.jump ? 2 : 1); e.y += DIRS[e.dir][1] * (e.jump ? 2 : 1); e.ox = e.oy = 0; e.moving = 0; e.jump = 0; f(); }
     return new Promise((res) => { e.dir = dir; e.moving = 1; e.prog = 0; e.speed = speed; e.jump = jump; e.step = (e.step % 2) + 1; e.onArrive = res; });
   }
+  // al cambiar de mapa, las entidades viejas sueltan sus esperas
+  releaseEnts() { for (const e of this.ents.concat(this.player ? [this.player] : [])) if (e.onArrive) { const f = e.onArrive; e.onArrive = null; e.moving = 0; f(); } }
   async tryMove(d, run) {
     const p = this.player; p.dir = d;
     const [dx, dy] = DIRS[d], nx = p.x + dx, ny = p.y + dy;
@@ -235,7 +244,8 @@ class World {
   }
   async menuAction(k) {
     sfx('select');
-    if (k === 'close') { this.menuOpen = false; return; }
+    this.menuOpen = false;
+    if (k === 'close') return;
     this.lock++;
     try {
       if (k === 'party') await partyMenu('view');
@@ -262,9 +272,10 @@ class World {
       let c = this.ch(x, y);
       if (c == null) { if (m.inside || m.kind === 'cave') continue; c = m.border || 'T'; }
       const L = LEGEND[c] || ['grass'];
-      const frame = L[0] === 'water' || L[0] === 'lava' ? fr4 : L[0] === 'flower' || L[0] === 'pc' || L[0] === 'heal' || L[0] === 'tall' ? fr : 0;
+      const frame = L[0] === 'water' || L[0] === 'lava' ? fr4 : L[0] === 'flower' || L[0] === 'pc' || L[0] === 'heal' || L[0] === 'tall' || L[0] === 'fire' ? fr : 0;
       const sx = x * TS - cx, sy = y * TS - cy;
-      ctx.drawImage(tileCanvas(L[0], ((x * 7 + y * 13) & 7), frame), sx, sy);
+      if (DECOR_TILES.has(L[0])) ctx.drawImage(tileCanvas(m.ground || 'grass', ((x * 7 + y * 13) & 7), 0), sx, sy);
+      ctx.drawImage(themeTileCanvas(themedTile(L[0], m.theme), ((x * 7 + y * 13) & 7), frame), sx, sy);
       if (EDGE_GROUP[c]) drawEdges(ctx, c, [this.ch(x, y - 1), this.ch(x, y + 1), this.ch(x - 1, y), this.ch(x + 1, y)], sx, sy, fr);
       if (L[0] === 'tree' || L[0] === 'pine') { const v = (x * 5 + y * 3) & 7, kind = L[0]; items.push({ y: (y + 1) * TS - 0.5, draw: () => ctx.drawImage(treeSprite(kind, v), sx - 2, sy - 14) }); }
     }
@@ -278,7 +289,7 @@ class World {
       else if ((this.anim + f.x * 13) % 90 < 8) { ctx.fillStyle = '#fff'; ctx.fillRect(sx + 7, sy + 4, 2, 8); ctx.fillRect(sx + 4, sy + 7, 8, 2); }
     }
     // edificios + árboles + entidades ordenados por profundidad
-    for (const b of m.buildings) if (!b.cond || b.cond()) items.push({ y: (b.y + b.h) * TS, draw: () => { const cv = buildingCanvas({ ...b, broken: typeof b.broken === 'function' ? b.broken() : b.broken }); ctx.drawImage(cv, b.x * TS - cx, (b.y + b.h) * TS - cv.height - cy); } });
+    for (const b of m.buildings) if (!b.cond || b.cond()) items.push({ y: (b.y + b.h) * TS, draw: () => { const cv = buildingCanvas({ ...b, theme: b.theme || m.theme, broken: typeof b.broken === 'function' ? b.broken() : b.broken }); ctx.drawImage(cv, b.x * TS - cx - (cv.padX || 0), (b.y + b.h) * TS - cv.height - cy); } });
     for (const e of this.ents.concat([this.player])) items.push({ y: e.y * TS + e.oy + 1 + (e.isPlayer ? 0.5 : 0), draw: () => this.drawEnt(ctx, e, cx, cy) });
     items.sort((a, b) => a.y - b.y).forEach((i) => i.draw());
     // noche
@@ -335,7 +346,11 @@ function mapMusic() { const m = WORLD && WORLD.map; if (!m) return 'town'; retur
 const npc = (id) => WORLD.ents.find((e) => e.def.id === id);
 function face(e, target) { const dx = target.x - e.x, dy = target.y - e.y; e.dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up'; }
 async function walk(e, path, speed = 1.6) { // path: "uurrd" o array
-  for (const ch of path) { const d = { u: 'up', d: 'down', l: 'left', r: 'right' }[ch]; if (!d) continue; await WORLD.beginMove(e, d, speed); WORLD.snapCam(); }
+  for (const ch of path) {
+    const d = { u: 'up', d: 'down', l: 'left', r: 'right' }[ch]; if (!d) continue;
+    if (e !== WORLD.player && !WORLD.ents.includes(e)) return; // cambió el mapa: la caminata se cancela
+    await WORLD.beginMove(e, d, speed); WORLD.snapCam();
+  }
 }
 const P = () => WORLD.player;
 async function exclaim(e) { sfx('exclaim'); e.bubble = 36; await wait(36); }

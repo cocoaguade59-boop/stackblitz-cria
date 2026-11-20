@@ -77,6 +77,11 @@ const SONGS = {
     'c6.2 g5.2 eb5.2 g5.2 c6.2 d6.2 eb6.4 ab5.2 c6.2 eb6.4 d6.2 c6.2 bb5.2 d6.2 f6.4 d6.4 bb5.4 b5.2 d6.2 g6.4 f6.2 d6.2 b5.4 ' +
     'c6.2 eb6.2 g6.4 f6.2 eb6.2 d6.4 f5.2 ab5.2 c6.4 f6.4 eb6.4 c6.2 ab5.2 eb6.4 c6.4 ab5.4 g5.2 b5.2 d6.2 f6.2 g6.8',
     { bassPat: [0, 0, 2, 0], drums: 'k.2 k.2 s.2 k.2 k.2 h.2 s.2 s.2 ' }),
+  // aire andino: pentatónica menor, flauta (triángulo) y bombo de charango
+  andes: song(108, ['Am', 'C', 'G', 'Am', 'Am', 'C', 'Em', 'Am'],
+    'e5.2 g5.2 a5.4 a5.2 g5.2 e5.4 d5.2 e5.2 g5.4 e5.4 c5.4 d5.2 c5.2 a4.8 e5.2 g5.2 a5.4 c6.4 a5.4 g5.2 a5.2 g5.2 e5.2 d5.4 e5.8 ' +
+    'c6.2 a5.2 g5.4 a5.2 g5.2 e5.4 g5.2 e5.2 d5.4 c5.4 d5.4 e5.2 d5.2 c5.4 a4.4 c5.4 d5.4 e5.4 g5.4 e5.4 d5.2 c5.2 a4.8',
+    { lead: 'triangle', leadVol: 0.24, arpPat: [0, 2, 1, 2], arpVol: 0.03, drums: 'k.6 h.2 k.4 s.4 ' }),
   victory: song(150, ['C', 'F', 'G', 'C'],
     'c5.2 e5.2 g5.2 c6.6 b5.2 a5.2 g5.4 f5.2 a5.2 c6.4 r.4 d6.2 c6.2 b5.2 a5.2 g5.4 b5.4 c6.8 r.8', { drums: 'k.4 h.4 s.4 h.4 ' }),
   credits: song(104, ['F', 'Am', 'Bb', 'C', 'F', 'Dm', 'Bb', 'C', 'Bb', 'C', 'Am', 'Dm', 'Gm', 'C', 'F', 'F'],

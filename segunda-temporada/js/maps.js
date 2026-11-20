@@ -31,11 +31,11 @@ const STOCK5 = ['cafedoble', 'cafetera', 'tecito', 'tomados', 'agua', 'cristal',
 //  ALDEA PITCH
 // =====================================================================
 registerMap('pitch', {
-  name: 'Aldea Pitch', music: 'town', bg: 'town',
+  name: 'Aldea Pitch', music: 'town', bg: 'feudal', theme: 'feudal',
   rows: [
     'TTTTTTTTTT::TTTTTTTTTT',
     'TTTTTTTTTT::TTTTTTTTTT',
-    'TT.......f::f.......TT',
+    'TT.......f::f.O.....TT',
     'T.........::.........T',
     'T.........::.........T',
     'T.........::.........T',
@@ -43,14 +43,14 @@ registerMap('pitch', {
     'T.........::.........T',
     'T...:.....::......:..T',
     'T...:::::::::::::::..T',
+    'T..........:........AT',
     'T..........:.........T',
-    'T..........:.........T',
-    'T........S.:.........T',
+    'T........S.:........AT',
     'T..........:.........T',
     'T..........:.........T',
     'T...:......:....:....T',
     'T...:::::::::::::....T',
-    'T.ff.....;;;;;....ff.T',
+    'T.ff.....;;;;;BB..ff.T',
     '~~~~~~~~~;==;~~~~~~~~~',
     '~~~~~~~~~~==~~~~~~~~~~',
   ],
@@ -61,12 +61,12 @@ registerMap('pitch', {
     { x: 13, y: 11, w: 7, h: 4, kind: 'proa', to: 'pitch_proa' },
     { x: 2, y: 11, w: 5, h: 4, kind: 'house', roof: '#5878d0', to: 'pitch_casa' },
   ],
-  signs: [{ x: 9, y: 12, text: 'ALDEA PITCH. "Toda historia empieza con una idea... y con alguien que se anima a contarla."' }],
+  signs: [{ x: 9, y: 12, text: 'ALDEA PITCH. Aldea de campesinos, artesanos y soñadores. "Toda historia empieza con una idea... y con alguien que se anima a contarla."' }],
   npcs: [
     { id: 'ale_out', look: 'alessandro', name: 'Alessandro', x: 10, y: 16, dir: 'down', cond: () => !flag('intro'), talk: () => S.intro() },
-    { id: 'kid', look: 'kid', name: 'Alexandro', x: 7, y: 10, move: 'wander', talk: () => S.alexandro() },
-    { id: 'marinero', look: 'marinero', name: 'Marinero', x: 6, y: 17, dir: 'down', text: () => (POST() ? 'Mi barco te trajo cuando eras un novato. Mirate ahora. Me emociono y no lloro: es el viento.' : 'Te traje en mi barco, ¿te acordás? Mareado y todo, bajaste con cara de protagonista.') },
-    { id: 'vieja', look: 'vieja', name: 'Doña Rosa', x: 19, y: 10, move: 'turn', text: 'En mis tiempos las criaturas se capturaban con amor y paciencia. Ahora también, pero con cristales. Igual el amor ayuda.' },
+    { id: 'kid', look: 'peque_f', name: 'Alexandro', x: 7, y: 10, move: 'wander', talk: () => S.alexandro() },
+    { id: 'marinero', look: 'pescador', name: 'Marinero', x: 6, y: 17, dir: 'down', text: () => (POST() ? 'Mi barco te trajo cuando eras un novato. Mirate ahora. Me emociono y no lloro: es el viento.' : 'Te traje en mi barco, ¿te acordás? Mareado y todo, bajaste con cara de protagonista.') },
+    { id: 'vieja', look: 'campesina', name: 'Doña Rosa', x: 19, y: 10, move: 'turn', text: 'En mis tiempos las criaturas se capturaban con amor y paciencia. Ahora también, pero con cristales. Igual el amor ayuda.' },
     { id: 'gab_post', look: 'gabriela2', name: 'Gabriela', x: 12, y: 10, dir: 'down', cond: POST, talk: () => S.gabrielaPost() },
     { id: 'ale_post', look: 'alessandro', name: 'Alessandro', x: 13, y: 10, dir: 'down', cond: POST, talk: () => S.alessandroPost() },
   ],
@@ -92,7 +92,7 @@ proaCenter('pitch_proa', 'pitch', STOCK1);
 registerMap('pitch_casa', {
   name: 'Casa del pueblo', inside: true, music: 'town', rows: houseRows(), entry: HOUSE_ENTRY,
   npcs: [
-    { id: 'cocinero', look: 'cocinero', name: 'Tito', x: 6, y: 3, move: 'wander', text: 'Cocino para todo el pueblo. Alessandro siempre pide doble porción y dice que es "para Gabriela". Gabriela también pide doble. Nadie come tanto. Sospecho.' },
+    { id: 'cocinero', look: 'campesino', name: 'Tito', x: 6, y: 3, move: 'wander', text: 'Cocino para todo el pueblo. Alessandro siempre pide doble porción y dice que es "para Gabriela". Gabriela también pide doble. Nadie come tanto. Sospecho.' },
   ],
   finds: [{ x: 1, y: 1, item: 'cristal', n: 2 }],
 });
@@ -153,7 +153,7 @@ registerMap('ruta1', {
 //  VILLA STORYBOARD
 // =====================================================================
 registerMap('storyboard', {
-  name: 'Villa Storyboard', music: 'town', bg: 'town',
+  name: 'Villa Storyboard', music: 'town', bg: 'viking', theme: 'viking',
   rows: [
     'TTTTTTTTTTT::TTTTTTTTTTT',
     'TTTTTTTTTTT:FTTTTTTTTTTT',
@@ -165,7 +165,7 @@ registerMap('storyboard', {
     'T..........::.....:....T',
     'T....:.....::.....:....T',
     'T....::::::::::::::....T',
-    'T..........++..........T',
+    'TE.........++........J.T',
     'T.f.....S..++......f...T',
     'T..........++..........T',
     'T..........::..........T',
@@ -183,11 +183,11 @@ registerMap('storyboard', {
     { x: 15, y: 12, w: 7, h: 4, kind: 'proa', to: 'sb_proa' },
     { x: 3, y: 12, w: 5, h: 4, kind: 'house', roof: '#8868c8', to: 'sb_casa2' },
   ],
-  signs: [{ x: 8, y: 11, text: 'VILLA STORYBOARD. "Antes de filmar, se dibuja." Estudio de Tamara, materializadora.' }],
+  signs: [{ x: 8, y: 11, text: 'VILLA STORYBOARD. Aldea del clan Storyboard. "Antes de zarpar, se dibuja el mapa." Gran salón de Tamara, materializadora.' }],
   npcs: [
-    { id: 'gate1', look: 'asistente', name: 'Asistente', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_foto'), text: 'Perdón, el paso al norte está cerrado hasta que tengas el diploma de Fotografía Estética. Lo dice el reglamento. Yo no hice el reglamento. Yo solo lo sostengo... con mi cuerpo.' },
-    { id: 'sb1', look: 'chica', name: 'Lucía', x: 14, y: 10, move: 'wander', text: 'Tamara es materializadora: crea cosas con las manos. Dicen que hizo una silla tan linda que nadie se anima a sentarse. Ni ella.' },
-    { id: 'sb2', look: 'viejo', name: 'Don Ernesto', x: 6, y: 18, dir: 'up', text: 'Las criaturas de Fuego, Agua y Planta se cuidan entre ellas como una familia rara. Se pelean, pero se quieren. Como cualquier familia.' },
+    { id: 'gate1', look: 'vikingo', name: 'Asistente', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_foto'), text: 'Perdón, el paso al norte está cerrado hasta que tengas el diploma de Fotografía Estética. Lo dice el reglamento. Yo no hice el reglamento. Yo solo lo sostengo... con mi cuerpo.' },
+    { id: 'sb1', look: 'vikinga', name: 'Lucía', x: 14, y: 10, move: 'wander', text: 'Tamara es materializadora: crea cosas con las manos. Dicen que hizo una silla tan linda que nadie se anima a sentarse. Ni ella.' },
+    { id: 'sb2', look: 'vikingo2', name: 'Don Ernesto', x: 6, y: 18, dir: 'up', text: 'Las criaturas de Fuego, Agua y Planta se cuidan entre ellas como una familia rara. Se pelean, pero se quieren. Como cualquier familia.' },
     { id: 'edison', look: 'edison', name: 'Edison', x: 13, y: 11, dir: 'down', cond: POST, talk: () => S.edison() },
   ],
   finds: [{ x: 22, y: 2, item: 'inc_plant' }, { x: 1, y: 13, item: 'fragmento', hidden: true }],
@@ -196,17 +196,17 @@ registerMap('sb_studio', {
   name: 'Estudio de Tamara', inside: true, music: 'town', rows: studioRows(), entry: STUDIO_ENTRY, bg: 'stage',
   npcs: [
     { id: 'tamara', look: 'tamara', name: 'Tamara', x: 5, y: 2, dir: 'down', talk: () => S.tamara() },
-    { id: 'sbaide', look: 'chico', name: 'Ayudante', x: 3, y: 6, dir: 'right', text: () => (flag('dip_foto') ? 'Tamara dijo que tu equipo tenía "buena composición". Es lo más lindo que le escuché decir. Y le escuché decir "qué lindo" a una piedra.' : 'Tamara te va a pedir equilibrio: una criatura de Fuego, una de Agua y una de Planta en tu equipo. En la Ruta 1 hay de todo si buscás en el pasto.') },
+    { id: 'sbaide', look: 'vikingo', name: 'Ayudante', x: 3, y: 6, dir: 'right', text: () => (flag('dip_foto') ? 'Tamara dijo que tu equipo tenía "buena composición". Es lo más lindo que le escuché decir. Y le escuché decir "qué lindo" a una piedra.' : 'Tamara te va a pedir equilibrio: una criatura de Fuego, una de Agua y una de Planta en tu equipo. En la Ruta 1 hay de todo si buscás en el pasto.') },
   ],
 });
 registerMap('sb_casa', {
   name: 'Casa de Storyboard', inside: true, music: 'town', rows: houseRows(), entry: HOUSE_ENTRY,
-  npcs: [{ id: 'sbc', look: 'dama', name: 'Martina', x: 5, y: 2, move: 'wander', text: 'Gabriela pasó por acá corriendo. Dijo "¡voy a ser aprendiz del Rey!" y se llevó mi sándwich. Creo que fue sin querer. Creo.' }],
+  npcs: [{ id: 'sbc', look: 'vikinga', name: 'Martina', x: 5, y: 2, move: 'wander', text: 'Gabriela pasó por acá corriendo. Dijo "¡voy a ser aprendiz del Rey!" y se llevó mi sándwich. Creo que fue sin querer. Creo.' }],
   finds: [{ x: 7, y: 1, item: 'tecito' }],
 });
 registerMap('sb_casa2', {
   name: 'Casa de Storyboard', inside: true, music: 'town', rows: houseRows(), entry: HOUSE_ENTRY,
-  npcs: [{ id: 'sbc2', look: 'cientifica', name: 'Profe Inés', x: 3, y: 3, dir: 'down', talk: () => S.tablaTipos() }],
+  npcs: [{ id: 'sbc2', look: 'vikinga', name: 'Profe Inés', x: 3, y: 3, dir: 'down', talk: () => S.tablaTipos() }],
 });
 proaCenter('sb_proa', 'storyboard', STOCK2);
 
@@ -268,11 +268,11 @@ registerMap('ruta2', {
 //  CANTERA RODAJE
 // =====================================================================
 registerMap('rodaje', {
-  name: 'Cantera Rodaje', music: 'town', bg: 'cave',
+  name: 'Cantera Rodaje', music: 'town', bg: 'viking', theme: 'viking', ground: 'quarry',
   rows: [
     'rrrrrrrrrrr::rrrrrrrrrrr',
     'rrrrrrrrrrr:Frrrrrrrrrrr',
-    'rqqqqqqqqqq::qqqqqqqqqqr',
+    'rEqqqqqqqqq::qqqqqqqqqqr',
     'rqqqqqqqqqq::qqqqqqqqqqr',
     'rqqqqqqqqqq::qqqqqqqqqqr',
     'rqqqqqqqqqq::qqqqqqqqqqr',
@@ -280,7 +280,7 @@ registerMap('rodaje', {
     'rqqqqqqqqqq::qqqqq:qqqqr',
     'rqqqq:qqqqq::qqqqq:qqqqr',
     'rqqqq::::::::::::::qqqqr',
-    'rqqrqqqqqqq::qqqqqqqrqqr',
+    'rqqrqqJqqqq::qqqqqqqrqqr',
     'rqqqqqqqSqq::qqqqqqqqqqr',
     'rqqqqqqqqqq::qqqqqqqqqqr',
     'rqqqqqqqqqq::qqqqqqqqqqr',
@@ -299,12 +299,12 @@ registerMap('rodaje', {
     { x: 15, y: 12, w: 7, h: 4, kind: 'proa', to: 'rd_proa' },
     { x: 3, y: 12, w: 5, h: 4, kind: 'house', roof: '#707888', to: 'rd_casa2' },
   ],
-  signs: [{ x: 8, y: 11, text: 'CANTERA RODAJE. Donde las ideas se ensucian las manos. Estudio de Luchito, cronista.' }],
+  signs: [{ x: 8, y: 11, text: 'CANTERA RODAJE. Cantera del clan Rodaje: acá se pican las piedras de las runas. Gran salón de Luchito, cronista.' }],
   npcs: [
     { id: 'gate2', look: 'obrero', name: 'Capataz', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_docu'), text: 'La Cueva Volcánica está al norte, pero sin el diploma Documental no pasa nadie. Ahí adentro hace un calor que te derrite las convicciones.' },
     { id: 'dante', look: 'dante', name: 'Dante', x: 14, y: 6, dir: 'down', talk: () => S.dante(), trainer: null },
     { id: 'gonchi', look: 'obrero', name: 'Gonchi', x: 9, y: 15, dir: 'right', talk: () => S.gonchi() },
-    { id: 'rd1', look: 'punk', name: 'Rocco', x: 19, y: 11, move: 'turn', text: 'Luchito anota todos los combates en un cuaderno. Dice que el amor lo es todo. Yo le pregunté "¿y la defensa?". Me miró feo.' },
+    { id: 'rd1', look: 'vikingo2', name: 'Rocco', x: 19, y: 11, move: 'turn', text: 'Luchito anota todos los combates en un cuaderno. Dice que el amor lo es todo. Yo le pregunté "¿y la defensa?". Me miró feo.' },
   ],
   finds: [{ x: 22, y: 2, item: 'cristal', n: 2 }, { x: 1, y: 17, item: 'fragmento', hidden: true }, { x: 22, y: 17, item: 'fragoro', hidden: true }],
 });
@@ -312,7 +312,7 @@ registerMap('rd_studio', {
   name: 'Estudio de Luchito', inside: true, music: 'town', rows: studioRows(), entry: STUDIO_ENTRY, bg: 'stage',
   npcs: [
     { id: 'luchito', look: 'luchito', name: 'Luchito', x: 5, y: 2, dir: 'down', talk: () => S.luchito() },
-    { id: 'rdaide', look: 'kid2', name: 'Aprendiz', x: 7, y: 5, dir: 'left', text: 'Un golpe superefectivo es cuando usás el tipo justo. Agua contra Fuego, Fuego contra Planta, Planta contra Agua... ¡y Hada contra Dragón! Luchito ama ese.' },
+    { id: 'rdaide', look: 'peque_v', name: 'Aprendiz', x: 7, y: 5, dir: 'left', text: 'Un golpe superefectivo es cuando usás el tipo justo. Agua contra Fuego, Fuego contra Planta, Planta contra Agua... ¡y Hada contra Dragón! Luchito ama ese.' },
   ],
 });
 registerMap('rd_casa', {
@@ -322,7 +322,7 @@ registerMap('rd_casa', {
 });
 registerMap('rd_casa2', {
   name: 'Casa de la cantera', inside: true, music: 'town', rows: houseRows(), entry: HOUSE_ENTRY,
-  npcs: [{ id: 'rdc2', look: 'chica', name: 'Vicky', x: 4, y: 2, move: 'wander', text: 'Encontré un Fragmento brillando en el suelo. Con tres te fabricás un Cristal en la terminal de la Proa. ¡Reciclaje mágico!' }],
+  npcs: [{ id: 'rdc2', look: 'vikinga', name: 'Vicky', x: 4, y: 2, move: 'wander', text: 'Encontré un Fragmento brillando en el suelo. Con tres te fabricás un Cristal en la terminal de la Proa. ¡Reciclaje mágico!' }],
 });
 proaCenter('rd_proa', 'rodaje', STOCK3);
 
@@ -369,7 +369,7 @@ registerMap('cueva', {
 //  FERIA ÚLTIMA TOMA
 // =====================================================================
 registerMap('feria', {
-  name: 'Feria Última Toma', music: 'town', bg: 'town',
+  name: 'Feria Última Toma', music: 'town', bg: 'viking', theme: 'viking',
   rows: [
     'TTTTTTTTTTT::TTTTTTTTTTT',
     'TTTTTTTTTTT:FTTTTTTTTTTT',
@@ -381,8 +381,8 @@ registerMap('feria', {
     'T..........++..........T',
     'T....+.....++.....+....T',
     'T....++++++++++++++....T',
-    'T....+++++++++++++.....T',
-    'T.f.....S++++++........T',
+    'T..J.+++++++++++++.....T',
+    'T.f.....S++++++.......ET',
     'T....+++++++++++++.....T',
     'T..........++..........T',
     'T..........++..........T',
@@ -399,14 +399,15 @@ registerMap('feria', {
     { x: 15, y: 12, w: 7, h: 4, kind: 'proa', to: 'ft_proa' },
     { x: 3, y: 12, w: 5, h: 4, kind: 'house', roof: '#e870a0', to: 'ft_tutor' },
   ],
-  signs: [{ x: 8, y: 11, text: 'FERIA ÚLTIMA TOMA. Teatro, comida y la última toma de cada día. Estudio de Andrea, pregonera.' }],
+  signs: [{ x: 8, y: 11, text: 'FERIA ÚLTIMA TOMA. Feria de los clanes del norte: teatro, comida y la última toma de cada día. Gran salón de Andrea, pregonera.' }],
   npcs: [
-    { id: 'gate3', look: 'asistente', name: 'Asistente', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_ficcion'), text: 'La salida al norte es solo para quienes tienen el diploma de Ficción. Andrea es muy estricta. Una vez me tomó examen por saludarla.' },
+    { id: 'gate3', look: 'vikingo', name: 'Asistente', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_ficcion'), text: 'La salida al norte es solo para quienes tienen el diploma de Ficción. Andrea es muy estricta. Una vez me tomó examen por saludarla.' },
     { id: 'pachi', look: 'pachi', name: 'Pachi', x: 20, y: 9, dir: 'down', talk: () => S.pachiOut() },
     { id: 'andre_f', look: 'andre', name: 'André', x: 21, y: 9, dir: 'down', cond: POST, talk: () => S.andrePost() },
+    { id: 'nahuel', look: 'nahuel', name: 'Nahuel', x: 22, y: 9, dir: 'left', cond: () => !POST(), talk: () => S.nahuel() },
     { id: 'ft1', look: 'cocinero', name: 'Puestero', x: 13, y: 11, dir: 'left', text: '¡Choripán de utilería! No, mentira, es de verdad. ¿Querés? No te puedo vender, no tengo licencia. Pero olelo.' },
-    { id: 'ft2', look: 'dama', name: 'Romina', x: 9, y: 15, move: 'wander', text: 'Andrea quiere ser profe. Ya lo es, pero quiere que le digan "profe" en la calle. Decíselo y te sonríe.' },
-    { id: 'ft3', look: 'kid', name: 'Benja', x: 20, y: 17, move: 'wander', text: '¡Pachi hace funciones de combate en el teatro! Peleás contra versiones de actuación de gente famosa. ¡Y no perdés nada si perdés!' },
+    { id: 'ft2', look: 'vikinga', name: 'Romina', x: 9, y: 15, move: 'wander', text: 'Andrea quiere ser profe. Ya lo es, pero quiere que le digan "profe" en la calle. Decíselo y te sonríe.' },
+    { id: 'ft3', look: 'peque_v', name: 'Benja', x: 20, y: 17, move: 'wander', text: '¡Pachi hace funciones de combate en el teatro! Peleás contra versiones de actuación de gente famosa. ¡Y no perdés nada si perdés!' },
   ],
   finds: [{ x: 22, y: 2, item: 'cristalest' }, { x: 1, y: 13, item: 'fragmento', hidden: true }],
 });
@@ -414,7 +415,7 @@ registerMap('ft_studio', {
   name: 'Estudio de Andrea', inside: true, music: 'town', rows: studioRows(), entry: STUDIO_ENTRY, bg: 'stage',
   npcs: [
     { id: 'andrea', look: 'andrea', name: 'Andrea', x: 5, y: 2, dir: 'down', talk: () => S.andrea() },
-    { id: 'ftaide', look: 'kid2', name: 'Alumna', x: 8, y: 5, dir: 'left', text: 'La profe Andrea pregunta cosas del reino. Si hablaste con la gente en el viaje, vas a estar bien. Si no... suerte.' },
+    { id: 'ftaide', look: 'peque_v', name: 'Alumna', x: 8, y: 5, dir: 'left', text: 'La profe Andrea pregunta cosas del reino. Si hablaste con la gente en el viaje, vas a estar bien. Si no... suerte.' },
   ],
 });
 registerMap('ft_teatro', {
@@ -485,7 +486,7 @@ registerMap('ruta4', {
 //  PRADOS MONTAJE
 // =====================================================================
 registerMap('montaje', {
-  name: 'Prados Montaje', music: 'town', bg: 'grass',
+  name: 'Prados Montaje', music: 'town', bg: 'native', theme: 'native',
   rows: [
     'TTTTTTTTTTT::TTTTTTTTTTT',
     'TTTTTTTTTTT:FTTTTTTTTTTT',
@@ -497,7 +498,7 @@ registerMap('montaje', {
     'T..........::..........T',
     'T....:.....::.......:..T',
     'T....::::::::::::::::..T',
-    'T.f........::......f...T',
+    'T.f........::...J..f...T',
     'T.......S..::..........T',
     'T....f.....::.....f....T',
     'T..........::..........T',
@@ -506,8 +507,8 @@ registerMap('montaje', {
     'T..........::..........T',
     'T....:.....::.....:....T',
     'T....:::::::::::::::...T',
-    'T.ff..f....::.......ff.T',
-    'Tfff.......::.....f.fffT',
+    'T.ff..fNNN.::.......ff.T',
+    'Tfff...NNN.::.....f.fffT',
     'TTTTTTTTTTT::TTTTTTTTTTT',
   ],
   links: { s: { to: 'ruta4', d: -3 }, n: { to: 'ruta5', d: -4 } },
@@ -516,15 +517,20 @@ registerMap('montaje', {
     { x: 18, y: 2, w: 5, h: 7, kind: 'tower', to: 'torre1' },
     { x: 15, y: 13, w: 7, h: 4, kind: 'proa', to: 'pm_proa' },
     { x: 3, y: 13, w: 5, h: 4, kind: 'house', roof: '#58a0a0', to: 'pm_casa' },
+    { x: 14, y: 4, w: 3, h: 3, kind: 'wigwam' },
   ],
-  signs: [{ x: 8, y: 11, text: 'PRADOS MONTAJE. "Todo cobra sentido en la edición." Estudio de Dan. Al noreste: Torre P.A.' }],
+  signs: [{ x: 8, y: 11, text: 'PRADOS MONTAJE. Aquí la gente de los prados y los colonos de casaca roja comparten la cosecha desde hace generaciones. "Todo cobra sentido en la edición." Al noreste: Torre P.A.' }],
   npcs: [
-    { id: 'gate4', look: 'asistente', name: 'Asistente', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_publi'), text: 'Al norte está la Ruta 5 y después el Castillo Difusión. Sin el diploma de Publicidad no te dejo. Nadie entra al castillo sin una buena campaña.' },
-    { id: 'towerguard', look: 'guardia', name: 'Guardia', x: 20, y: 9, dir: 'down', cond: () => !POST(), text: 'La Torre P.A. está cerrada. Solo entran quienes vencieron al Rey. O los técnicos de sonido. ¿Sos técnico de sonido? No, se nota.' },
+    { id: 'gate4', look: 'soldado', name: 'Asistente', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_publi'), text: 'Al norte está la Ruta 5 y después el Castillo Difusión. Sin el diploma de Publicidad no te dejo. Nadie entra al castillo sin una buena campaña.' },
+    { id: 'towerguard', look: 'soldado', name: 'Guardia', x: 20, y: 9, dir: 'down', cond: () => !POST(), text: 'La Torre P.A. está cerrada. Solo entran quienes vencieron al Rey. O los técnicos de sonido. ¿Sos técnico de sonido? No, se nota.' },
     { id: 'chrys', look: 'chrys', name: 'Chrys', x: 14, y: 11, dir: 'down', talk: () => S.chrys() },
     { id: 'oscar', look: 'oscar', name: 'Oscar', x: 3, y: 10, dir: 'right', talk: () => S.oscar() },
     { id: 'piero', look: 'piero', name: 'Piero', x: 4, y: 10, dir: 'left', talk: () => S.piero() },
-    { id: 'chisme2', look: 'chica', name: 'Fiorella', x: 18, y: 18, dir: 'left', talk: () => S.chisme(2), mark: () => flag('libreta') && !flag('chisme2') },
+    { id: 'chisme2', look: 'nativa', name: 'Fiorella', x: 18, y: 18, dir: 'left', talk: () => S.chisme(2), mark: () => flag('libreta') && !flag('chisme2') },
+    { id: 'alejandro', look: 'alejandro', name: 'Alejandro', x: 16, y: 7, dir: 'down', talk: () => S.alejandro() },
+    { id: 'nahuel_m', look: 'nahuel', name: 'Nahuel', x: 17, y: 7, dir: 'left', cond: POST, talk: () => S.nahuelPost() },
+    { id: 'tomas', look: 'soldado', name: 'Cabo Tomás', x: 9, y: 15, dir: 'right', talk: () => S.tomas() },
+    { id: 'nina', look: 'nativa', name: 'Nina', x: 10, y: 15, dir: 'left', talk: () => S.nina() },
     { id: 'chisme3', look: 'kid', name: 'Teo', x: 21, y: 11, move: 'wander', talk: () => S.chisme(3), mark: () => flag('libreta') && !flag('chisme3') },
   ],
   finds: [{ x: 22, y: 19, item: 'tomados' }, { x: 1, y: 2, item: 'fragmento', hidden: true }],
@@ -533,12 +539,12 @@ registerMap('pm_studio', {
   name: 'Estudio de Dan', inside: true, music: 'town', rows: studioRows(), entry: STUDIO_ENTRY, bg: 'stage',
   npcs: [
     { id: 'dan', look: 'dan', name: 'Dan', x: 5, y: 2, dir: 'down', talk: () => S.dan() },
-    { id: 'pmaide', look: 'chico', name: 'Editor', x: 2, y: 5, dir: 'right', text: 'Dan dice que montar es elegir qué contar. Por eso le encantan los chismes: son historias sin editar.' },
+    { id: 'pmaide', look: 'nativo', name: 'Editor', x: 2, y: 5, dir: 'right', text: 'Dan dice que montar es elegir qué contar. Por eso le encantan los chismes: son historias sin editar.' },
   ],
 });
 registerMap('pm_casa', {
   name: 'Casa de los prados', inside: true, music: 'town', rows: houseRows(), entry: HOUSE_ENTRY,
-  npcs: [{ id: 'pmc', look: 'vieja', name: 'Abuela Nené', x: 6, y: 3, dir: 'left', talk: () => S.abuelaNene() }],
+  npcs: [{ id: 'pmc', look: 'anciana_n', name: 'Abuela Nené', x: 6, y: 3, dir: 'left', talk: () => S.abuelaNene() }],
 });
 proaCenter('pm_proa', 'montaje', STOCK5);
 
@@ -546,7 +552,7 @@ proaCenter('pm_proa', 'montaje', STOCK5);
 //  RUTA 5 + CASTILLO DIFUSIÓN
 // =====================================================================
 registerMap('ruta5', {
-  name: 'Ruta 5', music: 'route', bg: 'grass',
+  name: 'Ruta 5', music: 'route', bg: 'andes', theme: 'inca',
   rows: [
     'YYYYYYYYYYYYYYYY',
     'YY...........YYY',
@@ -555,7 +561,7 @@ registerMap('ruta5', {
     'Y..............Y',
     'Y..............Y',
     'Y..............Y',
-    'Y......:.......Y',
+    'Y....g.:.g.....Y',
     'Y,,,...:...,,,,Y',
     'Y,,,,..:...,,,,Y',
     'Y,,,,..:::.,,,,Y',
@@ -582,7 +588,7 @@ registerMap('ruta5', {
   border: 'Y',
   links: { s: { to: 'montaje', d: 4 } },
   buildings: [{ x: 2, y: 0, w: 11, h: 7, kind: 'castle', to: 'castillo' }],
-  signs: [{ x: 8, y: 14, text: 'RUTA 5. Al final: el Castillo Difusión. "Lo que se hace, se muestra."' }],
+  signs: [{ x: 8, y: 14, text: 'RUTA 5. Tramo del Qhapaq Ñan, el gran camino del Inca. Al final: el Castillo Difusión del Rey Navarrete.' }],
   enc: { grass: [['wyvernito', 30, 34, 14], ['boomguru', 31, 35, 16], ['espinardo', 31, 35, 16], ['tripodin', 31, 34, 14], ['dobleriesgo', 32, 35, 12], ['hedroble', 31, 34, 12], ['serafox', 33, 36, 4], ['flamigaro', 31, 34, 12]] },
   npcs: [
     { id: 'r5a', look: 'vieja', name: 'Veterana CTM Rosa', x: 12, y: 20, dir: 'left', trainer: { id: 'r5a', sight: 4, team: [['glaciolote', 33], ['alquimero', 33]], money: 1100, intro: 'Los CTM somos veteranos. Hicimos esto antes de que vos nacieras. Bueno, no tanto. Pero casi.', lose: 'Bien, bien. Tenés oficio.', after: 'La experiencia no se compra. Se pierde peleando, como ahora.' } },
@@ -594,7 +600,7 @@ registerMap('ruta5', {
   finds: [{ x: 14, y: 3, item: 'cafetera' }, { x: 1, y: 25, item: 'cristalest', n: 2 }, { x: 14, y: 22, item: 'guion', hidden: true }],
 });
 registerMap('castillo', {
-  name: 'Castillo Difusión', inside: true, music: 'castle', bg: 'castle',
+  name: 'Castillo Difusión', inside: true, music: 'andes', bg: 'inca', theme: 'inca',
   rows: [
     'KKKKKKKKKKKKKKKKKKKKK',
     'KKKKKKKPkkRkkPKKKKKKK',
@@ -617,7 +623,7 @@ registerMap('castillo', {
     { id: 'andre', look: 'andre', name: 'André', x: 3, y: 7, dir: 'right', cond: () => !POST(), talk: () => S.andreCastle() },
     { id: 'yam', look: 'yam', name: 'Yam', x: 17, y: 7, dir: 'left', cond: () => !POST() || true, talk: () => S.yam() },
     { id: 'rey', look: 'rey', name: 'Rey Navarrete', x: 10, y: 1, dir: 'down', talk: () => S.rey() },
-    { id: 'guardia_c', look: 'guardia', name: 'Guardia', x: 8, y: 12, dir: 'right', text: () => (POST() ? 'El Rey está de buen humor desde que perdió. Dice que se aburría de ganar. Mentira, lloró dos días.' : 'Bienvenido al Castillo Difusión. A la izquierda, André. A la derecha, Yam. Arriba, el Rey. Y en el medio, tus nervios.') },
+    { id: 'guardia_c', look: 'incaguard', name: 'Guardia', x: 8, y: 12, dir: 'right', text: () => (POST() ? 'El Rey está de buen humor desde que perdió. Dice que se aburría de ganar. Mentira, lloró dos días.' : 'Bienvenido al Castillo Difusión. A la izquierda, André. A la derecha, Yam. Arriba, el Rey. Y en el medio, tus nervios.') },
   ],
 });
 
