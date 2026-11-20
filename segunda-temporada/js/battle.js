@@ -103,26 +103,28 @@ class Battle {
     const slant = 10;
     const path = () => { ctx.beginPath(); if (me) { ctx.moveTo(x0 + slant, y0); ctx.lineTo(W, y0); ctx.lineTo(W, y0 + h); ctx.lineTo(x0, y0 + h); } else { ctx.moveTo(0, y0); ctx.lineTo(x0 + w, y0); ctx.lineTo(x0 + w - slant, y0 + h); ctx.lineTo(0, y0 + h); } ctx.closePath(); };
     ctx.save(); ctx.translate(0, 2); ctx.fillStyle = '#00000050'; path(); ctx.fill(); ctx.restore();
-    const g = ctx.createLinearGradient(0, y0, 0, y0 + h); g.addColorStop(0, '#4a5878'); g.addColorStop(0.5, '#2c3650'); g.addColorStop(1, '#1e2638');
+    // estilo HGSS: placa clara color crema con borde oscuro y una franja de color abajo
+    const g = ctx.createLinearGradient(0, y0, 0, y0 + h); g.addColorStop(0, '#fcfcf0'); g.addColorStop(1, '#e4e4cc');
     ctx.fillStyle = g; path(); ctx.fill();
-    ctx.strokeStyle = '#8898c0'; ctx.lineWidth = 1; ctx.save(); ctx.translate(0.5, 0.5); path(); ctx.stroke(); ctx.restore();
+    ctx.fillStyle = '#c8c8a8'; ctx.fillRect(me ? x0 + 4 : 0, y0 + h - 3, w - (me ? 4 : slant), 2);
+    ctx.strokeStyle = '#384048'; ctx.lineWidth = 1; ctx.save(); ctx.translate(0.5, 0.5); path(); ctx.stroke(); ctx.restore();
     ctx.fillStyle = TYPES[m.type].c; ctx.fillRect(me ? x0 + slant + 2 : 2, y0 + 3, 3, 9);
     const tx = me ? x0 + slant + 8 : 8;
     const lvS = 'Nv' + m.lv, maxC = Math.floor((w - slant - 14 - txtW(lvS) - 4) / 8);
-    txt(ctx, m.name.slice(0, maxC), tx, y0 + 4, '#ffffff', '#101420');
-    txt(ctx, 'Nv' + m.lv, (me ? W : x0 + w - slant) - 4, y0 + 4, '#f8e8a0', '#101420', 'right');
+    txt(ctx, m.name.slice(0, maxC), tx, y0 + 4, '#303840', '#c8c8b0');
+    txt(ctx, 'Nv' + m.lv, (me ? W : x0 + w - slant) - 4, y0 + 4, '#303840', '#c8c8b0', 'right');
     const shown = (this.hpShow[side] += (m.hp - this.hpShow[side]) * 0.12);
     if (Math.abs(shown - m.hp) < 0.5) this.hpShow[side] = m.hp;
     const bx = tx + 18, by = y0 + 17, bw = 92;
-    txt(ctx, 'PS', tx, by - 2, '#f8c040', '#101420');
+    txt(ctx, 'PS', tx, by - 2, '#e07818', '#f8e0b0');
     hpBar(ctx, bx, by, bw, clamp(this.hpShow[side] / m.maxhp, 0, 1));
     if (me) statusBadge(ctx, m.status, x0 + slant + 6, y0 + 25); else if (m.status) statusBadge(ctx, m.status, x0 + w - 34, y0 + h + 2);
     if (me) {
-      txt(ctx, Math.round(this.hpShow.me) + '/' + m.maxhp, W - 6, y0 + 25, '#ffffff', '#101420', 'right');
+      txt(ctx, Math.round(this.hpShow.me) + '/' + m.maxhp, W - 6, y0 + 25, '#303840', '#c8c8b0', 'right');
       const need = xpFor(m.lv + 1) - xpFor(m.lv);
       this.xpShow += (m.xp - this.xpShow) * 0.1;
       const fr = clamp((this.xpShow - xpFor(m.lv)) / need, 0, 1);
-      ctx.fillStyle = '#101420'; ctx.fillRect(x0 + 6, y0 + h - 4, w - 10, 3); ctx.fillStyle = '#58c0ff'; ctx.fillRect(x0 + 7, y0 + h - 3, Math.round((w - 12) * fr), 1);
+      ctx.fillStyle = '#384048'; ctx.fillRect(x0 + 6, y0 + h - 4, w - 10, 3); ctx.fillStyle = '#40a8f8'; ctx.fillRect(x0 + 7, y0 + h - 3, Math.round((w - 12) * fr), 1);
     }
   }
   drawBot(ctx) {

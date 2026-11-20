@@ -9,7 +9,7 @@ const mode=location.hash.slice(1)||'mons';
 const S=document.getElementById('sheet'),x=S.getContext('2d');x.imageSmoothingEnabled=false;
 if(mode==='mons'){const ids=DEX_ORDER;const cols=8;S.width=cols*84*3;S.height=Math.ceil(ids.length/cols)*80*3;x.scale(3,3);
 x.fillStyle='#d8e8d0';x.fillRect(0,0,S.width,S.height);
-ids.forEach((id,i)=>{const cx=(i%cols)*84,cy=Math.floor(i/cols)*80;x.drawImage(creatureSprite(id),cx-6,cy-12);;txt(x,SPECIES[id].n.slice(0,8),cx+2,cy+68,'#000',null);});}
+ids.forEach((id,i)=>{const cx=(i%cols)*84,cy=Math.floor(i/cols)*80;x.drawImage(creatureSprite(id),cx-6,cy-12);x.drawImage(creatureSprite(id,true),cx+44,cy+30,32,32);;txt(x,SPECIES[id].n.slice(0,8),cx+2,cy+68,'#000',null);});}
 if(mode==='people'){const ks=Object.keys(LOOKS);S.width=ks.length*20*4;S.height=4*24*4+40;x.scale(4,4);x.fillStyle='#78c858';x.fillRect(0,0,S.width,S.height);
 ks.forEach((k,i)=>{for(let d=0;d<4;d++)x.drawImage(personSprite(k,d,d==0?0:1),i*20,d*24);});}
 if(mode==='tiles'){const ts=['grass','tall','flower','path','sand','quarry','plaza','water','tree','pine','fence','rock','ledge','sign','bridge','cave','cwall','lava','boulder','crystal','kfloor','kwall','carpet','pillar','ldoor','floor','tilefloor','iwall','iwall2','mat','bed','table','pot','shelf','counter','pc','heal','stage','curtain','seat','stairs'];
