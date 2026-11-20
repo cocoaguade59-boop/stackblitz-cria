@@ -227,9 +227,15 @@ function loop(t) {
   _acc += Math.min(200, t - _last); _last = t;
   const step = 1000 / 60;
   let n = 0;
-  while (_acc >= step && n < 6) { update(); _acc -= step; n++; }
-  if (n === 6) _acc = 0;
-  draw();
+  // Un error inesperado nunca debe congelar el juego: se registra y el bucle sigue.
+  try {
+    while (_acc >= step && n < 6) { update(); _acc -= step; n++; }
+    if (n === 6) _acc = 0;
+    draw();
+  } catch (e) {
+    console.error(e); _acc = 0;
+    Input.end(); // descarta la tecla que pudo causar el error
+  }
   requestAnimationFrame(loop);
 }
 

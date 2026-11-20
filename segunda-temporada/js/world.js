@@ -72,6 +72,7 @@ class World {
   clampCam(v, size, view) { return size <= view ? (size - view) / 2 : clamp(v, 0, size - view); }
   // ---------- actualización ----------
   update() {
+    if (!this.player || !this.map) return;
     this.anim++;
     for (const e of this.ents) this.stepEnt(e);
     this.stepEnt(this.player);
@@ -262,6 +263,7 @@ class World {
   }
   // ---------- dibujo ----------
   drawTop(ctx) {
+    if (!this.map || !this.player) return;
     const m = this.map, cx = Math.round(this.camX), cy = Math.round(this.camY);
     const fr = (this.anim >> 5) & 1, fr4 = (this.anim >> 4) & 3;
     const outside = !m.inside && m.kind !== 'cave';
@@ -317,6 +319,7 @@ class World {
   }
   drawBot(ctx) {
     botBackdrop(ctx, '#1f2a44', '#253252');
+    if (!this.map) return;
     // cabecera
     ctx.fillStyle = '#141a2c'; ctx.fillRect(0, 0, W, 20); ctx.fillStyle = '#f0c040'; ctx.fillRect(0, 20, W, 1);
     for (let i = 0; i < 8; i++) { ctx.fillStyle = i % 2 ? '#f8f8f8' : '#202020'; ctx.fillRect(i * 10, 0, 10, 4); }

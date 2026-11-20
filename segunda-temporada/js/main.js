@@ -138,8 +138,11 @@ function showFatal(msg) {
   b.style.display = 'flex'; b.style.background = '#200'; b.style.color = '#fbb'; b.style.padding = '20px'; b.style.whiteSpace = 'pre-wrap'; b.style.fontSize = '12px';
   b.textContent = 'Ups, algo falló:\n\n' + msg + '\n\nRecargá la página. Si sigue, avisá con este mensaje.';
 }
-window.addEventListener('error', (e) => showFatal(e.message + '\n' + (e.filename || '') + ':' + (e.lineno || '')));
-window.addEventListener('unhandledrejection', (e) => showFatal(String(e.reason && e.reason.stack || e.reason)));
+// Antes de arrancar, un error se muestra en pantalla. Ya en juego, se registra y el juego sigue
+// (si un guion falló, el mundo se destraba solo gracias al salvavidas de world.js).
+let BOOTED = false;
+window.addEventListener('error', (e) => { if (!BOOTED) showFatal(e.message + '\n' + (e.filename || '') + ':' + (e.lineno || '')); });
+window.addEventListener('unhandledrejection', (e) => { const m = String(e.reason && e.reason.stack || e.reason); if (!BOOTED) showFatal(m); else console.error(m); });
 (async function boot() {
   try { await loadFont(); } catch (e) { console.warn('Sin fuente', e); }
   linkInteriors();
@@ -147,4 +150,5 @@ window.addEventListener('unhandledrejection', (e) => showFatal(String(e.reason &
   document.getElementById('boot').style.display = 'none';
   Scenes.push(new TitleScene());
   requestAnimationFrame(loop);
+  BOOTED = true;
 })();
