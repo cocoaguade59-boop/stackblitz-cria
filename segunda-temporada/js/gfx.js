@@ -605,7 +605,9 @@ function loadUserSprites() {
   return Promise.all(ps);
 }
 const USER_ROW = [0, 3, 1, 2], USER_COL = [0, 1, 3];
+const USER_ALIAS = { gabriela2: 'gabriela' }; // versiones del mismo personaje que usan el sprite dibujado
 function personSprite(look, dir, step) {
+  if (USER_ALIAS[look] && USER_IMG[USER_ALIAS[look]]) look = USER_ALIAS[look];
   const k = look + dir + step;
   if (USER_IMG[look]) {
     if (!PERSON_CACHE[k]) { const c = mkCanvas(32, 32); c.getContext('2d').drawImage(USER_IMG[look], USER_COL[step] * 32, USER_ROW[dir] * 32, 32, 32, 0, 0, 32, 32); c.big = true; PERSON_CACHE[k] = c; }
