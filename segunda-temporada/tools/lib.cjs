@@ -17,7 +17,7 @@ module.exports = (p, key, shot) => {
     return state();
   };
   const def = (s) => {
-    if (s.t === 'DialogScene') { if (s.choices && /mote/i.test(s.text)) return 'KeyX'; if (s.choices && /olvid|Olvida/.test(s.text)) return 'KeyZ'; return 'KeyZ'; }
+    if (s.t === 'DialogScene') { if (s.choices && /mote|apodo/i.test(s.text)) return 'KeyX'; if (s.choices && /olvid|Olvida/.test(s.text)) return 'KeyZ'; return 'KeyZ'; }
     if (s.t === 'PartyScene') return 'KeyZ';
     if (s.t === 'ListScene') return 'KeyZ';
     if (s.inBattle && s.mode === 'cmd') return 'KeyZ';

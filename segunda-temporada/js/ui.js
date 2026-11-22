@@ -196,9 +196,9 @@ class PartyScene {
     }
     sfx('select');
     this.busy = true;
-    const r = await ask('¿Qué hacés con ' + m.name + '?', ['Mover', 'Ponerle mote', 'Nada']);
+    const r = await ask('¿Qué haces con ' + m.name + '?', ['Mover', 'Ponerle mote', 'Nada']);
     this.busy = false;
-    if (r === 0) { this.swap = i; this.msg = 'Elegí con quién cambiar.'; }
+    if (r === 0) { this.swap = i; this.msg = 'Elige con quién cambiar.'; }
     if (r === 1) { const nm = await nameEntry('Mote para ' + m.sp.n, m.nick || m.sp.n, 10); m.nick = nm && nm !== m.sp.n ? nm : null; }
   }
   drawTop(ctx) { const m = G.party[this.sel]; if (m) drawMonInfo(ctx, m); }
@@ -278,7 +278,7 @@ async function useItemOn(id, m, inBattle = false) {
     m.status = null; m.slp = 0; sfx('heal'); if (!inBattle) await say(m.name + ' se curó. Tecito y a seguir.'); return true;
   }
   if (I.k === 'revive') {
-    if (!m.fainted) { await say(m.name + ' no está debilitado. Guardalo para después.'); return false; }
+    if (!m.fainted) { await say(m.name + ' no está debilitado. Guárdalo para después.'); return false; }
     m.hp = Math.floor(m.maxhp / 2); m.status = null; sfx('heal'); if (!inBattle) await say('¡Toma dos! ' + m.name + ' volvió a escena.'); return true;
   }
   if (I.k === 'pp') { for (const mv of m.moves) mv.pp = Math.min(MOVES[mv.id].pp, mv.pp + I.v); sfx('heal'); if (!inBattle) await say(m.name + ' se hidrató. Recuperó PP.'); return true; }
@@ -324,7 +324,7 @@ async function dexMenu() {
       txt(ctx, seen ? SPECIES[id].n : '?????', 104, 62);
       if (seen) typeBadge(ctx, SPECIES[id].t, 104, 76);
       if (caught) wrapText(SPECIES[id].d, 29).slice(0, 4).forEach((l, i) => txt(ctx, l, 12, 136 + i * 12, COL.ink, null));
-      else txt(ctx, seen ? 'Creá un vínculo para saber más.' : 'Todavía no la viste.', 12, 140, COL.dim, null);
+      else txt(ctx, seen ? 'Crea un vínculo para saber más.' : 'Todavía no la viste.', 12, 140, COL.dim, null);
     },
   });
 }
@@ -341,7 +341,7 @@ async function proaMenu() {
       if (G.party.length >= 6) { await say('Tu equipo está lleno. Seis es multitud.'); continue; }
       const m = G.box.splice(i, 1)[0]; m.heal(); G.party.push(m); await say(m.name + ' se sumó al equipo.');
     } else if (r === 1) {
-      if (G.party.length <= 1) { await say('No podés quedarte sin compañía. Es peligroso y triste.'); continue; }
+      if (G.party.length <= 1) { await say('No puedes quedarte sin compañía. Es peligroso y triste.'); continue; }
       const i = await partyMenu('select', { title: 'DEPOSITAR', filter: (m) => (G.party.filter((x) => !x.fainted).length <= 1 && !m.fainted ? 'Es tu único en pie.' : null) });
       if (i < 0) continue;
       const m = G.party.splice(i, 1)[0]; m.heal(); G.box.push(m); await say(m.name + ' se fue a descansar a la Proa. Se lo ganó.');
@@ -362,7 +362,7 @@ async function craftMenu() {
       top: (ctx, it, k) => {
         itemTop(ctx, recipes[k].out);
         box(ctx, 4, 96, 248, 60);
-        txt(ctx, 'Necesitás:', 12, 104);
+        txt(ctx, 'Necesitas:', 12, 104);
         recipes[k].need.forEach(([id, q], j) => txt(ctx, q + 'x ' + ITEMS[id].n + ' (' + (G.bag[id] || 0) + ')', 12, 118 + j * 12, hasItem(id, q) ? COL.ink : COL.red));
       },
     });
@@ -381,12 +381,12 @@ async function shopMenu(stock, clerk = 'Vendedor') {
       title: 'TIENDA', headerRight: () => '$' + G.money,
       items: stock.map((id) => ({ label: ITEMS[id].n.slice(0, 16), sub: '$' + ITEMS[id].price })), top: (ctx, it, k) => itemTop(ctx, stock[k]),
     });
-    if (i < 0) { await say('¡Volvé pronto! Y traé amigos con plata.', clerk); return; }
+    if (i < 0) { await say('¡Vuelve pronto! Y trae amigos con plata.', clerk); return; }
     const id = stock[i], price = ITEMS[id].price;
     const max = Math.min(99, Math.floor(G.money / price));
-    if (max < 1) { await say('Te falta plata. Ganale a alguien y volvé.', clerk); continue; }
+    if (max < 1) { await say('Te falta plata. Gánale a alguien y vuelve.', clerk); continue; }
     const q = await qtyPicker(id, max);
-    if (q > 0) { G.money -= q * price; addItem(id, q); sfx('item'); if (id === 'cristal' && q >= 10) { addItem('cristalest', 1); await say('¡Por comprar diez, te regalo un Cristal Estelar! No le digas al jefe.', clerk); } else await say('¡Gracias! Acá tenés tus ' + q + ' ' + ITEMS[id].n + '.', clerk); }
+    if (q > 0) { G.money -= q * price; addItem(id, q); sfx('item'); if (id === 'cristal' && q >= 10) { addItem('cristalest', 1); await say('¡Por comprar diez, te regalo un Cristal Estelar! No le digas al jefe.', clerk); } else await say('¡Gracias! Acá tienes tus ' + q + ' ' + ITEMS[id].n + '.', clerk); }
   }
 }
 class QtyScene {
@@ -439,10 +439,10 @@ class NameScene {
     txt(ctx, this.title, 128, 70, '#3060c0', COL.inkSh, 'center');
     const s = this.v + ((FRAME >> 4) & 1 ? '_' : ' ');
     txt(ctx, s, 128, 92, COL.ink, COL.inkSh, 'center');
-    txt(ctx, 'Escribí con el teclado. ENTER = listo', 128, 110, COL.dim, null, 'center');
+    txt(ctx, 'Escribe con el teclado. ENTER = listo', 128, 110, COL.dim, null, 'center');
   }
   drawBot(ctx) {
-    botBackdrop(ctx); txt(ctx, 'Tocá las letras', 128, 20, '#fff', '#000', 'center');
+    botBackdrop(ctx); txt(ctx, 'Toca las letras', 128, 20, '#fff', '#000', 'center');
     this.keys().forEach((k, i) => { const x = 8 + (i % 9) * 27, y = 50 + Math.floor(i / 9) * 30; pill(ctx, x, y, 25, 26, k === 'OK' ? '#48a060' : k === '←' ? '#c05050' : '#46507a', k); });
   }
 }

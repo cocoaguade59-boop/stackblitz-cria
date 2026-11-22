@@ -67,7 +67,7 @@ class Battle {
     // rival
     if (this.showTrainer) {
       const looks = this.tr.looks || [this.tr.look];
-      looks.forEach((lk, i) => drawSpriteScaled(ctx, personSprite(lk, 0, 0), 166 + this.trainerX - 200 + i * 30 - (looks.length - 1) * 15, 30, 3));
+      looks.forEach((lk, i) => { const pc = personSprite(lk, 0, 0), big = pc.big; drawSpriteScaled(ctx, pc, 166 + this.trainerX - 200 + i * 30 - (looks.length - 1) * 15 - (big ? 16 : 0), big ? 6 : 30, big ? 2.5 : 3); });
     } else if (!this.fx.foe.hide && this.foe) {
       const f = this.fx.foe; ctx.globalAlpha = f.a;
       const cv = creatureSprite(this.foe.id);
@@ -273,7 +273,7 @@ class Battle {
   async resolveTurn(act) {
     // acciones previas del jugador
     if (act.k === 'switch') {
-      await msgB('¡Volvé, ' + this.me.name + '!', 25);
+      await msgB('¡Vuelve, ' + this.me.name + '!', 25);
       await tween(10, (t) => { this.fx.me.dx = -180 * t; }); this.fx.me.dx = 0;
       await this.sendOut('me', G.party[act.i]);
     }
@@ -312,7 +312,7 @@ class Battle {
       const next = this.foeTeam.find((m) => !m.fainted);
       if (!next) return 'win';
       if (!this.me.fainted && G.party.filter((m) => !m.fainted).length > 1 && G.opts.shift !== false) {
-        const r = await ask(this.tr.name + ' va a sacar a ' + next.name + '. ¿Cambiás de criatura?', ['Sí', 'No'], null, 1);
+        const r = await ask(this.tr.name + ' va a sacar a ' + next.name + '. ¿Cambias de criatura?', ['Sí', 'No'], null, 1);
         if (r === 0) { const i = await partyMenu('select', { title: 'CAMBIAR', filter: (m) => (m.fainted ? 'No puede pelear.' : m === this.me ? 'Ya está en escena.' : null) }); if (i >= 0) { await tween(10, (t) => { this.fx.me.dx = -180 * t; }); this.fx.me.dx = 0; await this.sendOut('me', G.party[i], false); } }
       }
       await this.sendOut('foe', next);
@@ -445,7 +445,7 @@ class Battle {
       const isNew = !G.dex.caught[f.id];
       markCaught(f.id);
       if (isNew) await msgB('Se registraron los datos de ' + f.name + ' en el Criaturario.');
-      if ((await ask('¿Le ponés un mote a ' + f.name + '?', ['Sí', 'No'], null, 1)) === 0) { const nm = await nameEntry('Mote para ' + f.sp.n, f.sp.n, 10); if (nm && nm !== f.sp.n) f.nick = nm; }
+      if ((await ask('¿Le pones un mote a ' + f.name + '?', ['Sí', 'No'], null, 1)) === 0) { const nm = await nameEntry('Mote para ' + f.sp.n, f.sp.n, 10); if (nm && nm !== f.sp.n) f.nick = nm; }
       f.status = null; f.slp = 0;
       if (G.party.length < 6) G.party.push(f);
       else { f.heal(); G.box.push(f); await msgB(f.name + ' se fue a descansar a la Proa. Tu equipo ya está completo.'); }
@@ -510,7 +510,7 @@ async function learnMove(m, id) {
   if (m.moves.length < 4) { m.moves.push({ id, pp: M.pp }); sfx('item'); await say('¡' + m.name + ' aprendió ' + M.n + '!'); return true; }
   for (;;) {
     const r = await ask(m.name + ' quiere aprender ' + M.n + ', pero ya sabe cuatro movimientos. ¿Olvida uno?', ['Sí', 'No'], null, 1);
-    if (r === 1) { if ((await ask('¿Seguro que no aprende ' + M.n + '?', ['Seguro', 'No, esperá'], null, 1)) === 0) { await say(m.name + ' no aprendió ' + M.n + '.'); return false; } continue; }
+    if (r === 1) { if ((await ask('¿Seguro que no aprende ' + M.n + '?', ['Seguro', 'No, espera'], null, 1)) === 0) { await say(m.name + ' no aprendió ' + M.n + '.'); return false; } continue; }
     const i = await listMenu({
       title: '¿QUÉ OLVIDA?', items: m.moves.map((mv) => ({ label: MOVES[mv.id].n, sub: TYPES[MOVES[mv.id].t].n.slice(0, 6), col: shade(TYPES[MOVES[mv.id].t].c, -0.2) })),
       top: (ctx, it, k) => { drawMonInfo(ctx, m); box(ctx, 4, 116, 248, 18); txt(ctx, 'Nuevo: ' + M.n + ' (' + TYPES[M.t].n + ' ' + (M.p || '--') + ')', 10, 121); },

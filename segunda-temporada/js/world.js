@@ -310,7 +310,7 @@ class World {
     ctx.fillStyle = '#00000038'; ctx.beginPath(); ctx.ellipse(sx + 8, e.y * TS + e.oy - cy + 14, 6, 2.5, 0, 0, Math.PI * 2); ctx.fill();
     const look = e.isPlayer ? G.look : e.look;
     if (e.def && e.def.mon) { const b = (this.anim >> 4) & 1; ctx.drawImage(creatureIcon(e.def.mon), sx - 8, sy - 18 - b); }
-    else ctx.drawImage(personSprite(look, di, step), sx, sy - 7);
+    else { const pc = personSprite(look, di, step); if (pc.big) ctx.drawImage(pc, sx - 8, sy - 17); else ctx.drawImage(pc, sx, sy - 7); }
     // pasto alto tapa los pies
     const c = this.ch(Math.round((e.x * TS + e.ox) / TS), Math.round((e.y * TS + e.oy) / TS));
     if (c === ',' && !e.jump) { const t = tileCanvas('tall', 0, (this.anim >> 5) & 1); ctx.drawImage(t, 0, 9, 16, 7, sx, sy + 9, 16, 7); }
@@ -389,7 +389,7 @@ async function doBattle(o) {
     const h = G.lastHeal || { map: 'pitch_proa', x: 4, y: 4 };
     WORLD.load(h.map, h.x, h.y, 'down');
     await fadeTo(0, 24);
-    await say('Luas: Te encontraron tirado en el camino y te trajeron. Tus criaturas ya están bien. Vos... tomá agua.', 'Luas');
+    await say('Luas: Te encontraron tirado en el camino y te trajeron. Tus criaturas ya están bien. Tú... toma agua.', 'Luas');
     return 'lose';
   }
   void prevMusic; Sound.curName = null; Sound.play(mapMusic());

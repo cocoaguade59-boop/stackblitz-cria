@@ -4,7 +4,7 @@ module.exports = async (p, key, shot) => {
   const policy = async (s) => {
     if (s.t === 'DialogScene' && s.choices) {
       if (/Pregunta/.test(s.text)) { const i = s.choices.findIndex((c) => ANS.includes(c)); for (let k = 0; k < i; k++) await key('ArrowDown', 1, 60); return 'KeyZ'; }
-      if (/mote|Cambiás/.test(s.text)) return 'KeyX';
+      if (/mote|apodo|Cambias/.test(s.text)) return 'KeyX';
       return 'KeyZ';
     }
     if (s.t === 'World' && s.lock === 0) return null;

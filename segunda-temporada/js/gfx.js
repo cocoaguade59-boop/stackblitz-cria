@@ -595,8 +595,22 @@ function drawPerson(look, dir, step) {
   return out.toCanvas(false);
 }
 const PERSON_CACHE = {};
+// Sprites dibujados a mano (js/sprites_usuario.js): reemplazan al dibujo por código de ese personaje.
+const USER_IMG = {};
+function loadUserSprites() {
+  const ps = [];
+  for (const [k, url] of Object.entries(typeof SPRITES_USUARIO !== 'undefined' ? SPRITES_USUARIO : {})) {
+    ps.push(new Promise((res) => { const im = new Image(); im.onload = () => { USER_IMG[k] = im; res(); }; im.onerror = res; im.src = url; }));
+  }
+  return Promise.all(ps);
+}
+const USER_ROW = [0, 3, 1, 2], USER_COL = [0, 1, 3];
 function personSprite(look, dir, step) {
   const k = look + dir + step;
+  if (USER_IMG[look]) {
+    if (!PERSON_CACHE[k]) { const c = mkCanvas(32, 32); c.getContext('2d').drawImage(USER_IMG[look], USER_COL[step] * 32, USER_ROW[dir] * 32, 32, 32, 0, 0, 32, 32); c.big = true; PERSON_CACHE[k] = c; }
+    return PERSON_CACHE[k];
+  }
   if (!PERSON_CACHE[k]) {
     if (dir === 3) { // derecha = izquierda espejada
       const src = drawPerson(look, 2, step); const c = mkCanvas(16, 22); const x = c.getContext('2d');

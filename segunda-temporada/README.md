@@ -37,6 +37,19 @@ Extras: hallazgos ocultos (brillitos en el suelo), taller de cristales en la Pro
 inciensos de tipo, criaturario de 41 especies, evoluciones, quemadura/parálisis/sueño,
 noche y atardecer según tu reloj.
 
+## Sprites dibujados a mano
+
+Las hojas originales van en `assets/personajes/originales/` (4 filas: abajo, izquierda, derecha,
+arriba; 4 cuadros de caminata cada una, dibujadas al doble de tamaño). Para sumarlas al juego:
+
+```bash
+python3 tools/importar_sprites.py
+```
+
+El script las reduce a escala de juego, alinea los pies y genera `js/sprites_usuario.js`. Si el
+nombre del archivo coincide con un personaje (por ejemplo `nicole.png`), ese personaje usa el
+sprite dibujado en vez del dibujado por código.
+
 ## Código
 
 Scripts clásicos (sin módulos ni build) para que abra con doble clic:

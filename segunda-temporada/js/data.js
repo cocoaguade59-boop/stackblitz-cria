@@ -129,7 +129,7 @@ const SPECIES = {
     d: 'Pingüino que sueña con abrir un restaurante. Por ahora solo sirve hielo. Con mucha actitud.',
     art: { a: 'penguin', c: ['#2c78b8', '#f0fcff', '#f8a830'], f: ['scarf'], s: 0.6 } },
   pinguichef: { n: 'Pingüchef', t: 'water', b: [74, 80, 70, 60], xp: 160, cr: 80, ls: [[24, 'acuacola'], [28, 'corpulencia'], [34, 'surf'], [42, 'hidrobomba']],
-    d: 'Chef estrella. Si le decís que la comida está rica, te sirve el doble. Si no, también.',
+    d: 'Chef estrella. Si le dices que la comida está rica, te sirve el doble. Si no, también.',
     art: { a: 'penguin', c: ['#303c58', '#f8f8f8', '#f8a830'], f: ['chefhat', 'scarf'], s: 0.92 } },
   medusync: { n: 'Medusync', t: 'water', b: [50, 40, 46, 60], xp: 64, cr: 160, evo: ['medubass', 26], ls: [[1, 'burbuja'], [6, 'vientofeerico'], [11, 'paralizador'], [17, 'hidropulso']],
     d: 'Medusa que late al ritmo de la música. En silencio se pone nerviosa.',
@@ -200,20 +200,20 @@ const SPECIES = {
     art: { a: 'tripod', c: ['#7888a0', '#303040', '#58c8f8'], f: [], s: 0.85 } },
   // ---- LUCHA ----
   doblecan: { n: 'Doblecan', t: 'fighting', b: [54, 62, 48, 58], xp: 66, cr: 150, evo: ['dobleriesgo', 24], ls: [[1, 'placaje'], [1, 'grunido'], [6, 'golpekarate'], [12, 'rapido'], [18, 'patadabaja']],
-    d: 'Perrito doble de riesgo. Se tira por las escaleras para que vos no tengas que hacerlo.',
+    d: 'Perrito doble de riesgo. Se tira por las escaleras para que tú no tengas que hacerlo.',
     art: { a: 'dog', c: ['#f0a038', '#fff0d8', '#3858c8'], f: ['band'], s: 0.6 } },
   dobleriesgo: { n: 'Dobleriesgo', t: 'fighting', b: [76, 96, 64, 80], xp: 168, cr: 70, ls: [[24, 'punodrenaje'], [29, 'corpulencia'], [35, 'escenariesgo'], [42, 'bocajarro']],
-    d: 'Hace todas sus escenas. Y las tuyas, si lo dejás. Tiene más yesos que fans.',
+    d: 'Hace todas sus escenas. Y las tuyas, si lo dejas. Tiene más yesos que fans.',
     art: { a: 'dog', c: ['#c07838', '#f8e8d0', '#c83838'], f: ['band', 'jacket'], s: 0.92 } },
   boomguru: { n: 'Boomgurú', t: 'fighting', b: [80, 88, 70, 72], xp: 170, cr: 70, ls: [[1, 'golpekarate'], [1, 'grunido'], [20, 'patadabaja'], [26, 'corpulencia'], [32, 'punodrenaje'], [40, 'bocajarro']],
     d: 'Canguro sonidista. Sostiene el micrófono boom con la cola. Escucha hasta tus pensamientos.',
     art: { a: 'roo', c: ['#c89060', '#f0d8b0', '#404048'], f: ['boom'], s: 0.84 } },
   // ---- NORMAL ----
   palomiton: { n: 'Palomitón', t: 'normal', b: [42, 46, 40, 56], xp: 50, cr: 255, evo: ['palomaiz', 14], ls: [[1, 'placaje'], [3, 'grunido'], [7, 'rapido'], [11, 'flash']],
-    d: 'Paloma que vive en los cines. Come pochoclo del piso. Juzga las películas en silencio.',
+    d: 'Paloma que vive en los cines. Come canchita del piso. Juzga las películas en silencio.',
     art: { a: 'bird', c: ['#b4a0e8', '#fff4d0', '#f0b840'], f: ['popcorn'], s: 0.52 } },
   palomaiz: { n: 'Palomaíz', t: 'normal', b: [64, 66, 58, 78], xp: 135, cr: 120, ls: [[14, 'plano'], [20, 'ensayo'], [27, 'golpecuerpo'], [34, 'derribo']],
-    d: 'Ahora tiene un balde de pochoclo como nido. Comparte, pero solo con quien llora en las películas.',
+    d: 'Ahora tiene un balde de canchita como nido. Comparte, pero solo con quien llora en las películas.',
     art: { a: 'bird', c: ['#9c84e0', '#fff4d0', '#e83838'], f: ['popcorn', 'bucket'], s: 0.78 } },
   rollin: { n: 'Rollín', t: 'normal', b: [46, 44, 46, 50], xp: 52, cr: 255, evo: ['rollazo', 18], ls: [[1, 'placaje'], [1, 'malicioso'], [6, 'rapido'], [12, 'siesta'], [15, 'golpecuerpo']],
     d: 'Hámster que corre dentro de un rollo de película. Si se detiene, se termina la escena.',
@@ -258,7 +258,7 @@ const ITEMS = {
   inc_normal: { n: 'Incienso Neutro', k: 'incense', t: 'normal', price: 500, d: 'Atrae criaturas Normales por 120 pasos.' },
   teja: { n: 'Teja Reforzada', k: 'key', d: 'Una teja de cantera. Alguien en Aldea Pitch la necesita desesperadamente.' },
   llave: { n: 'Llave del Rey', k: 'key', d: 'Abre la puerta del salón del trono. Pesa más de lo que parece.' },
-  libreta: { n: 'Libreta de Chismes', k: 'key', d: 'Dan te la prestó. Anotá acá todo lo que escuches. Todo.' },
+  libreta: { n: 'Libreta de Chismes', k: 'key', d: 'Dan te la prestó. Anota acá todo lo que escuches. Todo.' },
 };
 
 const DIPLOMAS = [

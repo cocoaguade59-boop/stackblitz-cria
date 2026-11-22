@@ -37,7 +37,7 @@ class TitleScene {
   }
   async go(k) {
     if (this.busy) return; this.busy = true;
-    if (k === 'new' && this.save && (await ask('Ya hay una partida guardada. Si empezás otra, se va a perder al guardar. ¿Seguro?', ['Empezar de cero', 'Mejor no'], null, 1)) !== 0) { this.busy = false; return; }
+    if (k === 'new' && this.save && (await ask('Ya hay una partida guardada. Si empiezas otra, se va a perder al guardar. ¿Seguro?', ['Empezar de cero', 'Mejor no'], null, 1)) !== 0) { this.busy = false; return; }
     await fadeTo(1, 20);
     Scenes.remove(this);
     if (k === 'cont') {
@@ -64,7 +64,7 @@ class TitleScene {
     const logo = (s, y, sc, col) => { ctx.save(); ctx.translate(128, y + bob); ctx.scale(sc, sc); for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1], [1, 1], [2, 2]]) { ctx.fillStyle = '#20102c'; ctx.fillText(s, dx, dy); } ctx.fillStyle = col; ctx.fillText(s, 0, 0); ctx.restore(); };
     logo('CRIATURAS', 14, 3, '#f8d040'); logo('DEL REINO', 42, 2, '#ffffff'); logo('~ SEGUNDA TEMPORADA ~', 64, 1, '#f8a8c8');
     ctx.restore();
-    if ((this.t >> 5) & 1) txt(ctx, 'PULSÁ A / TOCÁ ABAJO', 128, 178, '#fff', '#000', 'center');
+    if ((this.t >> 5) & 1) txt(ctx, 'Pulsa A / Toca ABAJO', 128, 178, '#fff', '#000', 'center');
   }
   drawBot(ctx) {
     botBackdrop(ctx, '#2a1d44', '#33244f');
@@ -95,12 +95,12 @@ class IntroBg {
       this.looks.forEach((lk, i) => { drawSpriteScaled(ctx, personSprite(lk, 0, ((this.t >> 4) & 1) && i === this.sel ? 1 : 0), 22 + i * 76, 40, 4); if (i === this.sel) cursorArrow(ctx, 50 + i * 76, 30, '#e05048'); });
       return;
     }
-    if (this.who) drawSpriteScaled(ctx, personSprite(this.who, 0, 0), 76, 38, 4);
+    if (this.who) { const pc = personSprite(this.who, 0, 0); if (pc.big) drawSpriteScaled(ctx, pc, 52, 10, 3); else drawSpriteScaled(ctx, pc, 76, 38, 4); }
     if (this.mon) ctx.drawImage(creatureSprite(this.mon), 140, 54 + ((this.t >> 4) & 1));
   }
   drawBot(ctx) {
     botBackdrop(ctx);
-    if (this.looks) { this.looks.forEach((lk, i) => { pill(ctx, 6 + i * 84, 30, 78, 130, i === this.sel ? '#5878d0' : '#46507a', null, { sel: i === this.sel }); drawSpriteScaled(ctx, personSprite(lk, 0, 0), 21 + i * 84, 46, 3); }); txt(ctx, 'Elegí tu look', 128, 12, '#fff', '#000', 'center'); }
+    if (this.looks) { this.looks.forEach((lk, i) => { pill(ctx, 6 + i * 84, 30, 78, 130, i === this.sel ? '#5878d0' : '#46507a', null, { sel: i === this.sel }); drawSpriteScaled(ctx, personSprite(lk, 0, 0), 21 + i * 84, 46, 3); }); txt(ctx, 'Elige tu look', 128, 12, '#fff', '#000', 'center'); }
   }
 }
 async function newGame() {
@@ -108,19 +108,19 @@ async function newGame() {
   const bg = new IntroBg(); Scenes.push(bg);
   Sound.play('town');
   await fadeTo(0, 30);
-  await say(['¡Hola, hola! ¡Bienvenido al Reino! Me llamo Alessandro. Algunos me dicen "el guía". Otros, "el que habla mucho". Los dos tienen razón.',
-    'Este reino está habitado por criaturas mágicas. Las personas viven con ellas, las entrenan y forman equipos. Como un elenco, pero con más plumas y escamas.',
-    'Acá todo tiene que ver con contar historias: los pueblos se llaman como las etapas de una película. Pitch, Storyboard, Rodaje, Última Toma, Montaje...',
-    'Y en el Castillo Difusión vive el Rey Navarrete, el gran desafío. Para llegar, vas a necesitar cuatro diplomas. Y paciencia. Y buenos amigos.',
-    'Pero antes de todo eso... ¡contame de vos!'], 'Alessandro');
+  await say(['¡Hola, hola! ¡Bienvenido al Reino, causa! Me llamo Alessandro. Algunos me dicen "el guía". Otros, "el que habla un montón". Los dos tienen razón, pe.',
+    'Este reino está habitado por criaturas mágicas. Las personas viven con ellas, las entrenan y forman equipos. Como un elenco, pero con más plumas, escamas y menos roche.',
+    'Aquí todo tiene que ver con contar historias: los pueblos se llaman como las etapas de una película. Pitch, Storyboard, Rodaje, Última Toma, Montaje...',
+    'Y en el Castillo Difusión vive el Rey Navarrete, el gran desafío. Para llegar, vas a necesitar cuatro diplomas. Y paciencia. Y buenos patas.',
+    'Pero antes de todo eso... ¡cuéntame de ti!'], 'Alessandro');
   bg.looks = ['p_cap', 'p_pony', 'p_bun']; bg.who = null; bg.mon = null;
   const li = await new Promise((r) => { bg.pickDone = r; });
   G.look = bg.looks[li]; bg.looks = null; bg.who = G.look;
-  const name = await nameEntry('¿Cómo te llamás?', 'Viajero', 10);
+  const name = await nameEntry('¿Cómo te llamas?', 'Viajero', 10);
   G.name = name;
   bg.who = 'alessandro'; bg.mon = 'zumbaflor';
-  await say(['¡' + name + '! ¡Qué buen nombre! Suena a protagonista. A protagonista de segunda temporada, que es cuando la historia se pone buena.',
-    'Te espero en Aldea Pitch. Mi amigo marinero te va a llevar en su barco. Si te mareás, mirá el horizonte. Si te sigue mareando, mirá para otro lado.',
+  await say(['¡' + name + '! ¡Qué bacán tu nombre! Suena a protagonista. A protagonista de segunda temporada, que es cuando la historia se pone buena.',
+    'Te espero en Aldea Pitch. Mi pata el pescador te va a llevar en su bote. Si te mareas, mira el horizonte. Si te sigue mareando, ya fue, vomita por la borda nomás.',
     '¡Que empiece la aventura!'], 'Alessandro');
   await fadeTo(1, 30);
   Scenes.remove(bg);
@@ -136,7 +136,7 @@ async function newGame() {
 function showFatal(msg) {
   const b = document.getElementById('boot');
   b.style.display = 'flex'; b.style.background = '#200'; b.style.color = '#fbb'; b.style.padding = '20px'; b.style.whiteSpace = 'pre-wrap'; b.style.fontSize = '12px';
-  b.textContent = 'Ups, algo falló:\n\n' + msg + '\n\nRecargá la página. Si sigue, avisá con este mensaje.';
+  b.textContent = 'Ups, algo falló:\n\n' + msg + '\n\nRecargá la página. Si sigue, avisa con este mensaje.';
 }
 // Antes de arrancar, un error se muestra en pantalla. Ya en juego, se registra y el juego sigue
 // (si un guion falló, el mundo se destraba solo gracias al salvavidas de world.js).
@@ -145,6 +145,7 @@ window.addEventListener('error', (e) => { if (!BOOTED) showFatal(e.message + '\n
 window.addEventListener('unhandledrejection', (e) => { const m = String(e.reason && e.reason.stack || e.reason); if (!BOOTED) showFatal(m); else console.error(m); });
 (async function boot() {
   try { await loadFont(); } catch (e) { console.warn('Sin fuente', e); }
+  await loadUserSprites();
   linkInteriors();
   fitScreens();
   document.getElementById('boot').style.display = 'none';

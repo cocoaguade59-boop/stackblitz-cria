@@ -64,8 +64,8 @@ registerMap('pitch', {
   signs: [{ x: 9, y: 12, text: 'ALDEA PITCH. Aldea de campesinos, artesanos y soñadores. "Toda historia empieza con una idea... y con alguien que se anima a contarla."' }],
   npcs: [
     { id: 'ale_out', look: 'alessandro', name: 'Alessandro', x: 10, y: 16, dir: 'down', cond: () => !flag('intro'), talk: () => S.intro() },
-    { id: 'kid', look: 'peque_f', name: 'Alexandro', x: 7, y: 10, move: 'wander', talk: () => S.alexandro() },
-    { id: 'marinero', look: 'pescador', name: 'Marinero', x: 6, y: 17, dir: 'down', text: () => (POST() ? 'Mi barco te trajo cuando eras un novato. Mirate ahora. Me emociono y no lloro: es el viento.' : 'Te traje en mi barco, ¿te acordás? Mareado y todo, bajaste con cara de protagonista.') },
+    { id: 'kid', look: 'alexandro', name: 'Alexandro', x: 7, y: 10, move: 'wander', talk: () => S.alexandro() },
+    { id: 'marinero', look: 'pescador', name: 'Marinero', x: 6, y: 17, dir: 'down', text: () => (POST() ? 'Mi bote te trajo cuando eras un novato, causa. Mírate ahora. Me emociono y no lloro: es el viento.' : 'Te traje en mi bote, ¿te acuerdas? Mareado y todo, bajaste con cara de protagonista, causa. Vomitaste dos veces, pero con estilo.') },
     { id: 'vieja', look: 'campesina', name: 'Doña Rosa', x: 19, y: 10, move: 'turn', text: 'En mis tiempos las criaturas se capturaban con amor y paciencia. Ahora también, pero con cristales. Igual el amor ayuda.' },
     { id: 'gab_post', look: 'gabriela2', name: 'Gabriela', x: 12, y: 10, dir: 'down', cond: POST, talk: () => S.gabrielaPost() },
     { id: 'ale_post', look: 'alessandro', name: 'Alessandro', x: 13, y: 10, dir: 'down', cond: POST, talk: () => S.alessandroPost() },
@@ -142,9 +142,9 @@ registerMap('ruta1', {
   signs: [{ x: 8, y: 11, text: 'RUTA 1. Al norte: Villa Storyboard. Aviso: el pasto alto tiene criaturas. Y garrapatas emocionales.' }],
   enc: { grass: [['palomiton', 2, 5, 30], ['rollin', 2, 5, 28], ['hedroca', 3, 5, 18], ['pinguieson', 3, 5, 12], ['salamandro', 3, 5, 12]] },
   npcs: [
-    { id: 'r1a', look: 'chico', name: 'Novato Tomi', x: 12, y: 24, dir: 'left', trainer: { id: 'r1a', sight: 3, team: [['palomiton', 4], ['rollin', 4]], money: 160, intro: '¡Soy de Brandcut! Bueno, aspirante. Me dejan cargar los cables.', lose: 'Perdí... pero aprendí que los cables pesan menos que la derrota.', after: 'Algún día voy a ser de Brandcut de verdad. Primero aprendo a ganar.' } },
-    { id: 'r1b', look: 'chica', name: 'Rebata Lula', x: 4, y: 12, dir: 'right', trainer: { id: 'r1b', sight: 4, team: [['hedroca', 5], ['pinguieson', 5]], money: 200, intro: '¡Los Rebata venimos a hacer ruido! ¡Y a pelear! ¡Y a hacer ruido peleando!', lose: '¡Bueno! ¡Igual hicimos ruido!', after: 'Shhh. Bueno, no: ¡HOLA!' } },
-    { id: 'r1c', look: 'kid2', name: 'Peque Mora', x: 15, y: 5, dir: 'down', text: 'Para atrapar una criatura, primero bajale la vida. Si la dormís o paralizás, ¡mejor todavía! Me lo dijo mi mamá. Ella atrapó a mi papá así. Creo que era una metáfora.' },
+    { id: 'r1a', look: 'chico', name: 'Novato Tomi', x: 12, y: 24, dir: 'left', trainer: { id: 'r1a', sight: 3, team: [['palomiton', 4], ['rollin', 4]], money: 160, intro: '¡Soy de Brandcut! Bueno, aspirante. Me dejan cargar los cables. Es chamba, igual cuenta, ¿no?', lose: 'Perdí... pero aprendí que los cables pesan menos que la derrota.', after: 'Algún día voy a ser de Brandcut de verdad. Primero aprendo a ganar.' } },
+    { id: 'r1b', look: 'chica', name: 'Rebata Lula', x: 4, y: 12, dir: 'right', trainer: { id: 'r1b', sight: 4, team: [['hedroca', 5], ['pinguieson', 5]], money: 200, intro: '¡Los Rebata venimos a hacer roche! ¡Y a pelear! ¡Y a hacer roche peleando, carajo!', lose: '¡Bueno! ¡Igual hicimos ruido!', after: 'Shhh. Bueno, no: ¡HOLA!' } },
+    { id: 'r1c', look: 'chica', name: 'Mora', x: 15, y: 5, dir: 'down', text: 'Para jalar una criatura, primero bájale la vida. Si la duermes o la paralizas, mejor todavía. Así me jaló mi ex a mí, causa. Creo que era una metáfora. Creo.' },
   ],
   finds: [{ x: 1, y: 22, item: 'cristal', n: 2 }, { x: 16, y: 2, item: 'cafe' }, { x: 4, y: 27, item: 'fragmento', hidden: true }, { x: 15, y: 21, item: 'fragmento', hidden: true }],
 });
@@ -185,7 +185,7 @@ registerMap('storyboard', {
   ],
   signs: [{ x: 8, y: 11, text: 'VILLA STORYBOARD. Aldea del clan Storyboard. "Antes de zarpar, se dibuja el mapa." Gran salón de Tamara, materializadora.' }],
   npcs: [
-    { id: 'gate1', look: 'vikingo', name: 'Asistente', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_foto'), text: 'Perdón, el paso al norte está cerrado hasta que tengas el diploma de Fotografía Estética. Lo dice el reglamento. Yo no hice el reglamento. Yo solo lo sostengo... con mi cuerpo.' },
+    { id: 'gate1', look: 'vikingo', name: 'Asistente', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_foto'), text: 'Oe, perdón, causa, el paso al norte está cerrado hasta que tengas el diploma de Fotografía Estética. Lo dice el reglamento. Yo no hice el reglamento. Yo solo lo sostengo... con mi cuerpo.' },
     { id: 'sb1', look: 'vikinga', name: 'Lucía', x: 14, y: 10, move: 'wander', text: 'Tamara es materializadora: crea cosas con las manos. Dicen que hizo una silla tan linda que nadie se anima a sentarse. Ni ella.' },
     { id: 'sb2', look: 'vikingo2', name: 'Don Ernesto', x: 6, y: 18, dir: 'up', text: 'Las criaturas de Fuego, Agua y Planta se cuidan entre ellas como una familia rara. Se pelean, pero se quieren. Como cualquier familia.' },
     { id: 'edison', look: 'edison', name: 'Edison', x: 13, y: 11, dir: 'down', cond: POST, talk: () => S.edison() },
@@ -196,7 +196,7 @@ registerMap('sb_studio', {
   name: 'Estudio de Tamara', inside: true, music: 'town', rows: studioRows(), entry: STUDIO_ENTRY, bg: 'stage',
   npcs: [
     { id: 'tamara', look: 'tamara', name: 'Tamara', x: 5, y: 2, dir: 'down', talk: () => S.tamara() },
-    { id: 'sbaide', look: 'vikingo', name: 'Ayudante', x: 3, y: 6, dir: 'right', text: () => (flag('dip_foto') ? 'Tamara dijo que tu equipo tenía "buena composición". Es lo más lindo que le escuché decir. Y le escuché decir "qué lindo" a una piedra.' : 'Tamara te va a pedir equilibrio: una criatura de Fuego, una de Agua y una de Planta en tu equipo. En la Ruta 1 hay de todo si buscás en el pasto.') },
+    { id: 'sbaide', look: 'vikingo', name: 'Ayudante', x: 3, y: 6, dir: 'right', text: () => (flag('dip_foto') ? 'Tamara dijo que tu equipo tenía "buena composición". Es lo más lindo que le escuché decir. Y le escuché decir "qué lindo" a una piedra.' : 'Tamara te va a pedir equilibrio: una criatura de Fuego, una de Agua y una de Planta en tu equipo. En la Ruta 1 hay de todo si buscas en el pasto.') },
   ],
 });
 registerMap('sb_casa', {
@@ -256,7 +256,7 @@ registerMap('ruta2', {
   enc: { grass: [['lucierlaga', 8, 12, 22], ['doblecan', 8, 12, 20], ['claquetin', 9, 12, 18], ['palomiton', 8, 11, 15], ['rollin', 8, 11, 10], ['medusync', 9, 12, 10], ['salamandro', 9, 12, 5]] },
   npcs: [
     { id: 'r2a', look: 'chico', name: 'Cronista Juli', x: 10, y: 26, dir: 'left', trainer: { id: 'r2a', sight: 4, team: [['doblecan', 10], ['lucierlaga', 11]], money: 330, intro: '¡Voy a escribir sobre este combate! Título provisorio: "Juli gana".', lose: 'Cambio el título: "Juli aprende".', after: 'Ser cronista es contar lo que pasó, no lo que quería que pasara. Duele.' } },
-    { id: 'r2b', look: 'marinero', name: 'Pescador Beto', x: 6, y: 8, dir: 'down', trainer: { id: 'r2b', sight: 2, team: [['pinguieson', 11], ['medusync', 11], ['ajolotin', 10]], money: 360, intro: '¡Picó algo! Ah, no, sos vos. Igual peleamos.', lose: 'Se me escapó el pez más grande: la victoria.', after: 'La paciencia es la mejor carnada.' } },
+    { id: 'r2b', look: 'marinero', name: 'Pescador Beto', x: 6, y: 8, dir: 'down', trainer: { id: 'r2b', sight: 2, team: [['pinguieson', 11], ['medusync', 11], ['ajolotin', 10]], money: 360, intro: '¡Picó algo! Ah, no, eres tú. Igual peleamos.', lose: 'Se me escapó el pez más grande: la victoria.', after: 'La paciencia es la mejor carnada.' } },
     { id: 'r2c', look: 'chica', name: 'Materializadora Sofi', x: 14, y: 14, dir: 'left', trainer: { id: 'r2c', sight: 3, team: [['claquetin', 11], ['hedroca', 12]], money: 380, intro: 'Hago utilería. Mis criaturas también: utilería de derrotas ajenas.', lose: 'Bueno, se me rompió la utilería.', after: 'Tamara me enseñó todo. Bueno, casi todo. Lo de perder lo aprendí sola.' } },
     { id: 'gab2', look: 'gabriela', name: 'Gabriela', x: 9, y: 3, dir: 'down', cond: () => flag('dip_foto') && !flag('tr_gab2'), talk: () => S.gabriela2() },
   ],
@@ -312,17 +312,17 @@ registerMap('rd_studio', {
   name: 'Estudio de Luchito', inside: true, music: 'town', rows: studioRows(), entry: STUDIO_ENTRY, bg: 'stage',
   npcs: [
     { id: 'luchito', look: 'luchito', name: 'Luchito', x: 5, y: 2, dir: 'down', talk: () => S.luchito() },
-    { id: 'rdaide', look: 'peque_v', name: 'Aprendiz', x: 7, y: 5, dir: 'left', text: 'Un golpe superefectivo es cuando usás el tipo justo. Agua contra Fuego, Fuego contra Planta, Planta contra Agua... ¡y Hada contra Dragón! Luchito ama ese.' },
+    { id: 'rdaide', look: 'vikinga', name: 'Aprendiz', x: 7, y: 5, dir: 'left', text: 'Un golpe superefectivo es cuando usas el tipo justo. Agua contra Fuego, Fuego contra Planta, Planta contra Agua... ¡y Hada contra Dragón! Luchito ama ese.' },
   ],
 });
 registerMap('rd_casa', {
   name: 'Casa de la cantera', inside: true, music: 'town', rows: houseRows(), entry: HOUSE_ENTRY,
-  npcs: [{ id: 'rdc', look: 'viejo', name: 'Abuelo Ciro', x: 6, y: 3, dir: 'left', text: 'Dante viene a veces a tomar mate. No habla mucho. Pero cuando habla, te deja pensando una semana.' }],
+  npcs: [{ id: 'rdc', look: 'viejo', name: 'Abuelo Ciro', x: 6, y: 3, dir: 'left', text: 'Dante viene a veces a tomar su cafecito. No habla mucho. Pero cuando habla, te deja pensando una semana.' }],
   finds: [{ x: 1, y: 1, item: 'agua' }],
 });
 registerMap('rd_casa2', {
   name: 'Casa de la cantera', inside: true, music: 'town', rows: houseRows(), entry: HOUSE_ENTRY,
-  npcs: [{ id: 'rdc2', look: 'vikinga', name: 'Vicky', x: 4, y: 2, move: 'wander', text: 'Encontré un Fragmento brillando en el suelo. Con tres te fabricás un Cristal en la terminal de la Proa. ¡Reciclaje mágico!' }],
+  npcs: [{ id: 'rdc2', look: 'vikinga', name: 'Vicky', x: 4, y: 2, move: 'wander', text: 'Encontré un Fragmento brillando en el suelo. Con tres te fabricas un Cristal en la terminal de la Proa. ¡Reciclaje mágico!' }],
 });
 proaCenter('rd_proa', 'rodaje', STOCK3);
 
@@ -358,9 +358,9 @@ registerMap('cueva', {
   links: { s: { to: 'rodaje', d: 0 }, n: { to: 'feria', d: 0 } },
   enc: { cave: [['salamandro', 15, 18, 22], ['gusarix', 15, 18, 22], ['tripodin', 16, 19, 15], ['claquetin', 15, 18, 18], ['wyvernito', 16, 18, 8], ['doblecan', 15, 18, 15]] },
   npcs: [
-    { id: 'cv1', look: 'cientifica', name: 'Espeleóloga Mica', x: 8, y: 11, dir: 'right', trainer: { id: 'cv1', sight: 4, team: [['tripodin', 17], ['gusarix', 17]], money: 520, intro: '¡Estoy documentando la cueva! Vos sos parte del documental ahora.', lose: 'Bueno, el documental tiene un giro inesperado.', after: 'Hay cristales que crecen con el calor. Como las amistades. O los hongos.' } },
-    { id: 'cv2', look: 'punk', name: 'Rebata Toto', x: 16, y: 16, dir: 'left', trainer: { id: 'cv2', sight: 4, team: [['salamandro', 17], ['doblecan', 18], ['claquetin', 17]], money: 540, intro: '¡¿QUÉ HACÉS EN MI CUEVA?! Bueno, no es mía. ¡¿QUÉ HACÉS EN LA CUEVA?!', lose: '¡PERDÍ! (se escucha el eco: perdí, perdí, perdí...)', after: 'El eco me hace sentir acompañado.' } },
-    { id: 'cv3', look: 'obrero', name: 'Minero Paco', x: 3, y: 14, dir: 'right', text: 'Dicen que en esta cueva vive un dragoncito que muerde todo. Si lo encontrás, cuidá tus calcetines. Los Duendecillos ya se llevaron uno de cada par.' },
+    { id: 'cv1', look: 'cientifica', name: 'Espeleóloga Mica', x: 8, y: 11, dir: 'right', trainer: { id: 'cv1', sight: 4, team: [['tripodin', 17], ['gusarix', 17]], money: 520, intro: '¡Estoy documentando la cueva! Tú eres parte del documental ahora.', lose: 'Bueno, el documental tiene un giro inesperado.', after: 'Hay cristales que crecen con el calor. Como las amistades. O los hongos.' } },
+    { id: 'cv2', look: 'punk', name: 'Rebata Toto', x: 16, y: 16, dir: 'left', trainer: { id: 'cv2', sight: 4, team: [['salamandro', 17], ['doblecan', 18], ['claquetin', 17]], money: 540, intro: '¡¿QUÉ Haces EN MI CUEVA?! Bueno, no es mía. ¡¿QUÉ Haces EN LA CUEVA?!', lose: '¡PERDÍ! (se escucha el eco: perdí, perdí, perdí...)', after: 'El eco me hace sentir acompañado.' } },
+    { id: 'cv3', look: 'obrero', name: 'Minero Paco', x: 3, y: 14, dir: 'right', text: 'Dicen que en esta cueva vive un dragoncito que muerde todo. Si lo encuentras, cuida tus calcetines. Los Duendecillos ya se llevaron uno de cada par.' },
   ],
   finds: [{ x: 21, y: 2, item: 'guion' }, { x: 2, y: 13, item: 'cafedoble' }, { x: 4, y: 18, item: 'fragoro', hidden: true }, { x: 21, y: 15, item: 'cristal', n: 3 }, { x: 14, y: 18, item: 'fragmento', hidden: true }],
 });
@@ -401,13 +401,13 @@ registerMap('feria', {
   ],
   signs: [{ x: 8, y: 11, text: 'FERIA ÚLTIMA TOMA. Feria de los clanes del norte: teatro, comida y la última toma de cada día. Gran salón de Andrea, pregonera.' }],
   npcs: [
-    { id: 'gate3', look: 'vikingo', name: 'Asistente', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_ficcion'), text: 'La salida al norte es solo para quienes tienen el diploma de Ficción. Andrea es muy estricta. Una vez me tomó examen por saludarla.' },
+    { id: 'gate3', look: 'vikingo', name: 'Asistente', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_ficcion'), text: 'Ya, mira: la salida al norte es solo para quienes tienen el diploma de Ficción. Andrea es muy estricta. Una vez me tomó examen por saludarla.' },
     { id: 'pachi', look: 'pachi', name: 'Pachi', x: 20, y: 9, dir: 'down', talk: () => S.pachiOut() },
     { id: 'andre_f', look: 'andre', name: 'André', x: 21, y: 9, dir: 'down', cond: POST, talk: () => S.andrePost() },
     { id: 'nahuel', look: 'nahuel', name: 'Nahuel', x: 22, y: 9, dir: 'left', cond: () => !POST(), talk: () => S.nahuel() },
-    { id: 'ft1', look: 'cocinero', name: 'Puestero', x: 13, y: 11, dir: 'left', text: '¡Choripán de utilería! No, mentira, es de verdad. ¿Querés? No te puedo vender, no tengo licencia. Pero olelo.' },
-    { id: 'ft2', look: 'vikinga', name: 'Romina', x: 9, y: 15, move: 'wander', text: 'Andrea quiere ser profe. Ya lo es, pero quiere que le digan "profe" en la calle. Decíselo y te sonríe.' },
-    { id: 'ft3', look: 'peque_v', name: 'Benja', x: 20, y: 17, move: 'wander', text: '¡Pachi hace funciones de combate en el teatro! Peleás contra versiones de actuación de gente famosa. ¡Y no perdés nada si perdés!' },
+    { id: 'ft1', look: 'cocinero', name: 'Puestero', x: 13, y: 11, dir: 'left', text: '¡Anticuchos de utilería! No, mentira, es de verdad. ¿Quieres? No te puedo vender, no tengo licencia. Pero olelo.' },
+    { id: 'ft2', look: 'vikinga', name: 'Romina', x: 9, y: 15, move: 'wander', text: 'Andrea quiere ser profe. Ya lo es, pero quiere que le digan "profe" en la calle. Díselo y te sonríe.' },
+    { id: 'ft3', look: 'vikingo', name: 'Benja', x: 20, y: 17, move: 'wander', text: '¡Pachi hace funciones de combate en el teatro! Peleas contra versiones de actuación de gente famosa. ¡Y no pierdes nada si pierdes!' },
   ],
   finds: [{ x: 22, y: 2, item: 'cristalest' }, { x: 1, y: 13, item: 'fragmento', hidden: true }],
 });
@@ -415,7 +415,7 @@ registerMap('ft_studio', {
   name: 'Estudio de Andrea', inside: true, music: 'town', rows: studioRows(), entry: STUDIO_ENTRY, bg: 'stage',
   npcs: [
     { id: 'andrea', look: 'andrea', name: 'Andrea', x: 5, y: 2, dir: 'down', talk: () => S.andrea() },
-    { id: 'ftaide', look: 'peque_v', name: 'Alumna', x: 8, y: 5, dir: 'left', text: 'La profe Andrea pregunta cosas del reino. Si hablaste con la gente en el viaje, vas a estar bien. Si no... suerte.' },
+    { id: 'ftaide', look: 'vikinga', name: 'Alumna', x: 8, y: 5, dir: 'left', text: 'La profe Andrea pregunta cosas del reino. Si hablaste con la gente en el viaje, vas a estar bien. Si no... suerte.' },
   ],
 });
 registerMap('ft_teatro', {
@@ -474,8 +474,8 @@ registerMap('ruta4', {
   signs: [{ x: 12, y: 11, text: 'RUTA 4. Al norte: Prados Montaje. "Lo que no se ve, también cuenta."' }],
   enc: { grass: [['zumbaflor', 22, 26, 20], ['medusync', 22, 25, 14], ['pinguieson', 22, 25, 12], ['hedroca', 22, 25, 12], ['duendecillo', 23, 26, 14], ['lucierlaga', 22, 25, 14], ['longbao', 24, 27, 6], ['flamigaro', 24, 27, 8]] },
   npcs: [
-    { id: 'r4a', look: 'dama', name: 'Pregonera Vale', x: 5, y: 22, dir: 'right', trainer: { id: 'r4a', sight: 4, team: [['zumbaflor', 23], ['medusync', 24]], money: 720, intro: '¡Escuchen, escuchen! ¡Un combate está por empezar! ...Ah, soy yo. ¡Escuchen!', lose: '¡Escuchen! ¡Perdí! Bueno, no escuchen.', after: 'Ser pregonera es decir las noticias. Hoy la noticia sos vos.' } },
-    { id: 'r4b', look: 'chico', name: 'Brandcut Nico', x: 13, y: 16, dir: 'left', trainer: { id: 'r4b', sight: 3, team: [['doblecan', 23], ['palomaiz', 24], ['claquetin', 24]], money: 740, intro: '¡Ya soy de Brandcut! Me dieron el gafete. Es de cartón, pero es mío.', lose: 'Primera regla de Brandcut: no hablar de la derrota. Ok, ya hablé.', after: 'Brandcut es la siguiente generación. Inexpertos pero con ganas. Como vos, pero con gafete.' } },
+    { id: 'r4a', look: 'dama', name: 'Pregonera Vale', x: 5, y: 22, dir: 'right', trainer: { id: 'r4a', sight: 4, team: [['zumbaflor', 23], ['medusync', 24]], money: 720, intro: '¡Escuchen, escuchen! ¡Un combate está por empezar! ...Ah, soy yo. ¡Escuchen!', lose: '¡Escuchen! ¡Perdí! Bueno, no escuchen.', after: 'Ser pregonera es decir las noticias. Hoy la noticia eres tú.' } },
+    { id: 'r4b', look: 'chico', name: 'Brandcut Nico', x: 13, y: 16, dir: 'left', trainer: { id: 'r4b', sight: 3, team: [['doblecan', 23], ['palomaiz', 24], ['claquetin', 24]], money: 740, intro: '¡Ya soy de Brandcut! Me dieron el gafete. Es de cartón, pero es mío.', lose: 'Primera regla de Brandcut: no hablar de la derrota. Ok, ya hablé.', after: 'Brandcut es la siguiente generación. Inexpertos pero con ganas. Como tú, pero con gafete.' } },
     { id: 'r4c', look: 'cocinero', name: 'Cocinero Lalo', x: 3, y: 3, dir: 'down', trainer: { id: 'r4c', sight: 3, team: [['pinguichef', 25], ['longbao', 25]], money: 780, intro: '¡Te voy a cocinar! Metafóricamente. Soy vegetariano.', lose: 'Se me quemó el combate.', after: 'El secreto de la cocina es el amor. Y la sal. Mucho amor y un poco de sal.' } },
     { id: 'chisme1', look: 'vieja', name: 'Vecina Chela', x: 15, y: 5, dir: 'down', talk: () => S.chisme(1), mark: () => flag('libreta') && !flag('chisme1') },
   ],
@@ -522,7 +522,7 @@ registerMap('montaje', {
   signs: [{ x: 8, y: 11, text: 'PRADOS MONTAJE. Aquí la gente de los prados y los colonos de casaca roja comparten la cosecha desde hace generaciones. "Todo cobra sentido en la edición." Al noreste: Torre P.A.' }],
   npcs: [
     { id: 'gate4', look: 'soldado', name: 'Asistente', x: 11, y: 1, dir: 'down', cond: () => !flag('dip_publi'), text: 'Al norte está la Ruta 5 y después el Castillo Difusión. Sin el diploma de Publicidad no te dejo. Nadie entra al castillo sin una buena campaña.' },
-    { id: 'towerguard', look: 'soldado', name: 'Guardia', x: 20, y: 9, dir: 'down', cond: () => !POST(), text: 'La Torre P.A. está cerrada. Solo entran quienes vencieron al Rey. O los técnicos de sonido. ¿Sos técnico de sonido? No, se nota.' },
+    { id: 'towerguard', look: 'soldado', name: 'Guardia', x: 20, y: 9, dir: 'down', cond: () => !POST(), text: 'La Torre P.A. está cerrada. Solo entran quienes vencieron al Rey. O los técnicos de sonido. ¿Eres técnico de sonido? No, se nota.' },
     { id: 'chrys', look: 'chrys', name: 'Chrys', x: 14, y: 11, dir: 'down', talk: () => S.chrys() },
     { id: 'oscar', look: 'oscar', name: 'Oscar', x: 3, y: 10, dir: 'right', talk: () => S.oscar() },
     { id: 'piero', look: 'piero', name: 'Piero', x: 4, y: 10, dir: 'left', talk: () => S.piero() },
@@ -531,7 +531,7 @@ registerMap('montaje', {
     { id: 'nahuel_m', look: 'nahuel', name: 'Nahuel', x: 17, y: 7, dir: 'left', cond: POST, talk: () => S.nahuelPost() },
     { id: 'tomas', look: 'soldado', name: 'Cabo Tomás', x: 9, y: 15, dir: 'right', talk: () => S.tomas() },
     { id: 'nina', look: 'nativa', name: 'Nina', x: 10, y: 15, dir: 'left', talk: () => S.nina() },
-    { id: 'chisme3', look: 'kid', name: 'Teo', x: 21, y: 11, move: 'wander', talk: () => S.chisme(3), mark: () => flag('libreta') && !flag('chisme3') },
+    { id: 'chisme3', look: 'chico', name: 'Teo', x: 21, y: 11, move: 'wander', talk: () => S.chisme(3), mark: () => flag('libreta') && !flag('chisme3') },
   ],
   finds: [{ x: 22, y: 19, item: 'tomados' }, { x: 1, y: 2, item: 'fragmento', hidden: true }],
 });
@@ -591,7 +591,7 @@ registerMap('ruta5', {
   signs: [{ x: 8, y: 14, text: 'RUTA 5. Tramo del Qhapaq Ñan, el gran camino del Inca. Al final: el Castillo Difusión del Rey Navarrete.' }],
   enc: { grass: [['wyvernito', 30, 34, 14], ['boomguru', 31, 35, 16], ['espinardo', 31, 35, 16], ['tripodin', 31, 34, 14], ['dobleriesgo', 32, 35, 12], ['hedroble', 31, 34, 12], ['serafox', 33, 36, 4], ['flamigaro', 31, 34, 12]] },
   npcs: [
-    { id: 'r5a', look: 'vieja', name: 'Veterana CTM Rosa', x: 12, y: 20, dir: 'left', trainer: { id: 'r5a', sight: 4, team: [['glaciolote', 33], ['alquimero', 33]], money: 1100, intro: 'Los CTM somos veteranos. Hicimos esto antes de que vos nacieras. Bueno, no tanto. Pero casi.', lose: 'Bien, bien. Tenés oficio.', after: 'La experiencia no se compra. Se pierde peleando, como ahora.' } },
+    { id: 'r5a', look: 'chica', name: 'Veterana CTM Rosa', x: 12, y: 20, dir: 'left', trainer: { id: 'r5a', sight: 4, team: [['glaciolote', 33], ['alquimero', 33]], money: 1100, intro: 'Los CTM somos los veteranos del grupo, causa. Llevamos haciendo esto desde la universidad. A ver qué tienes, chibolo.', lose: 'Bien, bien. Tienes oficio.', after: 'La experiencia no se compra. Se pierde peleando, como ahora.' } },
     { id: 'r5b', look: 'actor', name: 'Outsider ???', x: 4, y: 12, dir: 'right', trainer: { id: 'r5b', sight: 4, team: [['duendecillo', 33], ['tripodin', 34], ['serafox', 33]], money: 1200, intro: '...No conozco a nadie. Nadie me conoce. Peleemos sin presentarnos.', lose: '...Igual no me presento.', after: 'Los Outsiders no tenemos conexión con nadie. Es tranquilo. A veces, demasiado.' } },
     { id: 'r5c', look: 'punk', name: 'Monas Fan Club', x: 13, y: 4, dir: 'left', trainer: { id: 'r5c', sight: 3, team: [['zumbaccino', 34], ['medubass', 34], ['lucilente', 35]], money: 1250, intro: '¡Las Monas son inseparables y de alta fidelidad! Yo soy su fan número uno. Y dos. Y tres.', lose: 'Las Monas me van a consolar. En mi imaginación.', after: 'Algún día voy a formar mi propio grupo inseparable. Ya tengo el nombre. Me falta la gente.' } },
     { id: 'gab3', look: 'gabriela', name: 'Gabriela', x: 7, y: 8, dir: 'down', cond: () => !flag('tr_gab3'), talk: () => S.gabriela3() },
@@ -644,7 +644,7 @@ for (let i = 1; i <= 5; i++) {
     name: 'Torre P.A. — Piso ' + i, inside: true, music: i === 5 ? 'king' : 'castle', bg: 'tower', rows, entry: { x: 5, y: 8 },
     warps: i < 5 ? [{ x: 5, y: 0, to: 'torre' + (i + 1), tx: 5, ty: 8, dir: 'up' }] : [{ x: 5, y: 0, to: 'torre_top', tx: 5, ty: 6, dir: 'up' }],
     events: [],
-    npcs: [{ id: 'tw' + i, look: t.look, name: t.name, x: 5, y: 3, dir: 'down', trainer: { id: 'tw' + i, sight: 4, team: t.team, money: 2000 + i * 400, intro: t.intro, lose: 'La torre suena distinto con vos arriba.', after: 'Seguí subiendo. Arriba se escucha mejor.', bg: 'tower' } }],
+    npcs: [{ id: 'tw' + i, look: t.look, name: t.name, x: 5, y: 3, dir: 'down', trainer: { id: 'tw' + i, sight: 4, team: t.team, money: 2000 + i * 400, intro: t.intro, lose: 'La torre suena distinto contigo arriba.', after: 'Sigue subiendo. Arriba se escucha mejor.', bg: 'tower' } }],
   });
   if (i > 1) { MAPS['torre' + i].rows[9] = 'KKKKK^KKKKK'; MAPS['torre' + i].warps.push({ x: 5, y: 9, to: 'torre' + (i - 1), tx: 5, ty: 1, dir: 'down' }); }
 }
